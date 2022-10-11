@@ -10,13 +10,13 @@ library(stringdist)
 
 ## useful functions and javascript code
 # distances between column names
-expd_dist <- function(cnames, method="jw") {
+expd_dist <- function(cnames, ...) {
   out_m <- matrix(1, ncol=length(cnames), nrow=length(cnames), 
                   dimnames=list(x=cnames, y=cnames))
   for (i in cnames) {
-    out_m[i,] <- 1-stringdist(i, cnames, method=method)
+    out_m[i,] <- 1-stringdist(i, cnames, ...)
   }
-  out_m
+  1-out_m
 }
 
 
@@ -67,24 +67,32 @@ ui <- navbarPage(
   tabPanel("Experimental design", value = "exp_design", 
            fluidPage(
              fluidRow(
-               h4("Options for automatically selecting experimental groups"),
-               hidden(
-                 sliderInput("dist_thresh", "Threshold to distinguish groups", min=0, max=1, value=0)
-               ),  
-               hidden(
-                 selectInput("dist_type", "Which string distance type?", 
-                             choices = c("Optimcal string alignment"="osa",
-                                         "Levenshtein"="lv",
-                                         "Damerau-Levenshtein"="dl",
-                                         "Hamming"="hamming",
-                                         "Longest common substring"="lcs",
-                                         "q-gram"="qgram",
-                                         "cosine"="cosine",
-                                         "Jaccard"="jaccard",
-                                         "Jaro-Winkler"="jw",
-                                         "soundex"="soundex"), selected="jw")
-               )
-             ), 
+               column(width=6,
+                      h4("Automatic selection of experimental groups"),
+                      p("Change according. You  can edit the experimental design below. Replicates with equal 
+               number and of the same sample type will be summarized."),
+                      hidden(
+                        sliderInput("dist_thresh", "Threshold to distinguish groups", min=0, max=1, value=0)
+                      ),  
+                      hidden(
+                        selectInput("dist_type", "Which string distance type?", 
+                                    choices = c("Optimal string alignment"="osa",
+                                                "Levenshtein"="lv",
+                                                "Damerau-Levenshtein"="dl",
+                                                "Hamming"="hamming",
+                                                "Longest common substring"="lcs",
+                                                "q-gram"="qgram",
+                                                "cosine"="cosine",
+                                                "Jaccard"="jaccard",
+                                                "Jaro-Winkler"="jw",
+                                                "soundex"="soundex"), selected="")
+                      )
+               ),
+               hidden(column(5,id="in_c3",
+                             h4("Proceed to data pre-processing"),
+                             textOutput("txt_proceed_preprocess"),
+                             actionButton("proceed_to_preprocess", "Proceed")
+               ))),
              fluidRow(
                DTOutput('etable')
              ),
@@ -109,7 +117,19 @@ server <- function(input, output, session) {
   ## main data sets
   indata <- reactiveVal(NULL)
   exp_design <- reactiveVal(NULL)
+  final_exp_design <- NULL
   fasta <- protdata <- pepdata <- statdata <- NULL
+  
+  ###### SET FOR TESTING 
+  
+  tdata <- as.data.frame(fread("Myo.csv"))
+  for (col in grep("C[0-9]_", colnames(tdata), value=T))
+    class(tdata[,col]) <- "quant"
+  indata(tdata)
+  show(id="in_c3")
+  enable("in_c3")
+  
+  ##########################
   
   ##### READING DATA
   ## reading file
@@ -191,7 +211,7 @@ server <- function(input, output, session) {
       # set id column
       tdata <- data.frame(tdata)
       class(tdata[,1]) <- "id"
-      print("writing indata")
+      indata(tdata)
     }
     
   })
@@ -341,43 +361,80 @@ server <- function(input, output, session) {
   observeEvent(input$proceed_to_expdesign, {
     updateTabsetPanel(session, "mainpage",
                       selected = "exp_design")
+    print(indata())
     cnames <- colnames(indata())[sapply(indata(), class) == "quant"]
     ted <- rbind(rep(NA,length(cnames)), NA)
     colnames(ted) <- cnames
-    rownames(ted) <- c("Group","Subgroup for merging")
+    rownames(ted) <- c("Group","Replicate")
     
     exp_design(ted)
+    updateSelectInput(session, "dist_type", selected="jw")
     show("dist_thresh")
     show("dist_type")
   })
   
   ##### EXPERIMENTAL DESIGN
+  
+  # update threshold
+  observe({
+    input$dist_type
+    isolate({
+      if (!is.null(exp_design())) {
+        print("dist_type")
+        expd_d <- expd_dist(colnames(exp_design()), method=input$dist_type, p=0.1) # p=0.1 prioritizes the start of the strings
+        median_dist <- median(expd_d[expd_d != 0], na.rm=T)
+        print(median_dist)
+        updateSliderInput(session, "dist_thresh", value=median_dist, min=min(expd_d, na.rm=T), max=max(expd_d, na.rm = T))
+      }
+    })
+  })
+  
+  # update exp. design
+  observe({
+    input$dist_thresh
+    tdesign <- exp_design()
+    isolate({
+      if (!is.null(tdesign)) {
+        print("dist_thres")
+        expd_d <- expd_dist(colnames(tdesign), method=input$dist_type, p=0.1) # p=0.1 prioritizes the start of the strings
+        median_dist <- input$dist_thresh
+        groups <- cutree(hclust(as.dist(expd_d)), h=median_dist)
+        tdesign[1,] <- groups
+        for (j in unique(groups)) {
+          tdesign[2, groups == j] <- 1:sum(groups==j)
+        }
+        
+        exp_design(tdesign)
+      }
+    })
+  })
+  
   # Table for editing design
-  output$ptable <- DT::renderDT({
+  output$etable <- DT::renderDT({
     if (!is.null(exp_design())) {
-    print("edtable")
-    show_table <- exp_design()
-    
-    ## automatically retrieving design
-    expd_d <- expd_dist(colnames(show_table), method=input$dist_type)
-    median_dist <- median(expd_d[expd_d < 1], na.rm=T)
-    updateSliderInput(session, "dist_thresh", value=median_dist)
-    median_dist <- input$dist_thresh
-    groups <- cutree(hclust(as.dist(expd_d)), h=median_dist)
-    show_table[2,] <- groups
-    
-    exp_design(show_table)
-    
-    
-    print(show_table)
-    
-    
-    datatable(show_table, editable=T)
-              
+      print("edtable")
+      show_table <- exp_design()
+      print("done")
+      datatable(show_table, editable=T)
+      
+      
     }
   })
+  
+  ## Send further to next tab
+  observeEvent(input$proceed_to_expdesign, {
+    updateTabsetPanel(session, "mainpage",
+                      selected = "process")
+    
+    final_exp_design <- input$etable
+    print(final_exp_design)
+    # updateSelectInput(session, "dist_type", selected="jw")
+    # show("dist_thresh")
+    # show("dist_type")
+  })
+  
+  
 }
 
 shinyApp(ui = ui, server = server)
-  
-  
+
