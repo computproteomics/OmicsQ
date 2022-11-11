@@ -1,0 +1,8 @@
+############
+# TODO:
+- log file recording all operations (can be done automatically)
+- Not language distances not always being calculated 
+- Include VIQoR
+- Paired/unpaired
+- Ensure that table always has the right format with respectd to replicates when sending to apps
+- Add empty columns in balancing tab

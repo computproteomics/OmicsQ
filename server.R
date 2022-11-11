@@ -1,0 +1,580 @@
+## useful functions and javascript code
+# distances between column names
+expd_dist <- function(cnames, ...) {
+  out_m <- matrix(1, ncol=length(cnames), nrow=length(cnames), 
+                  dimnames=list(x=cnames, y=cnames))
+  for (i in cnames) {
+    out_m[i,] <- 1-stringdist(i, cnames, ...)
+  }
+  1-out_m
+}
+
+server <- function(input, output, session) {
+  ## main data sets
+  indata <- reactiveVal(NULL)
+  exp_design <- reactiveVal(NULL)
+  pexp_design <- reactiveVal(NULL)
+  process_table <- reactiveVal(NULL)
+  processed_table <- reactiveVal(NULL)
+  log_vsclust <- reactiveVal(NULL)
+  log_complexbrowser <- reactiveVal(NULL)
+  log_polystest <- reactiveVal(NULL)
+  fasta <- protdata <- pepdata <- statdata <- NULL
+  
+  # ###### SET FOR TESTING 
+  # 
+  # tdata <- as.data.frame(fread("Myo.csv"))
+  # for (col in grep("C[0-9]_", colnames(tdata), value=T))
+  #   class(tdata[,col]) <- "quant"
+  # indata(tdata)
+  # show(id="in_c3")
+  # enable(id="in_c3")
+  
+  ##########################
+  
+  ##### READING DATA #########################################################
+  ## reading file
+  observe({
+    tdata <- NULL
+    # Read file
+    in_file <- input$pfile
+    if (is.null(in_file))
+      return(NULL)
+    if (tools::file_ext(in_file$datapath) %in% c("xls", "xlsx", "XLS", "XLSX")) {
+      # Set Options for file input
+      currsheet <- ifelse(is.null(input$in_sheet), 1, input$in_sheet)
+      
+      tdata <- try({
+        sheets <- excel_sheets(in_file$datapath)
+        read_excel(in_file$datapath, sheet = currsheet)
+      })
+      
+      # file options
+      shinyjs::show(id="in_c1")
+      output$file_options <- renderUI({
+        input$in_sheet
+        selectInput("in_sheet", "Which table sheet?", choices = sheets)
+      })
+    } else {
+      # file options
+      currdel <- ifelse(is.null(input$in_delimiter), "auto", input$in_delimiter)
+      currdec <- ifelse(is.null(input$in_dec), ".", input$in_dec)
+      currskip <- ifelse(is.null(input$in_skip), 0, input$in_skip)
+      currheader <- ifelse(is.null(input$in_header), T, input$in_header)
+      
+      tdata <- (try(fread(in_file$datapath, sep=currdel, skip=currskip, header=currheader, dec=currdec)))
+      shinyjs::show(id="in_c1")
+      output$file_options <- renderUI({
+        tagList(
+          selectInput("in_delimiter", label="delimiter", choices =
+                        c(auto="auto",comma=",",semicolon=";",tabulator="\t", colon=":",
+                          bar="|", space=" "), selected = currdel , multiple = FALSE,
+          ),
+          selectInput("in_dec", label="decimal separator", choices = c(comma=",",point="."),
+                      selected = currdec),
+          numericInput("in_skip", label="remove lines at beginning?", min = 0,
+                       max = 100, step = 1, value = currskip),
+          checkboxInput("in_header", label="Does file have a header?", value = currheader)
+        )
+      })
+    }
+    
+    shinyjs::show(id="in_c2")
+    shinyjs::show(id="in_c3")
+    updatePickerInput(session,"sel_col", choices=names(tdata))
+    
+    ## feedbeck via moda
+    log_upload <- as.character(geterrmessage())
+    if (inherits(tdata, "try-error")) {
+      print("error reading file")      
+      showModal(modalDialog(title="file upload", log_upload, size="s", easyClose = T))
+    } else {
+      # set id column
+      tdata <- data.frame(tdata)
+      class(tdata[,1]) <- "id"
+      indata(tdata)
+    }
+    
+  })
+  
+  #### Input data data table
+  output$ptable <- DT::renderDT({
+    print("dttable")
+    show_table <- indata()
+    
+    ## create header and footer of table
+    
+    header.style <- "th { font-family: 'Arial'; font-weight: bold; color: white; background-color: #008080;}"
+    #pull header names from the table
+    header.names <- c("Columns", colnames(show_table))
+    header.classes <- c("Type", sapply(show_table,class))
+    header.counts <- c("Duplicated values", sapply(show_table, function(x) sum(duplicated(x, incomparables = NA))))
+    # The container parameter allows us to design the header of the table using CSS
+    column_cols <- c(numeric="#808000",character="#008080",id="#800080", quant="#33AA33", factor="#008080", logical="#008080")
+    datfile_container <- withTags(table(
+      style(type = "text/css", header.style),
+      thead(
+        tr(
+          lapply(header.names, th, style = "text-align: center; border-right-width: 1px; 
+                 border-right-style: solid; border-right-color: white; border-bottom-width: 1px; 
+                 border-bottom-style: solid; border-bottom-color: white")
+        ),
+        tr(
+          lapply(header.classes, function(x) 
+            th(x, style = paste0("text-align: center; border-right-width: 1px; 
+                                 border-right-style: solid; background-color: ",
+                                 column_cols[x], 
+                                 "; border-right-color: white; border-bottom-width: 1px; 
+                                border-bottom-style: solid; border-bottom-color: white")))
+        ),
+        tr(
+          lapply(header.counts, function(x) 
+            th(x, style = paste0("text-align: center; border-right-width: 1px; 
+                                 border-right-style: solid; background-color: ",
+                                 ifelse(x>0, "#800000", "#008000"), 
+                                 "; border-right-color: white; border-bottom-width: 1px; 
+                                border-bottom-style: solid; border-bottom-color: white")))
+        )
+        
+      )
+    ))    
+    # sketch <- tags$table(
+    #   class = "row-border stripe hover compact",
+    #   tableHeader(c("row names",  names(show_table))
+    #   ),
+    #   tableHeader(c("row names", lapply(show_table,class)
+    #   ))
+    #   # tableFooter(c("", buttons))
+    # )
+    datatable(show_table, container=datfile_container
+              # ,
+              #           callback=JS(js_change_columnname)
+    )
+    
+    
+  }
+  )
+  
+  ## select column with ids
+  observeEvent(input$sel_id_col, {
+    isolate({
+      get_cols <- make.names(input$sel_col)[1]
+      if (!is.null(get_cols)) {
+        print("select id columns")
+        tdata <- data.frame(indata())
+        # remove id class from all
+        for (col in colnames(tdata)) {
+          if (class(tdata[,col]) == "id")
+            tdata[,col] <- unclass(tdata[,col])
+        }
+        class(tdata[,get_cols]) <- "id"
+        indata(tdata)
+      }
+    })
+    
+  })
+  
+  ## select columns with quant
+  observeEvent(input$sel_quant_cols, {
+    isolate({
+      get_cols <- make.names(input$sel_col)
+      if (!is.null(get_cols)) {
+        print("select quant columns")
+        tdata <- data.frame(indata())
+        # remove id class from all
+        for (col in colnames(tdata)) {
+          if (class(tdata[,col]) == "quant")
+            tdata[,col] <- unclass(tdata[,col])
+        }
+        for (col in get_cols) {
+          if (class(tdata[,col]) == "numeric" || class(tdata[,col]) == "integer")
+            class(tdata[,col]) <- "quant"
+        }
+        
+        # Control button
+        if (sum(sapply(tdata, class) == "quant") > 0) {
+          enable("proceed_to_expdesign")
+          output$proceed_to_expdesign <- renderText("Ready to go")
+        } else {
+          disable("proceed_to_expdesign")
+          output$proceed_to_expdesign <- renderText("You need to select at least one column with quantified features. 
+                                                    This column needs to the \"numeric\".")
+        }
+        
+        indata(tdata)
+      }
+    })
+    
+  })
+  
+  ## Manipulate input table
+  observeEvent(input$remove_zeroes, {
+    print(input$remove_zeroes)
+    isolate({
+      get_cols <- make.names(input$sel_col)
+      if (!is.null(get_cols)) {
+        print("removing zeroes")
+        tdata <- data.frame(indata())
+        for (col in get_cols)
+          tdata[, col] <- replace(tdata[,col], tdata[,col] == 0, NA)
+        indata(tdata)
+      }
+    })
+    
+  })
+  
+  ## Make characters NA
+  observeEvent(input$remove_char, {
+    isolate({
+      get_cols <- make.names(input$sel_col)
+      if (!is.null(get_cols)) {
+        print("removing chars")
+        tclasses <- sapply(indata(), class)
+        tdata <- data.frame(indata())
+        for (col in get_cols) {
+          tdata[, col] <- as.numeric(tdata[,col])
+          class(tdata[, col]) <- tclasses[col]
+        }
+        indata(tdata)
+      }
+    })
+    
+  })
+  
+  ## Send further to next tab
+  observeEvent(input$proceed_to_expdesign, {
+    updateTabsetPanel(session, "mainpage",
+                      selected = "exp_design")
+    cnames <- colnames(indata())[sapply(indata(), class) == "quant"]
+    ted <- rbind(rep(NA,length(cnames)), NA)
+    colnames(ted) <- cnames
+    rownames(ted) <- c("Group","Replicate")
+    print(ted)    
+    exp_design(ted)
+    updateSelectInput(session, "dist_type", selected=NA)
+    updateSelectInput(session, "dist_type", selected="jw")
+    shinyjs::show("dist_thresh")
+    shinyjs::show("dist_type")
+    shinyjs::show("ed_c3")
+  })
+  
+  ##### EXPERIMENTAL DESIGN #########################################################
+  
+  # update threshold
+  observe({
+    input$dist_type
+    isolate({
+      if (!is.null(exp_design())) {
+        print("dist_type")
+        expd_d <- expd_dist(colnames(exp_design()), method=input$dist_type, p=0.1) # p=0.1 prioritizes the start of the strings
+        median_dist <- median(expd_d[expd_d != 0], na.rm=T)
+        print(median_dist)
+        updateSliderInput(session, "dist_thresh", value=median_dist, min=min(expd_d, na.rm=T), max=max(expd_d, na.rm = T))
+      }
+    })
+  })
+  
+  # update exp. design
+  observe({
+    input$dist_thresh
+    isolate({
+      tdesign <- exp_design()
+      if (!is.null(tdesign)) {
+        print("dist_thres")
+        expd_d <- expd_dist(colnames(tdesign), method=input$dist_type, p=0.1) # p=0.1 prioritizes the start of the strings
+        median_dist <- input$dist_thresh
+        groups <- cutree(hclust(as.dist(expd_d)), h=median_dist)
+        tdesign[1,] <- groups
+        for (j in unique(groups)) {
+          tdesign[2, groups == j] <- 1:sum(groups==j)
+        }
+        
+        exp_design(tdesign)
+      }
+    })
+  })
+  
+  # Table for editing design
+  output$etable <- DT::renderDT({
+    if (!is.null(exp_design())) {
+      print("edtable")
+      show_table <- exp_design()
+      print("done")
+      datatable(show_table, editable=T)
+    }
+  })
+  
+  observeEvent(input$etable_cell_edit, {
+    tdata <- exp_design()
+    tdata[input$etable_cell_edit$row,input$etable_cell_edit$col] <- input$etable_cell_edit$value
+    exp_design(tdata)
+  })
+  
+  
+  ## Send further to next tab
+  observeEvent(input$proceed_to_process, {
+    # reordering sample names for easier treatment
+    final_exp_design <- exp_design()
+    exp_design(final_exp_design[,order(final_exp_design[1,], final_exp_design[2,])])
+    pexp_design(exp_design())
+    tdata <- indata()
+    
+    icol <- colnames(tdata)[grep("id",sapply(tdata, class))]
+    ccols <- colnames(tdata)[grep("quant",sapply(tdata, class))]
+    ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
+    process_table(tdata[,c(icol, colnames(final_exp_design), ocols)])
+    processed_table(process_table())
+    
+    shinyjs::show("pr_c1")
+    shinyjs::show("pr_c2")
+    shinyjs::show("pr_c3")
+    shinyjs::show("pr_plots")
+    updatePickerInput(session,"remove_reps", choices=colnames(exp_design()))
+    # check whether unique ids
+    if (sum(duplicated(tdata[,icol])) == 0)
+      enable("proceed_apps")
+    
+    tdata <- tdata[,colnames(final_exp_design)]
+    # try to find out whether already log-transformed
+    if (max(tdata, na.rm=T)/min(tdata, na.rm=T) < 100 && min(tdata, na.rm=T) < 0)
+      updateCheckboxInput(session, "logtrafo", value = TRUE)
+    updateNumericInput(session, "max_na", min=0, max=ncol(tdata), value=ncol(tdata))
+    
+    updateTabsetPanel(session, "mainpage",
+                      selected = "process")
+    
+  })
+  
+  ##### PRE-PROCESSING #########################################################
+  ## PCA plot of all selected samples
+  output$pca <- renderPlot({
+    print("pca")
+    tdata <- processed_table()
+    tdata <- tdata[, grep("quant",sapply(tdata, class))]
+    tdata <- (tdata[complete.cases(tdata), ])
+    print(length(tdata))
+    shiny::validate(need(
+      length(tdata) > 0,
+      "Principal component analysis not calculated as too many missing values"
+    ))
+    shiny::validate(need(
+      nrow(tdata) > 10,
+      "Principal component analysis not calculated as too many missing values"
+    ))
+    pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
+    loadings <- pca$x
+    texp_design <- pexp_design()
+    plot(loadings, pch = 19, col = rainbow(max(texp_design[1,]))[texp_design[1,]])
+    title(main = "Principal component analysis of data set (loadings)", sub =
+            "Colors denote different conditions")
+    text(loadings, pos=2, labels=colnames(texp_design))
+  })
+  
+  output$corrplot <- renderPlot({
+    print("corrplot")
+    tdata <- processed_table()
+    tdata <- tdata[, grep("quant",sapply(tdata, class))]
+    shiny::validate(need(
+      nrow(tdata) > 10 & ncol(tdata) > 2,
+      "Data matrix too small"
+    ))
+    heatmap(cor(tdata, use="pairwise.complete.obs"))
+  })
+  
+  
+  ## Check for balanced exp. design
+  observeEvent(pexp_design(), {
+    # Check whether balanced
+    texp_design <- pexp_design()
+    ed_stats <- unique(as.vector(table(texp_design[1,])))
+    output$res_num_reps <- renderText({
+      if (length(ed_stats) > 1) {
+        paste("The balanced design has maximally", max(table(pexp_design()[1,])),"replicates for each experimental condition (sample type).")
+        disable("proceed_to_apps")
+      } else {
+        paste("Experimental design is balanced.")
+        enable("proceed_to_apps")
+      }
+      
+    })
+  })
+  
+  ## Summary of main properties of data table
+  output$ptable_summary <- renderText({
+    tdata <- processed_table()
+    ids <- tdata[, grep("id",sapply(tdata, class))]
+    tdata <- tdata[, grep("quant",sapply(tdata, class))]
+    shiny::validate(need(
+      nrow(tdata) > 50 & ncol(tdata) > 2,
+      "Data matrix too small"
+    ))
+    paste("<b>Size</b><br/>The current data table contains",ncol(tdata),"different samples comprised of",nrow(data),
+          "features.<br/><b>Missingness</b><br/>The proportion of missing values is",round(sum(is.na(tdata)) / length(as.matrix(tdata)),digits = 2),
+          "and the number of missing values varies from",min(colSums(is.na(tdata))),
+          "to", max(colSums(is.na(tdata))),"per sample.<br/><b>Range</b><br/>The dynamic range is from", round(min(tdata, na.rm=T),2),
+          "to", round(max(tdata,na.rm=T),digits=2),".<br/><b>Summarization</b><br/> The id column has",ifelse(sum(duplicated(ids)) > 0,
+                                                                                                              "non-unique ids and thus needs to be summarized.",
+                                                                                                              "unique ids and thus does not need to be summarized"))
+  })
+  
+  ## data operations like removing reps, log, nas, and normalization
+  observe({
+    input$remove_reps
+    input$logtrafo
+    input$normalization
+    input$max_na
+    tdata <- process_table()
+    if (!is.null(tdata)) {
+      withProgress(message="Calculating...", value=0, min=0, max=1, {
+        
+        cnames <- colnames(exp_design())
+        icol <- colnames(processed_table())[grep("id",sapply(tdata, class))]
+        
+        # log-transformation
+        if (!input$logtrafo) {
+          for (cn in cnames) {
+            tdata[,cn] <- log2(tdata[,cn])
+            tdata[!is.finite(tdata[,cn]), cn] <- NA
+            incProgress(0.3, detail="log-transformation")
+          }
+        }
+        
+        
+        # move out to avoid repeated calculations and complications?
+        # summarize replicates with the same number
+        candreps <- paste(exp_design()[1,],exp_design()[2,], sep="__")
+        print("summarizing replicates")
+        if (sum(duplicated(candreps)) > 0) {
+          incProgress(0.5, detail="Summarizing replicates")
+          summarized_reps <- matrix(NA, nrow=nrow(tdata), ncol=length(unique(candreps)))
+          for (r in 1:nrow(tdata)) {
+            tsumm <- as.vector(unlist(by(unlist(tdata[r, cnames]), candreps, sum, na.rm=T)))
+            tsumm[tsumm == 0] <- NA
+            summarized_reps[r,] <- tsumm
+          }
+          new_cnames <- cnames[!duplicated(candreps)]
+          colnames(summarized_reps) <- new_cnames
+          exp_design(exp_design()[,new_cnames])
+          tdata <- tdata[,-which(names(tdata) %in% cnames),drop=F]
+          tdata <- cbind(tdata, summarized_reps)
+          cnames <- new_cnames
+          updatePickerInput(session,"remove_reps", choices=colnames(exp_design()))
+        }
+        
+        # removing reps
+        print(paste0("removing", input$remove_reps))
+        rem <- -which(names(tdata) %in% input$remove_reps)
+        if (length(rem) > 0) {
+          incProgress(0.1, detail="Removing replicates")
+          tdata <- tdata[,rem]
+          rem2 <- -which(cnames %in% input$remove_reps)
+          pexp_design(exp_design()[,rem2])
+          cnames <- cnames[rem2]
+        }            
+        
+        
+        # NAs
+        tdata <- tdata[rowSums(is.na(tdata[,cnames])) <= input$max_na, ]
+        
+        # Normalize
+        incProgress(0.6, detail="Normalizing")
+        if (input$normalization == "median") {
+          tdata[,cnames] <- t(t(tdata[,cnames]) - colMedians(as.matrix(tdata[,cnames]), na.rm=T))
+        } else if(input$normalization == "mean") {
+          tdata[,cnames] <- t(t(tdata[,cnames]) - colMeans(as.matrix(tdata[,cnames]), na.rm=T))
+        } else {
+          tdata[,cnames] <- limma::normalizeBetweenArrays(tdata[,cnames], method=input$normalization)
+        }
+        
+        
+        # Summarization (from MsCoreUtils package)
+        if (input$summarize != "none") {
+          incProgress(0.8, detail="Summarization")
+          
+          if (input$summarize ==  "sum") {
+            summarized <- MsCoreUtils::aggregate_by_vector(2^as.matrix(tdata[,cnames]), 
+                                                           tdata[,icol], 
+                                                           input$summarize,
+                                                           na.rm=T)
+            summarized <- log2(summarized)
+          } else {
+            summarized <- MsCoreUtils::aggregate_by_vector(as.matrix(tdata[,cnames]), 
+                                                           tdata[,icol], 
+                                                           input$summarize,
+                                                           na.rm=T)
+          }
+          tdata <- data.frame(summarized_ids=rownames(summarized), summarized)
+          colnames(tdata)[1] <- icol
+        }
+        # set class
+        for (cn in cnames) {
+          class(tdata[,cn]) <- "quant"
+        }
+        class(tdata[,icol]) <- "id"
+        
+        # check whether unique ids and balanced design
+        ed_stats <- unique(as.vector(table(pexp_design()[1,])))        
+        if (sum(duplicated(is.na(tdata[,icol]))) == 0 && ed_stats == 1) {
+          enable("proceed_apps")
+        } else {
+          disable("proceed_apps")
+        }
+        processed_table(tdata)
+      })
+    }
+  })
+  
+  ## Send further to next tab
+  observeEvent(input$proceed_to_apps, {
+    updateTabsetPanel(session, "mainpage",
+                      selected = "apps")
+    # reordering sample names for easier treatment
+    final_exp_design <- pexp_design()
+    tdata <- processed_table()
+    
+    icol <- colnames(tdata)[grep("id",sapply(tdata, class))]
+    ccols <- colnames(tdata)[grep("quant",sapply(tdata, class))]
+    ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
+    
+    
+    shinyjs::show("app_c1")
+    shinyjs::show("app_c2")
+    shinyjs::show("app_c3")
+    # shinyjs::show("pr_plots")
+    # updatePickerInput(session,"remove_reps", choices=colnames(exp_design()))
+    
+  })
+  
+  
+  ##### SEND TO APPS #########################################################
+  observeEvent(input$send_vsclust, {
+    # make table in right format
+    tdata <- processed_table()
+    outdat <- as.matrix(tdata[,grep("quant",sapply(tdata, class))])
+    outdat <- cbind(tdata[,grep("id",sapply(tdata, class))], outdat)
+    final_exp_design <- pexp_design()
+    NumCond <- length(unique(final_exp_design[1,]))
+    NumReps <- table(final_exp_design[1,])[1]
+    # print(outdat)
+    VSClustMessage <- toJSON(list(numrep=NumReps, numcond=NumCond, grouped=F, paired=F, modsandprots=F, 
+                                  expr_matrix=as.list(as.data.frame(outdat))))
+    updateTextInput(session, "app_log", value="Opening VSClust and data upload ...")
+    js$send_message(url=input$url_vsclust, dat=VSClustMessage, tool="vsclust")
+
+  })
+  
+  output$connection_vsclust <- renderText({
+    toutput <- log_vsclust()
+    print(input$app_log)
+    if (input$app_log != "" & !is.null(input$app_log)) {
+      if (grepl("vsclust", tolower(input$app_log))) {
+        toutput <- input$app_log
+        print(toutput)
+        log_vsclust(toutput)
+        updateTextInput(session, "app_log", value="")
+      }
+    }
+    toutput
+  })
+  
+}
