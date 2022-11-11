@@ -120,7 +120,9 @@ ui <- navbarPage(
                                          options = list(
                                            `live-search` = TRUE,
                                            `actions-box` = TRUE)),
-                             textOutput("res_num_reps")
+                             p("Beware that the following option should only applied when few replicates are missing:"),
+                             switchInput("add_na_columns", "Add empty columns to underrepresented conditions", value=FALSE),
+                             p(textOutput("res_num_reps"), style="text-color:#AA2222")
                ),
                hidden(column(width=3, id="pr_c2",
                              p("Here you can filter rows with too many missing values, select the normalization method, 
@@ -176,7 +178,7 @@ ui <- navbarPage(
                hidden(column(width=4, id="app_c2",
                              h4("Clustering"),
                              actionButton("send_vsclust", "Send to VSClust"),
-                             span(textOutput("connection_vsclust"), style="background-color:#333333;"),
+                             p(textOutput("connection_vsclust"), style="background-color:#333333;"),
                              textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
                              actionButton("retrieve_vsclust", "Retrieve results from VSClust")
                )),

@@ -6,3 +6,4 @@
 - Paired/unpaired
 - Ensure that table always has the right format with respectd to replicates when sending to apps
 - Add empty columns in balancing tab
+- Add text about R library and new repo to vsclust

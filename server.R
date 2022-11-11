@@ -351,6 +351,7 @@ server <- function(input, output, session) {
     print("pca")
     tdata <- processed_table()
     tdata <- tdata[, grep("quant",sapply(tdata, class))]
+    tdata <- tdata[, colSums(!is.na(tdata)) > 0]
     tdata <- (tdata[complete.cases(tdata), ])
     print(length(tdata))
     shiny::validate(need(
@@ -383,20 +384,20 @@ server <- function(input, output, session) {
   
   
   ## Check for balanced exp. design
-  observeEvent(pexp_design(), {
+  output$res_num_reps <- renderText({
+    print("check for balancing")
+    print(pexp_design())
     # Check whether balanced
     texp_design <- pexp_design()
     ed_stats <- unique(as.vector(table(texp_design[1,])))
-    output$res_num_reps <- renderText({
-      if (length(ed_stats) > 1) {
-        paste("The balanced design has maximally", max(table(pexp_design()[1,])),"replicates for each experimental condition (sample type).")
-        disable("proceed_to_apps")
-      } else {
-        paste("Experimental design is balanced.")
-        enable("proceed_to_apps")
-      }
-      
-    })
+    if (length(ed_stats) > 1) {
+      disable("proceed_to_apps")
+      tout <- paste("The balanced design has maximally", max(table(pexp_design()[1,])),"replicates for each experimental condition (sample type).")
+    } else {
+      enable("proceed_to_apps")
+      tout <- paste("Experimental design is balanced.")
+    }
+    tout 
   })
   
   ## Summary of main properties of data table
@@ -506,6 +507,15 @@ server <- function(input, output, session) {
           tdata <- data.frame(summarized_ids=rownames(summarized), summarized)
           colnames(tdata)[1] <- icol
         }
+        
+        ## add empty columns if requested
+        if (input$add_na_columns) {
+          max_reps <- max(table(pexp_design()[1,]))
+          for (cond in unique(pexp_design()[,1])) {
+            
+          }
+        }
+        
         # set class
         for (cn in cnames) {
           class(tdata[,cn]) <- "quant"
@@ -520,6 +530,7 @@ server <- function(input, output, session) {
           disable("proceed_apps")
         }
         processed_table(tdata)
+        
       })
     }
   })
@@ -560,7 +571,7 @@ server <- function(input, output, session) {
                                   expr_matrix=as.list(as.data.frame(outdat))))
     updateTextInput(session, "app_log", value="Opening VSClust and data upload ...")
     js$send_message(url=input$url_vsclust, dat=VSClustMessage, tool="vsclust")
-
+    
   })
   
   output$connection_vsclust <- renderText({
