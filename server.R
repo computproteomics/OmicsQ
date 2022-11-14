@@ -96,14 +96,7 @@ server <- function(input, output, session) {
     }
     
   })
-  observeEvent(input$h_ptable, sendSweetAlert(
-    session,
-    title="File types",
-    text="OmicsQ can read Excel files, and tables in textual format like csv, tsv and others. 
-    The underlying function tries to automatically determine delimiters and digit separators.",
-    type="info"
-  ))
-  
+
   #### Input data data table
   output$ptable <- DT::renderDT({
     print("dttable")
@@ -608,5 +601,47 @@ server <- function(input, output, session) {
     }
     toutput
   })
+
+############### Help messages #########################################################
+  observeEvent(input$h_pfile, sendSweetAlert(
+    session,
+    title="File types",
+    text=HTML("<p align='justify'>OmicsQ can read <i>Excel</i> files, and tables in <i>textual format</i> like csv, tsv and others.<br/> 
+    The underlying function tries to automatically determine delimiters and digit separators.</p>"),
+    type="info",
+    html = T
+  ))
   
-}
+  observeEvent(input$h_csv_input, sendSweetAlert(
+    session,
+    title="Options of textual input file",
+    text=HTML("<p align='justify'><i>Delimiter:</i> Specify the character that separates the values. Change only if 'auto' does not provide the correct table.<br/>
+              <i>Decimal separator:</i> Specify the character to denote decimals.<br/>
+              <i>Remove lines at beginning:</i> Sometimes, a textual format has a header spanning more than one line. You have the option to ignore
+              a number of lines at the start of the files. This information will be lost.<br/>
+              <i>Does file have a header: </i>In case that the file does not have a first row with information about the data columns, deselect this option.</p>"),
+    type="info",
+    html = T
+  ))
+  
+  observeEvent(input$h_sel_col, sendSweetAlert(
+    session,
+    title="Select columns",
+    text=HTML("<p align='justify'>Select the columns you want to manipulate or set with the buttons below. You can search for multiple colums. 
+              This is particularly useful when your quantitative columns have similar columns names.</p>"),
+    type="info",
+    html = T
+  ))
+  
+  observeEvent(input$h_sel_id_col, sendSweetAlert(
+    session,
+    title="Define relevant columns",
+    text=HTML("<p align='justify'><i>ID column:</i> Select column with the main features. These can be e.g. gene ids, protein ids, or peptide sequences. 
+              They do not need to be unique as we offer summarization in the following analysis. The main analysis will take place on a unique set of IDs.<br/>
+              <i>Quantitative columns: </i> These are the columns with values we will use in the analyses. They usually are quantifications of the features 
+              in the ID column (e.g. protein abundances or gene expressions)</p>"),
+    type="info",
+    html = T
+  ))
+  
+  }
