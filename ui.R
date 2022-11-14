@@ -29,12 +29,18 @@ ui <- navbarPage(
   # ),
   # Define tabs
   tabPanel("Reading data", value = "read", # reading file and experimental design (add/delete replicates), 
+           useSweetAlert(),
            #gene names, protein names, PTMs, fasta? Check for inconsistent columns 
            # and offer to remove artifacts, check for identical values and variance=0
            fluidPage(
              fluidRow(
                column(3,
-                      h4("File input"),
+                      fillRow(h3("File input"), 
+                              actionBttn("h_pfile",
+                                         icon=icon("circle-info"),
+                                         style="pill", 
+                                         color = "royal", size = "xs")
+                      ),
                       fileInput("pfile", label = "Data table")
                ),
                hidden(column(3,id="in_c1",
@@ -74,7 +80,7 @@ ui <- navbarPage(
            fluidPage(
              fluidRow(
                column(width=6,
-                      h4("Automatic selection of experimental groups"),
+                      h3("Automatic selection of experimental groups"),
                       p("Change accordingly. You  can edit the experimental design below. Replicates with equal 
                number and of the same sample type will be summarized."),
                       hidden(
@@ -110,7 +116,7 @@ ui <- navbarPage(
   ),
   tabPanel("Pre-processing", value = "process",  
            fluidPage(
-             h4("Prepare the data for submission to the different apps"),
+             h3("Prepare the data for submission to the different apps"),
              fluidRow(
                hidden(column(width=4, id="pr_c1",
                              p("The different experimental conditions (sample types) need to be at least nearly balanced. This means 
@@ -121,7 +127,7 @@ ui <- navbarPage(
                                            `live-search` = TRUE,
                                            `actions-box` = TRUE)),
                              p("Beware that the following option should only applied when few replicates are missing:"),
-                             switchInput("add_na_columns", "Add empty columns to underrepresented conditions", value=FALSE),
+                             switchInput("add_na_columns", "Add empty columns for full balance", value=FALSE),
                              p(textOutput("res_num_reps"), style="text-color:#AA2222")
                ),
                hidden(column(width=3, id="pr_c2",
@@ -162,32 +168,31 @@ ui <- navbarPage(
            # double entries, high variance levels in PTMs 
            # Create list of suggested operations on the data: 1) log trafo, 2) remove some features due to missingness, 3) remove redundant rows 4) filter PTMs
            # 5) normalize?
-           
   ), 
   tabPanel("Send and retrieve", value = "apps",
            fluidPage(
-             h4("Analyze the table with the different apps"),
+             h3("Analyze the table with the different apps"),
              fluidRow(
                hidden(column(width=4, id="app_c1",
                              h4("Statistical testing"),
                              actionButton("send_polystest", "Send to PolySTest"),
                              textOutput("connection_polystest"),
                              textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
-                             actionButton("retrieve_polystest", "Retrieve results from PolySTest")
+                             hidden(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
                )),
                hidden(column(width=4, id="app_c2",
                              h4("Clustering"),
                              actionButton("send_vsclust", "Send to VSClust"),
-                             p(textOutput("connection_vsclust"), style="background-color:#333333;"),
+                             span(textOutput("connection_vsclust"), style="color:#33DD33;"),
                              textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
-                             actionButton("retrieve_vsclust", "Retrieve results from VSClust")
+                             hidden(actionButton("retrieve_vsclust", "Retrieve results from VSClust"))
                )),
                hidden(column(width=4, id="app_c3",
                              h4("Investigate protein complex behavior"),
                              actionButton("send_polystest", "Send to ComplexBrowser"),
                              textOutput("connection_complexbrowser"),
                              textInput("url_complexbrowser",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/ComplexBrowser/"),
-                             actionButton("retrieve_cmplexbrowser", "Retrieve results from ComplexBrowser")
+                             hidden(actionButton("retrieve_cmplexbrowser", "Retrieve results from ComplexBrowser"))
                ))
                
                

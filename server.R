@@ -96,6 +96,13 @@ server <- function(input, output, session) {
     }
     
   })
+  observeEvent(input$h_ptable, sendSweetAlert(
+    session,
+    title="File types",
+    text="OmicsQ can read Excel files, and tables in textual format like csv, tsv and others. 
+    The underlying function tries to automatically determine delimiters and digit separators.",
+    type="info"
+  ))
   
   #### Input data data table
   output$ptable <- DT::renderDT({
@@ -424,115 +431,129 @@ server <- function(input, output, session) {
     input$logtrafo
     input$normalization
     input$max_na
+    input$add_na_columns
     tdata <- process_table()
-    if (!is.null(tdata)) {
-      withProgress(message="Calculating...", value=0, min=0, max=1, {
-        
-        cnames <- colnames(exp_design())
-        icol <- colnames(processed_table())[grep("id",sapply(tdata, class))]
-        
-        # log-transformation
-        if (!input$logtrafo) {
-          for (cn in cnames) {
-            tdata[,cn] <- log2(tdata[,cn])
-            tdata[!is.finite(tdata[,cn]), cn] <- NA
-            incProgress(0.3, detail="log-transformation")
-          }
-        }
-        
-        
-        # move out to avoid repeated calculations and complications?
-        # summarize replicates with the same number
-        candreps <- paste(exp_design()[1,],exp_design()[2,], sep="__")
-        print("summarizing replicates")
-        if (sum(duplicated(candreps)) > 0) {
-          incProgress(0.5, detail="Summarizing replicates")
-          summarized_reps <- matrix(NA, nrow=nrow(tdata), ncol=length(unique(candreps)))
-          for (r in 1:nrow(tdata)) {
-            tsumm <- as.vector(unlist(by(unlist(tdata[r, cnames]), candreps, sum, na.rm=T)))
-            tsumm[tsumm == 0] <- NA
-            summarized_reps[r,] <- tsumm
-          }
-          new_cnames <- cnames[!duplicated(candreps)]
-          colnames(summarized_reps) <- new_cnames
-          exp_design(exp_design()[,new_cnames])
-          tdata <- tdata[,-which(names(tdata) %in% cnames),drop=F]
-          tdata <- cbind(tdata, summarized_reps)
-          cnames <- new_cnames
-          updatePickerInput(session,"remove_reps", choices=colnames(exp_design()))
-        }
-        
-        # removing reps
-        print(paste0("removing", input$remove_reps))
-        rem <- -which(names(tdata) %in% input$remove_reps)
-        if (length(rem) > 0) {
-          incProgress(0.1, detail="Removing replicates")
-          tdata <- tdata[,rem]
-          rem2 <- -which(cnames %in% input$remove_reps)
-          pexp_design(exp_design()[,rem2])
-          cnames <- cnames[rem2]
-        }            
-        
-        
-        # NAs
-        tdata <- tdata[rowSums(is.na(tdata[,cnames])) <= input$max_na, ]
-        
-        # Normalize
-        incProgress(0.6, detail="Normalizing")
-        if (input$normalization == "median") {
-          tdata[,cnames] <- t(t(tdata[,cnames]) - colMedians(as.matrix(tdata[,cnames]), na.rm=T))
-        } else if(input$normalization == "mean") {
-          tdata[,cnames] <- t(t(tdata[,cnames]) - colMeans(as.matrix(tdata[,cnames]), na.rm=T))
-        } else {
-          tdata[,cnames] <- limma::normalizeBetweenArrays(tdata[,cnames], method=input$normalization)
-        }
-        
-        
-        # Summarization (from MsCoreUtils package)
-        if (input$summarize != "none") {
-          incProgress(0.8, detail="Summarization")
+    isolate({
+      if (!is.null(tdata)) {
+        withProgress(message="Calculating...", value=0, min=0, max=1, {
           
-          if (input$summarize ==  "sum") {
-            summarized <- MsCoreUtils::aggregate_by_vector(2^as.matrix(tdata[,cnames]), 
-                                                           tdata[,icol], 
-                                                           input$summarize,
-                                                           na.rm=T)
-            summarized <- log2(summarized)
+          cnames <- colnames(exp_design())
+          icol <- colnames(processed_table())[grep("id",sapply(tdata, class))]
+          
+          # log-transformation
+          if (!input$logtrafo) {
+            for (cn in cnames) {
+              tdata[,cn] <- log2(tdata[,cn])
+              tdata[!is.finite(tdata[,cn]), cn] <- NA
+              incProgress(0.3, detail="log-transformation")
+            }
+          }
+          
+          
+          # move out to avoid repeated calculations and complications?
+          # summarize replicates with the same number
+          candreps <- paste(exp_design()[1,],exp_design()[2,], sep="__")
+          print("summarizing replicates")
+          if (sum(duplicated(candreps)) > 0) {
+            incProgress(0.5, detail="Summarizing replicates")
+            summarized_reps <- matrix(NA, nrow=nrow(tdata), ncol=length(unique(candreps)))
+            for (r in 1:nrow(tdata)) {
+              tsumm <- as.vector(unlist(by(unlist(tdata[r, cnames]), candreps, sum, na.rm=T)))
+              tsumm[tsumm == 0] <- NA
+              summarized_reps[r,] <- tsumm
+            }
+            new_cnames <- cnames[!duplicated(candreps)]
+            colnames(summarized_reps) <- new_cnames
+            exp_design(exp_design()[,new_cnames])
+            tdata <- tdata[,-which(names(tdata) %in% cnames),drop=F]
+            tdata <- cbind(tdata, summarized_reps)
+            cnames <- new_cnames
+            updatePickerInput(session,"remove_reps", choices=colnames(exp_design()))
+          }
+          
+          # removing reps
+          print(paste0("removing", input$remove_reps))
+          rem <- -which(names(tdata) %in% input$remove_reps)
+          if (length(rem) > 0) {
+            incProgress(0.1, detail="Removing replicates")
+            tdata <- tdata[,rem]
+            rem2 <- -which(cnames %in% input$remove_reps)
+            pexp_design(exp_design()[,rem2])
+            cnames <- cnames[rem2]
+          }            
+          
+          
+          # NAs
+          tdata <- tdata[rowSums(is.na(tdata[,cnames])) <= input$max_na, ]
+          
+          # Normalize
+          incProgress(0.6, detail="Normalizing")
+          if (input$normalization == "median") {
+            tdata[,cnames] <- t(t(tdata[,cnames]) - colMedians(as.matrix(tdata[,cnames]), na.rm=T))
+          } else if(input$normalization == "mean") {
+            tdata[,cnames] <- t(t(tdata[,cnames]) - colMeans(as.matrix(tdata[,cnames]), na.rm=T))
           } else {
-            summarized <- MsCoreUtils::aggregate_by_vector(as.matrix(tdata[,cnames]), 
-                                                           tdata[,icol], 
-                                                           input$summarize,
-                                                           na.rm=T)
+            tdata[,cnames] <- limma::normalizeBetweenArrays(tdata[,cnames], method=input$normalization)
           }
-          tdata <- data.frame(summarized_ids=rownames(summarized), summarized)
-          colnames(tdata)[1] <- icol
-        }
-        
-        ## add empty columns if requested
-        if (input$add_na_columns) {
-          max_reps <- max(table(pexp_design()[1,]))
-          for (cond in unique(pexp_design()[,1])) {
+          
+          
+          # Summarization (from MsCoreUtils package)
+          if (input$summarize != "none") {
+            incProgress(0.8, detail="Summarization")
             
+            if (input$summarize ==  "sum") {
+              summarized <- MsCoreUtils::aggregate_by_vector(2^as.matrix(tdata[,cnames]), 
+                                                             tdata[,icol], 
+                                                             input$summarize,
+                                                             na.rm=T)
+              summarized <- log2(summarized)
+            } else {
+              summarized <- MsCoreUtils::aggregate_by_vector(as.matrix(tdata[,cnames]), 
+                                                             tdata[,icol], 
+                                                             input$summarize,
+                                                             na.rm=T)
+            }
+            tdata <- data.frame(summarized_ids=rownames(summarized), summarized)
+            colnames(tdata)[1] <- icol
           }
-        }
-        
-        # set class
-        for (cn in cnames) {
-          class(tdata[,cn]) <- "quant"
-        }
-        class(tdata[,icol]) <- "id"
-        
-        # check whether unique ids and balanced design
-        ed_stats <- unique(as.vector(table(pexp_design()[1,])))        
-        if (sum(duplicated(is.na(tdata[,icol]))) == 0 && ed_stats == 1) {
-          enable("proceed_apps")
-        } else {
-          disable("proceed_apps")
-        }
-        processed_table(tdata)
-        
-      })
-    }
+          
+          ## add empty columns if requested
+          if (input$add_na_columns) {
+            print("adding NA columns")
+            reps <- table(pexp_design()[1,])
+            max_reps <- max(reps)
+            tedes <- pexp_design()
+            for (cond in unique(tedes[1,])) {
+              tt <- tedes[, tedes[1,] == cond, drop=F]
+              print(reps)
+              print(max_reps)
+              for (i in seq_len(max_reps - reps[cond])) {
+                tedes <- cbind(tedes, c(cond, max(tt[2,]) + i))
+                colnames(tedes)[ncol(tedes)] <- paste0("new", reps[cond], "_", i)
+              }
+            }
+            print(tedes)
+            pexp_design(tedes)
+          }
+          
+          # set class
+          for (cn in cnames) {
+            class(tdata[,cn]) <- "quant"
+          }
+          class(tdata[,icol]) <- "id"
+          
+          # check whether unique ids and balanced design
+          ed_stats <- unique(as.vector(table(pexp_design()[1,])))        
+          if (sum(duplicated(is.na(tdata[,icol]))) == 0 && ed_stats == 1) {
+            enable("proceed_apps")
+          } else {
+            disable("proceed_apps")
+          }
+          processed_table(tdata)
+          
+        })
+      }
+    })
   })
   
   ## Send further to next tab
@@ -570,7 +591,7 @@ server <- function(input, output, session) {
     VSClustMessage <- toJSON(list(numrep=NumReps, numcond=NumCond, grouped=F, paired=F, modsandprots=F, 
                                   expr_matrix=as.list(as.data.frame(outdat))))
     updateTextInput(session, "app_log", value="Opening VSClust and data upload ...")
-    js$send_message(url=input$url_vsclust, dat=VSClustMessage, tool="vsclust")
+    js$send_message(url=input$url_vsclust, dat=VSClustMessage, tool="VSClust")
     
   })
   
