@@ -96,7 +96,7 @@ server <- function(input, output, session) {
     }
     
   })
-
+  
   #### Input data data table
   output$ptable <- DT::renderDT({
     print("dttable")
@@ -266,7 +266,7 @@ server <- function(input, output, session) {
     isolate({
       if (!is.null(exp_design())) {
         print("dist_type")
-        expd_d <- expd_dist(colnames(exp_design()), method=input$dist_type, p=0.1) # p=0.1 prioritizes the start of the strings
+        expd_d <- expd_dist(colnames(exp_design()), method=input$dist_type, p=0.2) # p=0.1 prioritizes the start of the strings
         median_dist <- median(expd_d[expd_d != 0], na.rm=T)
         print(median_dist)
         updateSliderInput(session, "dist_thresh", value=median_dist, min=min(expd_d, na.rm=T), max=max(expd_d, na.rm = T))
@@ -379,7 +379,8 @@ server <- function(input, output, session) {
       nrow(tdata) > 10 & ncol(tdata) > 2,
       "Data matrix too small"
     ))
-    heatmap(cor(tdata, use="pairwise.complete.obs"))
+   gplots::heatmap.2(cor(tdata, use="pairwise.complete.obs"), main="Pairwise correlations between samples",
+           symm=T, scale="none", col=gplots::redblue, breaks=seq(-1,1,0.01), trace = "none")
   })
   
   
@@ -392,7 +393,7 @@ server <- function(input, output, session) {
     ed_stats <- unique(as.vector(table(texp_design[1,])))
     if (length(ed_stats) > 1) {
       disable("proceed_to_apps")
-      tout <- paste("The balanced design has maximally", max(table(pexp_design()[1,])),"replicates for each experimental condition (sample type).")
+      tout <- paste("This unbalanced design has between ", min(table(pexp_design()[1,])), " and maximally", max(table(pexp_design()[1,])),"replicates for each experimental condition (sample type).")
     } else {
       enable("proceed_to_apps")
       tout <- paste("Experimental design is balanced.")
@@ -409,13 +410,13 @@ server <- function(input, output, session) {
       nrow(tdata) > 50 & ncol(tdata) > 2,
       "Data matrix too small"
     ))
-    paste("<b>Size</b><br/>The current data table contains",ncol(tdata),"different samples comprised of",nrow(data),
-          "features.<br/><b>Missingness</b><br/>The proportion of missing values is",round(sum(is.na(tdata)) / length(as.matrix(tdata)),digits = 2),
+    paste("<p><b>Size: </b>The current data table contains",ncol(tdata),"different samples in ",length(unique(pexp_design()[1,]))," conditions, and is comprised of",nrow(tdata),
+          "features.<br/><b>Missingness: </b>The proportion of missing values is",round(sum(is.na(tdata)) / length(as.matrix(tdata)),digits = 3),
           "and the number of missing values varies from",min(colSums(is.na(tdata))),
-          "to", max(colSums(is.na(tdata))),"per sample.<br/><b>Range</b><br/>The dynamic range is from", round(min(tdata, na.rm=T),2),
-          "to", round(max(tdata,na.rm=T),digits=2),".<br/><b>Summarization</b><br/> The id column has",ifelse(sum(duplicated(ids)) > 0,
-                                                                                                              "non-unique ids and thus needs to be summarized.",
-                                                                                                              "unique ids and thus does not need to be summarized"))
+          "to", max(colSums(is.na(tdata))),"per sample.<br/><b>Range: </b>The dynamic range is from", round(min(tdata, na.rm=T),2),
+          "to", round(max(tdata,na.rm=T),digits=2),".<br/><b>Summarization: </b> The id column has",ifelse(sum(duplicated(ids)) > 0,
+          "non-unique ids and thus needs to be summarized.",
+          "unique ids and thus does not need to be summarized</p>"))
   })
   
   ## data operations like removing reps, log, nas, and normalization
@@ -572,6 +573,8 @@ server <- function(input, output, session) {
   
   
   ##### SEND TO APPS #########################################################
+  
+  ## VSClust
   observeEvent(input$send_vsclust, {
     # make table in right format
     tdata <- processed_table()
@@ -601,8 +604,71 @@ server <- function(input, output, session) {
     }
     toutput
   })
-
-############### Help messages #########################################################
+  
+  ## PolySTest
+  observeEvent(input$send_polystest, {
+    # make table in right format
+    tdata <- processed_table()
+    outdat <- as.matrix(tdata[,grep("quant",sapply(tdata, class))])
+    outdat <- cbind(tdata[,grep("id",sapply(tdata, class))], outdat)
+    final_exp_design <- pexp_design()
+    NumCond <- length(unique(final_exp_design[1,]))
+    NumReps <- table(final_exp_design[1,])[1]
+    # print(outdat)
+    PolySTestMessage <- toJSON(list(numrep=NumReps, numcond=NumCond, grouped=F, paired=F, firstquantcol=2, 
+                                  expr_matrix=as.list(as.data.frame(outdat))))
+    updateTextInput(session, "app_log", value="Opening PolySTest and data upload ...")
+    js$send_message(url=input$url_polystest, dat=PolySTestMessage, tool="PolySTest")
+    
+  })
+  
+  output$connection_polystest <- renderText({
+    toutput <- log_polystest()
+    print(input$app_log)
+    if (input$app_log != "" & !is.null(input$app_log)) {
+      if (grepl("polystest", tolower(input$app_log))) {
+        toutput <- input$app_log
+        print(toutput)
+        log_polystest(toutput)
+        updateTextInput(session, "app_log", value="")
+      }
+    }
+    toutput
+  })
+  
+  ## ComplexBrowser
+  observeEvent(input$send_complexbrowser, {
+    # make table in right format
+    tdata <- processed_table()
+    outdat <- as.matrix(tdata[,grep("quant",sapply(tdata, class))])
+    outdat <- cbind(tdata[,grep("id",sapply(tdata, class))], outdat)
+    final_exp_design <- pexp_design()
+    NumCond <- length(unique(final_exp_design[1,]))
+    NumReps <- table(final_exp_design[1,])[1]
+    # print(outdat)
+    ##TODO allow PolySTest input for including statistics
+    ComplexBrowserMessage <- toJSON(list(numrep=NumReps, numcond=NumCond, grouped=F, paired=F, withstats=F, 
+                                    expr_matrix=as.list(as.data.frame(outdat))))
+    updateTextInput(session, "app_log", value="Opening ComplexBrowser and data upload ...")
+    js$send_message(url=input$url_complexbrowser, dat=ComplexBrowserMessage, tool="ComplexBrowser")
+    
+  })
+  
+  output$connection_complexbrowser <- renderText({
+    toutput <- log_complexbrowser()
+    print(input$app_log)
+    if (input$app_log != "" & !is.null(input$app_log)) {
+      if (grepl("complexbrowser", tolower(input$app_log))) {
+        toutput <- input$app_log
+        print(toutput)
+        log_complexbrowser(toutput)
+        updateTextInput(session, "app_log", value="")
+      }
+    }
+    toutput
+  })
+  
+  ############### Help messages #########################################################
   observeEvent(input$h_pfile, sendSweetAlert(
     session,
     title="File types",
@@ -639,9 +705,140 @@ server <- function(input, output, session) {
     text=HTML("<p align='justify'><i>ID column:</i> Select column with the main features. These can be e.g. gene ids, protein ids, or peptide sequences. 
               They do not need to be unique as we offer summarization in the following analysis. The main analysis will take place on a unique set of IDs.<br/>
               <i>Quantitative columns: </i> These are the columns with values we will use in the analyses. They usually are quantifications of the features 
-              in the ID column (e.g. protein abundances or gene expressions)</p>"),
+              in the ID column (e.g. protein abundances or gene expressions).<br>
+              ID and quant columns are marked in the table below according to your selection. You need to select them
+              sto proceed to the next analysis step.</p>"),
     type="info",
     html = T
   ))
   
-  }
+  observeEvent(input$h_remove_zeroes, sendSweetAlert(
+    session,
+    title="Simple data manipulation",
+    text=HTML("<p align='justify'><i>Zeroes to missing values: </i>Missed measurements are often given by 
+              zeroes. As the actual value of the features is not known, we make them missing values 
+              (NA or not available in R)<br/>
+              <i>Non-numeric to missing values: </i>Data manipulations with software like Excel can lead to values like 
+              '#DIV/0!'. This buttons converts any non-numeric value into a missing values. Only purely numeric <i>quant</i> columns
+              are accepted to continue the analysis.</p>"),
+    type="info",
+    html = T
+  ))
+  
+  
+  observeEvent(input$h_proceed_expdesign, sendSweetAlert(
+    session,
+    title="Ready to proceed?",
+    text=HTML("<p align='justify'>In order to change to define the experimental design, you need to have selected
+            an <i>ID</i> column and multiple numeric <i>quant</i> columns.</p>"),
+    type="info",
+    html = T
+  ))
+  
+  observeEvent(input$h_exp_design, sendSweetAlert(
+    session,
+    title="Estimate design",
+    text=HTML("<p align='justify'><i>General: </i>We estimate the experimental design from the similarity
+              between column names. Try the different string distances below and play with the threshold
+              to find the optimal setting. <br/>
+              You can further <i>modify</i> the experimental design by double clicking on the respective entry in
+              the table.<br/>
+              <i>Explanation of table: </i>Group denote the experimental condition, i.e. the group of sample
+              of the same type like drug, disease or time points. Different conditions are given by different numbers.
+              Replicates correspons to biological or technical samples of the same type such as different mice with the 
+              same mutation or the same sample being rerun on the instrument. Here, a different replicate needs to be 
+              given by a different number (within all replicates of a condition). Replicates with the same number within
+              the same conditions will be summarized in the next step. Summarization means the values of the resulting
+              replicate will be given by the sum of the summarized replicates.</p>"),
+    type="info",
+    html = T
+  ))
+
+  observeEvent(input$h_balancing, sendSweetAlert(
+    session,
+    title="Create a balanced design",
+    text=HTML("<p align='justify'>The different experimental conditions (sample types) need to be at least nearly balanced. For the 
+              further analysis, this means that the number of replicates per sample should be the same for each of them. You can balance the data
+              by adding empty columns and/or removing excess replicates. Replicates with the same number have already been summarized.<br/>
+              <i>Select beliow</i> the samples you wnat to exclude.<br/>
+              <i>Fill with empty columns: </i>Use this switch to reach the same number of replicates per condition. This does <b>not make a data set more balanced</b>. 
+              We recommend removing samples from groups that have a much larger number of replicates.</p>"),
+    type="info",
+    html = T
+  ))
+
+  observeEvent(input$h_logtrafo, sendSweetAlert(
+    session,
+    title="Log transformation",
+    text=HTML("<p align='justify'>In general, quantitative omics data is log-transformed. 
+              OmicsQ estimates whether the data was transformed from the values (data range and 
+              negative values). Deselecting this box will transform the data by taking the logarithm
+              with base 2.</p>"),
+    type="info",
+    html = T
+  ))
+
+  observeEvent(input$h_max_na, sendSweetAlert(
+    session,
+    title="Deleting features with low coverage",
+    text=HTML("<p align='justify'>Despite of the capability of PolySTest and VSClust to include features
+              with missing values, we recommend features that have very low coverage as their measurements
+              are usually very noisy. Filter for the maximum number of missing values here. The default is 
+              to take all features.</p>"),
+    type="info",
+    html = T
+  ))
+
+  observeEvent(input$h_normalization, sendSweetAlert(
+    session,
+    title="Normalization",
+    text=HTML("<p align='justify'>The total amount of molecules per sample can vary when loading them 
+              into the instrument. This systematic error can be corrected by assuming that most 
+              of the features do not change between samples. We offer the main normalization methods
+              used in the field.<br/>
+              <i>None:</i> Do no normalize (or has already been normalized)<br/>
+              <i>Median: </i>Subtract the median of each sample from the log-transformed values (recommended 
+              as more outlier insensitive)<br/>
+              <i>Mean: </i>Subtract the mean of the sample from the log-transformed values<br/>
+              <i>Cyclic Loess: </i>Apply a non-linear transformation to accommodate for non-linear effects and 
+              large changes and batch effects in the data (see <a href='http://web.mit.edu/~r/current/arch/i386_linux26/lib/R/library/limma/html/normalizeCyclicLoess.html'>cyclicLoess</a>. <br/></p>"),
+    type="info",
+    html = T
+  ))
+
+  observeEvent(input$h_summarize, sendSweetAlert(
+    session,
+    title="Summarization of feature values",
+    text=HTML("<p align='justify'><i>This option is only needed for id columns with duplicated values.</i> 
+              This can be multiple features measured over all samples like peptides of the same protein.
+              Check the data summary on the right side whether there are any duplicates.
+              The here given options summarize the rows with the same feature name using one of the following
+              methods:<br/>
+              <i>None: </i>Do not summarize. In the case of duplicated id values, you won't be able to proceed (default)<br/>
+              <i>Sum: </i>Here we take the sum of the non-log-transformed values. This can have impact on the normalization.<br/>
+              <i>Mean: </i>Take the mean of log-transformed values<br/>
+              <i>Median: </i>Take the median of log-transformed values<br/>
+              <i>Robust median: </i>Take the median of log-transformed values but remove outliers 
+              (see <a href='https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/medpolish'>medpolish</a>)<br/></p>"),
+    type="info",
+    html = T
+  ))
+  
+  observeEvent(input$h_apps, sendSweetAlert(
+    session,
+    title="Call apps for further analysis",
+    text=HTML("<p align='justify'>You can submit your data set to the apps 
+              <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>PolySTest</a>, 
+              <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>VSClust</a>, and 
+              <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>ComplexBrowser</a>. The
+              URLs are set to the public servers which should be fully functional but 
+              might be busy due to limited user access.<br/>
+              If you, for example due to privacy reasons, want to call the apps on a local or another 
+              server, please change the URL fields to the respective addresses.<br/>
+              <i>Note:</i> Depending on the size of the data set, the data upload could fail due to a too slow 
+              internet connection.</p>"),
+    type="info",
+    html = T
+  ))
+  
+}

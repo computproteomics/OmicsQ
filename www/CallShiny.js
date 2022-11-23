@@ -21,13 +21,11 @@ shinyjs.send_message = function(params)
   var extWindow = window.open(params.url, "_blank");
   // Try 10 times 
   var timer = 1; 
-  while(timer < 11 && response.localeCompare(tool + " data received") != 0){
+  while(timer < 21 && response.localeCompare(tool + " data received") != 0){
     setTimeout(sendData, 2000);
     window.addEventListener("message", updateResponse, false);
     timer = timer + 1; 
     console.log(response !== tool + " data received")
-    function updateResponse(evt) {
-      response = evt.data;
     };
   };
 

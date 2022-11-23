@@ -13,6 +13,8 @@ library(matrixStats)
 library(MsCoreUtils)
 library(jsonlite)
 
+options(shiny.maxRequestSize = 200 * 1024^2)
+
 ###### Start UI
 ui <- navbarPage(
   id="mainpage",
@@ -67,10 +69,10 @@ ui <- navbarPage(
                                       )),                                       
                              hr(),
                              fluidRow(column(10,p("Select id and data columns:"),
-                             actionButton("sel_id_col", 
-                                          label=HTML("Select ID column")),
-                             actionButton("sel_quant_cols", 
-                                          label=HTML("Select quantitative columns")),
+                                             actionButton("sel_id_col", 
+                                                          label=HTML("Select ID column")),
+                                             actionButton("sel_quant_cols", 
+                                                          label=HTML("Select quantitative columns")),
                              ),
                              column(2, actionBttn("h_sel_id_col",
                                                   icon=icon("info-circle"),
@@ -79,8 +81,8 @@ ui <- navbarPage(
                              )),                             
                              hr(),
                              fluidRow(column(10,p("Simple manipulations and corrections:"),
-                             actionButton("remove_zeroes", label="Make zeroes to missing values"),
-                             actionButton("remove_char", label="Make non-numeric entries missing values"),
+                                             actionButton("remove_zeroes", label="Zeroes to missing values"),
+                                             actionButton("remove_char", label="Non-numeric to missing values"),
                              ),column(2, actionBttn("h_remove_zeroes",
                                                     icon=icon("info-circle"),
                                                     style="pill", 
@@ -111,17 +113,20 @@ ui <- navbarPage(
              fluidRow(
                column(width=6,
                       h3("Automatic selection of experimental groups"),
-                      p("Change accordingly. You  can edit the experimental design below. Replicates with equal 
-               number and of the same sample type will be summarized."),
+                      p("Find most suitable settings. You  can manually edit the experimental design in the table below.
+                      Replicates with equal number and of the same sample type will be summarized to one replicate."),
+                      actionBttn("h_exp_design",
+                                 icon=icon("info-circle"),
+                                 style="pill", 
+                                 color = "royal", size = "xs"),
                       hidden(
-                        sliderInput("dist_thresh", "Threshold to distinguish groups", min=0, max=1, value=0)
+                        sliderInput("dist_thresh", "Threshold for string distance", min=0, max=1, value=0)
                       ),  
                       hidden(
-                        selectInput("dist_type", "Which string distance type?", 
+                        selectInput("dist_type", "String distance type", 
                                     choices = c("Optimal string alignment"="osa",
                                                 "Levenshtein"="lv",
                                                 "Damerau-Levenshtein"="dl",
-                                                "Hamming"="hamming",
                                                 "Longest common substring"="lcs",
                                                 "q-gram"="qgram",
                                                 "cosine"="cosine",
@@ -132,7 +137,7 @@ ui <- navbarPage(
                ),
                hidden(column(5,id="ed_c3",
                              h4("Proceed to data pre-processing"),
-                             p("This will summarize replicates with the number (and the same condition)"),
+                             p("Note: Samples with equal group and replicate number will be merged."),
                              actionButton("proceed_to_process", "Proceed"),
                              style = 'border-left: 1px solid')
                )
@@ -148,92 +153,123 @@ ui <- navbarPage(
   ),
   tabPanel("Pre-processing", value = "process",  
            fluidPage(
-             h3("Prepare the data for submission to the different apps"),
+             h3("Data treatment pre-submission"),
              fluidRow(
                hidden(column(width=4, id="pr_c1",
-                             p("The different experimental conditions (sample types) need to be at least nearly balanced. This means 
-                        that the number of replicates per sample should be the same for each of them. You can balance the data
-                        by adding empty columns and/or removing excess replicates. Replicates with the same number need to be summarized."),
-                             pickerInput("remove_reps", "Pick the samples you want to remove", choices = NULL, multiple=T,
-                                         options = list(
-                                           `live-search` = TRUE,
-                                           `actions-box` = TRUE)),
-                             p("Beware that the following option should only applied when few replicates are missing:"),
-                             switchInput("add_na_columns", "Add empty columns for full balance", value=FALSE),
+                             h4("Add or delete data columns"),
+                             fluidRow(column(10,pickerInput("remove_reps", "Pick the samples you want to remove", choices = NULL, multiple=T,
+                                                            options = list(
+                                                              `live-search` = TRUE,
+                                                              `actions-box` = TRUE))),
+                                      column(2, actionBttn("h_balancing",
+                                                           icon=icon("info-circle"),
+                                                           style="pill", 
+                                                           color = "royal", size = "xs")
+                                      )),
+                             switchInput("add_na_columns", "Fill with empty columns", 
+                                         value=FALSE, labelWidth = 50),
+                             h4("The current state:"),
                              p(textOutput("res_num_reps"), style="text-color:#AA2222")
                )),
                hidden(column(width=3, id="pr_c2",
-                             p("Here you can filter rows with too many missing values, select the normalization method, 
-                               and summarize via sum or using the VIQoR"),
-                             checkboxInput("logtrafo", "Is the data already log-transformed?", value=F),
-                             numericInput("max_na", label="Maximum number of missing values per feature", 
-                                          min=0, max=0, step=1, value=100),
-                             selectInput("normalization", label="Normalization method",
-                                         choices=c(None="none", Median="median", "Mean"="mean","Cyclic LOESS (LIMMA)"="cyclicloess",
-                                                   selected="median")),
-                             selectInput("summarize", label="Summarize to id features", 
-                                         choices=c(None="none","By sum"="colSums",
-                                                   "By mean"="colMeans", "By median"="colMedians", 
-                                                   "Robust median (medpolish)"="medianPolish"
-                                                   #"Robust summary (rlm)"="robustSummary" Does not work with missing values
-                                         )),
+                             h4("Data manipulation and adjustment"),
+                             fluidRow(column(10,checkboxInput("logtrafo", "Is the data already log-transformed?", value=F)),
+                                      column(2, actionBttn("h_logtrafo",
+                                                           icon=icon("info-circle"),
+                                                           style="pill", 
+                                                           color = "royal", size = "xs")
+                                      )),
+                             fluidRow(column(10,numericInput("max_na", label="Maximum number of missing values per feature", 
+                                                             min=0, max=0, step=1, value=100)),
+                                      column(2, actionBttn("h_max_na",
+                                                           icon=icon("info-circle"),
+                                                           style="pill", 
+                                                           color = "royal", size = "xs")
+                                      )),
+                             fluidRow(column(10,selectInput("normalization", label="Normalization method",
+                                                            choices=c(None="none", Median="median", "Mean"="mean","Cyclic LOESS (LIMMA)"="cyclicloess",
+                                                                      selected="median"))),
+                                      column(2, actionBttn("h_normalization",
+                                                           icon=icon("info-circle"),
+                                                           style="pill", 
+                                                           color = "royal", size = "xs")
+                                      )),
+                             fluidRow(column(10,selectInput("summarize", label="Summarize to id features", 
+                                                            choices=c(None="none","By sum"="colSums",
+                                                                      "By mean"="colMeans", "By median"="colMedians", 
+                                                                      "Robust median (medpolish)"="medianPolish"
+                                                                      #"Robust summary (rlm)"="robustSummary" Does not work with missing values
+                                                            ))),
+                                      column(2, actionBttn("h_summarize",
+                                                           icon=icon("info-circle"),
+                                                           style="pill", 
+                                                           color = "royal", size = "xs")
+                                      )),
                              style = 'border-left: 1px solid' 
                )              
                ),
                hidden(column(4,id="pr_c3",
                              h4("Summary:"),
-                             htmlOutput("ptable_summary"),
-                             h4("Proceed to interaction with apps"),
+                             htmlOutput("ptable_summary",style="border:solid;border-width:1px;"),
+                             h5("Proceed to interaction with apps"),
                              textOutput("txt_proceed_apps"),
                              disabled(actionButton("proceed_to_apps", "Proceed")),
                              style = 'border-left: 1px solid'    
-               )           
-               ),
-               hidden(fluidRow(id="pr_plots",
-                               column(5,
-                                      plotOutput("pca")),
-                               column(5,
-                                      plotOutput("corrplot")
-                               )))
+               ))),        
+             
+             hidden(fluidRow(id="pr_plots",
+                             column(5,
+                                    plotOutput("pca")),
+                             column(5,
+                                    plotOutput("corrplot")
+                             ))
              )
              # simple processing, PCA, missing values
              # Show PCA and retrieve some simple statistics like correlation between replicates, missing values, total numbers, homogeneity, 
              # double entries, high variance levels in PTMs 
              # Create list of suggested operations on the data: 1) log trafo, 2) remove some features due to missingness, 3) remove redundant rows 4) filter PTMs
              # 5) normalize?
-           ), 
-           tabPanel("Send and retrieve", value = "apps",
-                    fluidPage(
-                      h3("Analyze the table with the different apps"),
-                      fluidRow(
-                        hidden(column(width=4, id="app_c1",
-                                      h4("Statistical testing"),
-                                      actionButton("send_polystest", "Send to PolySTest"),
-                                      textOutput("connection_polystest"),
-                                      textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
-                                      hidden(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
-                        )),
-                        hidden(column(width=4, id="app_c2",
-                                      h4("Clustering"),
-                                      actionButton("send_vsclust", "Send to VSClust"),
-                                      span(textOutput("connection_vsclust"), style="color:#33DD33;"),
-                                      textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
-                                      hidden(actionButton("retrieve_vsclust", "Retrieve results from VSClust")),
-                                      style = 'border-left: 1px solid'    
-                        )
-                        ),
-                        hidden(column(width=4, id="app_c3",
-                                      h4("Investigate protein complex behavior"),
-                                      actionButton("send_polystest", "Send to ComplexBrowser"),
-                                      textOutput("connection_complexbrowser"),
-                                      textInput("url_complexbrowser",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/ComplexBrowser/"),
-                                      hidden(actionButton("retrieve_complexbrowser", "Retrieve results from ComplexBrowser")),
-                                      style = 'border-left: 1px solid'    
-                        ))
-                      )
-                    ),
-                    hidden(textInput("app_log", "app_log", value=NULL))
            )
-           # send to other apps, button of "active" and then allow retrieving results?
+  ), 
+  tabPanel("Send and retrieve", value = "apps",
+           fluidPage(
+             fluidRow(column(11,h3("Analyze the table with the different apps")),
+                      column(1,actionBttn("h_apps",
+                                          icon=icon("info-circle"),
+                                          style="pill", 
+                                          color = "royal", size = "xs")
+                      )),
+             
+             fluidRow(
+               hidden(column(width=4, id="app_c1",
+                             h4("Statistical testing"),
+                             actionButton("send_polystest", "Send to PolySTest"),
+                             textOutput("connection_polystest"),
+                             # textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
+                             textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk/PolySTest/"),
+                             hidden(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
+               )),
+               hidden(column(width=4, id="app_c2",
+                             h4("Clustering"),
+                             actionButton("send_vsclust", "Send to VSClust"),
+                             span(textOutput("connection_vsclust"), style="color:#33DD33;"),
+                             textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
+                             hidden(actionButton("retrieve_vsclust", "Retrieve results from VSClust")),
+                             style = 'border-left: 1px solid'    
+               )
+               ),
+               hidden(column(width=4, id="app_c3",
+                             h4("Investigate protein complex behavior"),
+                             actionButton("send_complexbrowser", "Send to ComplexBrowser"),
+                             textOutput("connection_complexbrowser"),
+                             textInput("url_complexbrowser",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/ComplexBrowser/"),
+                             hidden(actionButton("retrieve_complexbrowser", "Retrieve results from ComplexBrowser")),
+                             style = 'border-left: 1px solid'    
+               ))
+             )
+           ),
+           hidden(textInput("app_log", "app_log", value=NULL))
   )
-) 
+  # send to other apps, button of "active" and then allow retrieving results?
+)
+
