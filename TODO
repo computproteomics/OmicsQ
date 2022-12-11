@@ -1,13 +1,12 @@
 ############
 # TODO:
 - log file recording all operations (can be done automatically)
-- Not language distances not always being calculated 
 - Include VIQoR
-- Paired/unpaired
 - Ensure that table always has the right format with respectd to replicates when sending to apps
-- Add empty columns in balancing tab
-- Hamming distance failed with error!
-- Check order of normalization, summarization, summarization of columns as normalization should come last?
 - Add more links to methods and lectures
 - Use PolySTest output as input for ComplexBrowser
 - Return table with eventlistener? Or store event.source in window.orig_data or similar?
+- Button to assign sample group to selection from experimental design table
+- Set column names in first tab to original onees
+- Put colors on different experimental design conditions
+- Color merged output from appes

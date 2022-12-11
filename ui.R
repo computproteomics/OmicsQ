@@ -22,7 +22,7 @@ ui <- navbarPage(
   theme = shinythemes::shinytheme("spacelab"),
   tags$head(tags$script(src="CallShiny.js")),
   useShinyjs(),  # Include shinyjs
-  extendShinyjs(script="CallShiny.js", functions=c("send_message")),
+  extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message")),
   # primary_theme_color = "#69DDFF", 
   # secondary_theme_color = "#DBBADD",  
   # Place side-nav in the beginning of the UI
@@ -39,7 +39,11 @@ ui <- navbarPage(
              fluidRow(
                column(3,
                       h3("File input"), 
-                      fluidRow(column(6,fileInput("pfile", label = "Data table")),
+                      fluidRow(column(6,fileInput("pfile", label = "Data table"),
+                                      br(),
+                                      actionLink("run_example", "Run example file"),
+                                      p("Note that this work is still under development. For feedback and bugs,
+                                        please write the author: veits@bmb.sdu.dk")),
                                column(6,actionBttn("h_pfile",
                                                    icon=icon("info-circle"),
                                                    style="pill", 
@@ -58,21 +62,17 @@ ui <- navbarPage(
                )),
                hidden(column(3,id="in_c2",
                              h4("Select and adjust"), 
-                             fluidRow(column(10,pickerInput("sel_col", "Manipulate which columns?", choices=NULL,  multiple=T, 
-                                                            options = list(
-                                                              `live-search` = TRUE,
-                                                              `actions-box` = TRUE))),
-                                      column(2, actionBttn("h_sel_col",
-                                                           icon=icon("info-circle"),
-                                                           style="pill", 
-                                                           color = "royal", size = "xs")
-                                      )),                                       
-                             hr(),
                              fluidRow(column(10,p("Select id and data columns:"),
-                                             actionButton("sel_id_col", 
-                                                          label=HTML("Select ID column")),
-                                             actionButton("sel_quant_cols", 
-                                                          label=HTML("Select quantitative columns")),
+                                             pickerInput("sel_icol", "Select ID column", 
+                                                         choices=NULL,  multiple=F, 
+                                                         options = list(
+                                                           `live-search` = TRUE,
+                                                           `actions-box` = TRUE)),
+                                             pickerInput("sel_qcols", "Select quantitative columns", 
+                                                         choices=NULL,  multiple=T, 
+                                                         options = list(
+                                                           `live-search` = TRUE,
+                                                           `actions-box` = TRUE)),                                                                                   
                              ),
                              column(2, actionBttn("h_sel_id_col",
                                                   icon=icon("info-circle"),
@@ -233,21 +233,24 @@ ui <- navbarPage(
   ), 
   tabPanel("Send and retrieve", value = "apps",
            fluidPage(
-             fluidRow(column(11,h3("Analyze the table with the different apps")),
+             fluidRow(column(7,h3("Analyze the table with the different apps")),
                       column(1,actionBttn("h_apps",
                                           icon=icon("info-circle"),
                                           style="pill", 
                                           color = "royal", size = "xs")
                       )),
+             fluidRow(column(10, switchInput("paired", "Paired experimental design",value=F))
+             ),
+             
              
              fluidRow(
                hidden(column(width=4, id="app_c1",
                              h4("Statistical testing"),
                              actionButton("send_polystest", "Send to PolySTest"),
-                             textOutput("connection_polystest"),
-                             # textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
-                             textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk/PolySTest/"),
-                             hidden(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
+                             span(textOutput("connection_polystest"), style="color:#33DD33;"),
+                             textInput("url_polystest",label="URL",value="http://localhost:3838/Apps/PolySTest/"),
+                             #textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
+                             disabled(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
                )),
                hidden(column(width=4, id="app_c2",
                              h4("Clustering"),
@@ -261,12 +264,17 @@ ui <- navbarPage(
                hidden(column(width=4, id="app_c3",
                              h4("Investigate protein complex behavior"),
                              actionButton("send_complexbrowser", "Send to ComplexBrowser"),
-                             textOutput("connection_complexbrowser"),
+                             span(textOutput("connection_complexbrowser"), style="color:#33DD33;"),
                              textInput("url_complexbrowser",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/ComplexBrowser/"),
                              hidden(actionButton("retrieve_complexbrowser", "Retrieve results from ComplexBrowser")),
                              style = 'border-left: 1px solid'    
                ))
+             ),
+             fluidRow(hidden(column(width=4, id="download_apps", ))),
+             fluidRow(
+               DTOutput('rtable')
              )
+             
            ),
            hidden(textInput("app_log", "app_log", value=NULL))
   )
