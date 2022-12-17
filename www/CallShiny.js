@@ -5,6 +5,11 @@ window.addEventListener("message", displayMessage, false);
  Shiny.setInputValue("app_log", evt.data);
 };
 
+// Manipulate buttons for example file
+shinyjs.run_button = function(params)
+{
+  Shiny.setInputValue(params.button, params.number);
+};
 
 // open app and send message with data
 shinyjs.send_message = function(params)
@@ -65,6 +70,7 @@ shinyjs.retrieve_results = function(params)
   console.log(extWindow);
   extWindow.postMessage(JSON.stringify(message), '*');
   setTimeout(sendData, 5000);
+  setTimeout(sendData, 10000);
 
   function sendData() {
     extWindow.postMessage(JSON.stringify(message), '*');

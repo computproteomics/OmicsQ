@@ -22,7 +22,7 @@ ui <- navbarPage(
   theme = shinythemes::shinytheme("spacelab"),
   tags$head(tags$script(src="CallShiny.js")),
   useShinyjs(),  # Include shinyjs
-  extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message")),
+  extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message","run_button")),
   # primary_theme_color = "#69DDFF", 
   # secondary_theme_color = "#DBBADD",  
   # Place side-nav in the beginning of the UI
@@ -40,7 +40,6 @@ ui <- navbarPage(
                column(3,
                       h3("File input"), 
                       fluidRow(column(6,fileInput("pfile", label = "Data table"),
-                                      br(),
                                       actionLink("run_example", "Run example file"),
                                       p("Note that this work is still under development. For feedback and bugs,
                                         please write the author: veits@bmb.sdu.dk")),
@@ -111,7 +110,7 @@ ui <- navbarPage(
   tabPanel("Experimental design", value = "exp_design", 
            fluidPage(
              fluidRow(
-               column(width=6,
+               column(width=4,
                       h3("Automatic selection of experimental groups"),
                       p("Find most suitable settings. You  can manually edit the experimental design in the table below.
                       Replicates with equal number and of the same sample type will be summarized to one replicate."),
@@ -135,7 +134,16 @@ ui <- navbarPage(
                                                 "soundex"="soundex"), selected="")
                       )
                ),
-               hidden(column(5,id="ed_c3",
+               hidden(column(width=4,id="ed_c2",
+                             h4("Assign sample types manually"),
+                             pickerInput("ed_sel_samples", "Select columns for setting sample type", 
+                                         choices=NULL,  multiple=T, 
+                                         options = list(
+                                           `live-search` = TRUE,
+                                           `actions-box` = TRUE)),
+                             sliderInput("ed_number", "Set to this sample type",min=1,max=1,value=1,step=1)
+               )),
+               hidden(column(3,id="ed_c3",
                              h4("Proceed to data pre-processing"),
                              p("Note: Samples with equal group and replicate number will be merged."),
                              actionButton("proceed_to_process", "Proceed"),
@@ -256,8 +264,9 @@ ui <- navbarPage(
                              h4("Clustering"),
                              actionButton("send_vsclust", "Send to VSClust"),
                              span(textOutput("connection_vsclust"), style="color:#33DD33;"),
-                             textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
-                             hidden(actionButton("retrieve_vsclust", "Retrieve results from VSClust")),
+                             textInput("url_vsclust",label="URL",value="http://localhost:3838/Apps/vsclust/inst/shiny/"),
+                             # textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
+                             disabled(actionButton("retrieve_vsclust", "Retrieve results from VSClust")),
                              style = 'border-left: 1px solid'    
                )
                ),
@@ -270,7 +279,9 @@ ui <- navbarPage(
                              style = 'border-left: 1px solid'    
                ))
              ),
-             fluidRow(hidden(column(width=4, id="download_apps", ))),
+             br(),
+             fluidRow(hidden(column(width=4, id="download_apps", )),downloadBttn("downloadTable",label = "Download table")),
+             br(),
              fluidRow(
                DTOutput('rtable')
              )

@@ -1,12 +1,11 @@
 ############
 # TODO:
-- log file recording all operations (can be done automatically)
+- log file recording all operations (can be done automatically), make list with text entries to be merged to methods afterwards
 - Include VIQoR
-- Ensure that table always has the right format with respectd to replicates when sending to apps
 - Add more links to methods and lectures
 - Use PolySTest output as input for ComplexBrowser
 - Return table with eventlistener? Or store event.source in window.orig_data or similar?
-- Button to assign sample group to selection from experimental design table
 - Set column names in first tab to original onees
-- Put colors on different experimental design conditions
 - Color merged output from appes
+- Allow sdrf as input
+- Correct ComplexBrowser input as not working
