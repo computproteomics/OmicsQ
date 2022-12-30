@@ -256,16 +256,16 @@ ui <- navbarPage(
                              h4("Statistical testing"),
                              actionButton("send_polystest", "Send to PolySTest"),
                              span(textOutput("connection_polystest"), style="color:#33DD33;"),
-                             textInput("url_polystest",label="URL",value="http://localhost:3838/Apps/PolySTest/"),
-                             #textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
+                             #textInput("url_polystest",label="URL",value="http://localhost:3838/Apps/PolySTest/"),
+                             textInput("url_polystest",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/PolySTest/"),
                              disabled(actionButton("retrieve_polystest", "Retrieve results from PolySTest"))
                )),
                hidden(column(width=4, id="app_c2",
                              h4("Clustering"),
                              actionButton("send_vsclust", "Send to VSClust"),
                              span(textOutput("connection_vsclust"), style="color:#33DD33;"),
-                             textInput("url_vsclust",label="URL",value="http://localhost:3838/Apps/vsclust/inst/shiny/"),
-                             # textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
+                             #textInput("url_vsclust",label="URL",value="http://localhost:3838/Apps/vsclust/inst/shiny/"),
+                             textInput("url_vsclust",label="URL",value="http://computproteomics.bmb.sdu.dk:443/app_direct/VSClust/"),
                              disabled(actionButton("retrieve_vsclust", "Retrieve results from VSClust")),
                              style = 'border-left: 1px solid'    
                )

@@ -413,6 +413,7 @@ server <- function(input, output, session) {
     print("corrplot")
     tdata <- processed_table()
     tdata <- tdata[, grep("quant",sapply(tdata, class))]
+    tdata <- tdata[,colSums(!is.na(tdata)) > 0]
     shiny::validate(need(
       nrow(tdata) > 10 & ncol(tdata) > 2,
       "Data matrix too small"
@@ -514,7 +515,8 @@ server <- function(input, output, session) {
             cnames <- new_cnames
             
             # Update picker input with new column names
-            updatePickerInput(session, "remove_reps", choices = colnames(exp_design()))            new_cnames <- cnames[!duplicated(candreps)]
+            updatePickerInput(session, "remove_reps", choices = colnames(exp_design()))            
+            new_cnames <- cnames[!duplicated(candreps)]
           }
           
           # removing reps
@@ -575,12 +577,20 @@ server <- function(input, output, session) {
               print(max_reps)
               for (i in seq_len(max_reps - reps[cond])) {
                 tedes <- cbind(tedes, c(cond, max(tt[2,]) + i))
-                colnames(tedes)[ncol(tedes)] <- paste0("new", reps[cond], "_", i)
+                colnames(tedes)[ncol(tedes)] <- paste0("new", cond, "_", i)
+                tdata[paste0("new", cond, "_", i)] <- NA
+                print(head(tdata, 1))
+                print( paste0("new", cond, "_", i))
               }
             }
-            print(tedes)
+            # reorder columns according to experimental design
+            tedes <- tedes[,order(tedes[1,], tedes[2,])]
+            cnames <- colnames(tedes)
             pexp_design(tedes)
           }
+          print(-(colnames(tdata) %in% cnames))
+          tdata <- data.frame(tdata[,!(colnames(tdata) %in% cnames),drop=F], tdata[,cnames])          
+          
           
           # set class
           for (cn in cnames) {
