@@ -321,10 +321,12 @@ server <- function(input, output, session) {
   # Manually change design
   observeEvent(input$ed_sel_samples, isolate({
     ted <- exp_design()
+    input$ed_sel_samples
     if (length(input$ed_sel_samples > 0)) {
       ted[1, input$ed_sel_samples] <- input$ed_number
       idx <- (ted[1, ] == input$ed_number)
-      ted[2, idx] <- 1:sum(idx)
+      if (length(idx) > 0)
+        ted[2, idx] <- 1:sum(idx)
       exp_design(ted)
     }
   }))
@@ -347,6 +349,19 @@ server <- function(input, output, session) {
     tdata[input$etable_cell_edit$row,input$etable_cell_edit$col] <- input$etable_cell_edit$value
     exp_design(t(tdata))
   })
+  
+  output$downloadeTable <- downloadHandler(
+    filename = function() {
+      validate(
+        need(NULL,"No data")
+      )      
+      paste("ExpDesign", Sys.Date(), ".csv", sep="");
+    },
+    content = function(file) {
+      write.csv(exp_design(), file)
+    }
+  )
+  
   
   
   ## Send further to next tab

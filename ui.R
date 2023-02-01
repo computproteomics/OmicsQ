@@ -141,7 +141,8 @@ ui <- navbarPage(
                                          options = list(
                                            `live-search` = TRUE,
                                            `actions-box` = TRUE)),
-                             sliderInput("ed_number", "Set to this sample type",min=1,max=1,value=1,step=1)
+                             sliderInput("ed_number", "Set to this sample type",min=1,max=1,value=1,step=1),
+                             downloadBttn("downloadeTable",label = "Download table"),
                )),
                hidden(column(3,id="ed_c3",
                              h4("Proceed to data pre-processing"),
