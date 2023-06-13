@@ -19,9 +19,21 @@ options(shiny.maxRequestSize = 200 * 1024^2)
 ui <- navbarPage(
   id="mainpage",
   title = "OmicsQ: a toolkit for quantitative proteomics",
+  header = list(div(
+    actionBttn("h_log",
+    label="Summary of carried operations",    
+              icon=icon("book"),
+              style="pill",
+              color = "default", size = "s"),
+    actionBttn("h_about",
+    label="About",
+              icon=icon("question"),
+              style="pill", 
+              color = "default", size = "s")
+  , style="float:right;")),
   theme = shinythemes::shinytheme("spacelab"),
   tags$head(tags$script(src="CallShiny.js")),
-  useShinyjs(),  # Include shinyjs
+  useShinyjs(),
   extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message","run_button")),
   # primary_theme_color = "#69DDFF", 
   # secondary_theme_color = "#DBBADD",  
@@ -32,7 +44,7 @@ ui <- navbarPage(
   # ),
   # Define tabs
   tabPanel("Reading data", value = "read", # reading file and experimental design (add/delete replicates), 
-           useSweetAlert(),
+         useSweetAlert(),
            #gene names, protein names, PTMs, fasta? Check for inconsistent columns 
            # and offer to remove artifacts, check for identical values and variance=0
            fluidPage(
@@ -289,7 +301,6 @@ ui <- navbarPage(
              
            ),
            hidden(textInput("app_log", "app_log", value=NULL))
-  )
-  # send to other apps, button of "active" and then allow retrieving results?
+  ),
 )
 
