@@ -171,7 +171,7 @@ ui <- navbarPage(
                                                               `live-search` = TRUE,
                                                               `actions-box` = TRUE))),
                                       column(2, actionBttn("h_balancing",
-                                                           icon=icon("info-circle"),
+                                                         icon=icon("info-circle"),
                                                            style="pill", 
                                                            color = "royal", size = "xs")
                                       )),
@@ -196,8 +196,8 @@ ui <- navbarPage(
                                                            color = "royal", size = "xs")
                                       )),
                              fluidRow(column(10,selectInput("normalization", label="Normalization method",
-                                                            choices=c(None="none", Median="median", "Mean"="mean","Cyclic LOESS (LIMMA)"="cyclicloess",
-                                                                      selected="median"))),
+                                                            choices=c(None="none", Median="colMedians", "Mean"="colMeans","Cyclic LOESS (LIMMA)"="cyclicloess"),
+                                                                  selected="none")),
                                       column(2, actionBttn("h_normalization",
                                                            icon=icon("info-circle"),
                                                            style="pill", 
@@ -205,7 +205,7 @@ ui <- navbarPage(
                                       )),
                              fluidRow(column(10,selectInput("summarize", label="Summarize to id features", 
                                                             choices=c(None="none","By sum"="colSums",
-                                                                      "By mean"="colMeans", "By median"="colMedians", 
+                                                                  "By mean"="colMeans", "By median"="colMedians", 
                                                                       "Robust median (medpolish)"="medianPolish"
                                                                       #"Robust summary (rlm)"="robustSummary" Does not work with missing values
                                                             ))),
