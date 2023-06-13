@@ -324,7 +324,7 @@ server <- function(input, output, session) {
     input$ed_sel_samples
     if (length(input$ed_sel_samples > 0)) {
       ted[1, input$ed_sel_samples] <- input$ed_number
-      idx <- (ted[1, ] == input$ed_number)
+  idx <- (ted[1, ] == input$ed_number)
       if (length(idx) > 0)
         ted[2, idx] <- 1:sum(idx)
       exp_design(ted)
@@ -340,7 +340,7 @@ server <- function(input, output, session) {
       datatable(show_table, editable=T) %>% 
         formatStyle("Group", target="row", 
                     backgroundColor=styleEqual(unique(show_table[,'Group']), 
-                                               rainbow(max(show_table[,'Group']), alpha = 0.7)))
+                                               rainbow(length(unique(show_table[,'Group'])), alpha = 0.7)))
     }
   })
   
