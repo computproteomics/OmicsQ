@@ -13,7 +13,7 @@ library(matrixStats)
 library(MsCoreUtils)
 library(jsonlite)
 
-options(shiny.maxRequestSize = 200 * 1024^2)
+options(shiny.maxRequestSize = 200 * 1024^2, shiny.fullstacktrace=TRUE)
 
 ###### Start UI
 ui <- navbarPage(
@@ -21,7 +21,7 @@ ui <- navbarPage(
   title = "OmicsQ: a toolkit for quantitative proteomics",
   header = list(div(
     actionBttn("h_log",
-    label="Summary of carried operations",    
+    label="Summary of operations",    
               icon=icon("book"),
               style="pill",
               color = "default", size = "s"),

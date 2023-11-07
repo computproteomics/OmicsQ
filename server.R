@@ -1,11 +1,11 @@
 ## useful functions and javascript code distances between column names
 expd_dist <- function(cnames, ...) {
   out_m <- matrix(1,
-    ncol = length(cnames),
-    nrow = length(cnames), dimnames = list(
-      x = cnames,
-      y = cnames
-    )
+                  ncol = length(cnames),
+                  nrow = length(cnames), dimnames = list(
+                    x = cnames,
+                    y = cnames
+                  )
   )
   for (i in cnames) {
     out_m[i, ] <- 1 - stringdist(i, cnames, ...)
@@ -26,14 +26,14 @@ server <- function(input, output, session) {
   result_table <- reactiveVal(NULL)
   fasta <- protdata <- pepdata <- statdata <- NULL
   log_operations <- reactiveVal(list())
-
+  
   ###### SET FOR TESTING
   # tdata <- as.data.frame(fread('Myo.csv')) for (col
   # in grep('C[0-9]_', colnames(tdata), value=T)) class(tdata[,col]) <-
   # 'quant' indata(tdata) show(id='in_c3') enable(id='in_c3')
-
+  
   ##########################
-
+  
   ##### READING DATA
   ##### ######################################################### reading
   ##### file
@@ -43,87 +43,87 @@ server <- function(input, output, session) {
     print("Reading file")
     in_file <- input$pfile
     isolate({
-    if (is.null(in_file)) {
-      return(NULL)
-    }
-    tlog <- log_operations()
-    tlog[["file_name"]] <- in_file$name
-
-    if (tools::file_ext(in_file$datapath) %in% c("xls", "xlsx", "XLS", "XLSX")) {
-      # Set Options for file input
-      currsheet <- ifelse(is.null(input$in_sheet), 1, input$in_sheet)
-
-      tdata <- try({
-        sheets <- excel_sheets(in_file$datapath)
-        read_excel(in_file$datapath, sheet = currsheet)
-      })
-
-      # file options
-      shinyjs::show(id = "in_c1")
-      output$file_options <- renderUI({
-        input$in_sheet
-        selectInput("in_sheet", "Which table sheet?", choices = sheets)
-      })
-      tlog[["file_type"]] <- "excel"
-      tlog[["file_options"]] <- c("sheet" = currsheet)
-    } else {
-      # file options
-      currdel <- ifelse(is.null(input$in_delimiter), "auto", input$in_delimiter)
-      currdec <- ifelse(is.null(input$in_dec), ".", input$in_dec)
-      currskip <- ifelse(is.null(input$in_skip), 0, input$in_skip)
-      currheader <- ifelse(is.null(input$in_header), T, input$in_header)
-
-      tdata <- (try(fread(in_file$datapath,
-        sep = currdel, skip = currskip,
-        header = currheader, dec = currdec
-      )))
-      shinyjs::show(id = "in_c1")
-      output$file_options <- renderUI({
-        tagList(selectInput("in_delimiter", label = "delimiter", choices = c(
-          auto = "auto",
-          comma = ",", semicolon = ";", tabulator = "\t", colon = ":", bar = "|",
-          space = " "
-        ), selected = currdel, multiple = FALSE, ), selectInput("in_dec",
-          label = "decimal separator", choices = c(comma = ",", point = "."),
-          selected = currdec
-        ), numericInput("in_skip",
-          label = "remove lines at beginning?",
-          min = 0, max = 100, step = 1, value = currskip
-        ), checkboxInput("in_header",
-          label = "Does file have a header?", value = currheader
+      if (is.null(in_file)) {
+        return(NULL)
+      }
+      tlog <- log_operations()
+      tlog[["file_name"]] <- in_file$name
+      
+      if (tools::file_ext(in_file$datapath) %in% c("xls", "xlsx", "XLS", "XLSX")) {
+        # Set Options for file input
+        currsheet <- ifelse(is.null(input$in_sheet), 1, input$in_sheet)
+        
+        tdata <- try({
+          sheets <- excel_sheets(in_file$datapath)
+          read_excel(in_file$datapath, sheet = currsheet)
+        })
+        
+        # file options
+        shinyjs::show(id = "in_c1")
+        output$file_options <- renderUI({
+          input$in_sheet
+          selectInput("in_sheet", "Which table sheet?", choices = sheets)
+        })
+        tlog[["file_type"]] <- "excel"
+        tlog[["file_options"]] <- c("sheet" = currsheet)
+      } else {
+        # file options
+        currdel <- ifelse(is.null(input$in_delimiter), "auto", input$in_delimiter)
+        currdec <- ifelse(is.null(input$in_dec), ".", input$in_dec)
+        currskip <- ifelse(is.null(input$in_skip), 0, input$in_skip)
+        currheader <- ifelse(is.null(input$in_header), T, input$in_header)
+        
+        tdata <- (try(fread(in_file$datapath,
+                            sep = currdel, skip = currskip,
+                            header = currheader, dec = currdec
+        )))
+        shinyjs::show(id = "in_c1")
+        output$file_options <- renderUI({
+          tagList(selectInput("in_delimiter", label = "delimiter", choices = c(
+            auto = "auto",
+            comma = ",", semicolon = ";", tabulator = "\t", colon = ":", bar = "|",
+            space = " "
+          ), selected = currdel, multiple = FALSE, ), selectInput("in_dec",
+                                                                  label = "decimal separator", choices = c(comma = ",", point = "."),
+                                                                  selected = currdec
+          ), numericInput("in_skip",
+                          label = "remove lines at beginning?",
+                          min = 0, max = 100, step = 1, value = currskip
+          ), checkboxInput("in_header",
+                           label = "Does file have a header?", value = currheader
+          ))
+        })
+        tlog[["file_type"]] <- "csv"
+        tlog[["file_options"]] <- c(
+          "delimiter" = currdel, "decimal" = currdec,
+          "skip" = currskip, "header" = currheader
+        )
+      }
+      
+      log_operations(tlog)
+      
+      shinyjs::show(id = "in_c2")
+      shinyjs::show(id = "in_c3")
+      updatePickerInput(session, "sel_icol", choices = names(tdata))
+      updatePickerInput(session, "sel_qcols", choices = names(tdata))
+      
+      ## feedbeck via moda
+      log_upload <- as.character(geterrmessage())
+      if (inherits(tdata, "try-error")) {
+        print("error reading file")
+        showModal(modalDialog(
+          title = "file upload", log_upload, size = "s",
+          easyClose = T
         ))
-      })
-      tlog[["file_type"]] <- "csv"
-      tlog[["file_options"]] <- c(
-        "delimiter" = currdel, "decimal" = currdec,
-        "skip" = currskip, "header" = currheader
-      )
-    }
-
-    log_operations(tlog)
-
-    shinyjs::show(id = "in_c2")
-    shinyjs::show(id = "in_c3")
-    updatePickerInput(session, "sel_icol", choices = names(tdata))
-    updatePickerInput(session, "sel_qcols", choices = names(tdata))
-
-    ## feedbeck via moda
-    log_upload <- as.character(geterrmessage())
-    if (inherits(tdata, "try-error")) {
-      print("error reading file")
-      showModal(modalDialog(
-        title = "file upload", log_upload, size = "s",
-        easyClose = T
-      ))
-    } else {
-      # set id column
-      tdata <- data.frame(tdata)
-      class(tdata[, 1]) <- "id"
-      indata(tdata)
-    }
+      } else {
+        # set id column
+        tdata <- data.frame(tdata)
+        class(tdata[, 1]) <- "id"
+        indata(tdata)
+      }
     })
   })
-
+  
   ### Read example file and push through
   observeEvent(input$run_example, ({
     tdata <- read.csv("Myo_Res.csv")
@@ -146,21 +146,21 @@ server <- function(input, output, session) {
     tlog[["file_qcols"]] <- names(tdata)[2:19]
     log_operations(tlog)
   }))
-
+  
   #### Input data data table
   output$ptable <- DT::renderDT({
     print("dttable")
     show_table <- indata()
     if (!is.null(show_table)) {
       ## create header and footer of table
-
+      
       header.style <- "th { font-family: 'Arial'; font-weight: bold; color: white; background-color: #008080;}"
       # pull header names from the table
       header.names <- c("Columns", colnames(show_table))
       header.classes <- c("Type", sapply(show_table, class))
       header.counts <- c("Duplicated values", sapply(show_table, function(x) {
         sum(duplicated(x,
-          incomparables = NA
+                       incomparables = NA
         ))
       }))
       # The container parameter allows us to design the header of the
@@ -203,7 +203,7 @@ server <- function(input, output, session) {
       NULL
     }
   })
-
+  
   ## select column with ids
   observeEvent(input$sel_icol, {
     isolate({
@@ -223,10 +223,10 @@ server <- function(input, output, session) {
         tlog[["file_idcol"]] <- get_cols
         log_operations(tlog)
       }
-
+      
     })
   })
-
+  
   ## select columns with quant
   observeEvent(input$sel_qcols, {
     isolate({
@@ -242,14 +242,14 @@ server <- function(input, output, session) {
         }
         for (col in get_cols) {
           if (class(tdata[, col]) == "numeric" || class(tdata[, col]) ==
-            "integer") {
+              "integer") {
             class(tdata[, col]) <- "quant"
             tlog <- log_operations()
             tlog[["file_qcols"]] <- get_cols
             log_operations(tlog)
           }
         }
-
+        
         # Control button
         if (sum(sapply(tdata, class) == "quant") > 0) {
           enable("proceed_to_expdesign")
@@ -260,17 +260,17 @@ server <- function(input, output, session) {
           one column with quantified features.
           This column needs to the \"numeric\".")
         }
-
+        
         indata(tdata)
       }
     })
   })
-
+  
   ## Manipulate input table
   observeEvent(input$remove_zeroes, {
     isolate({
-      get_cols <- make.names(input$sel_col)
-      print(get_cols)
+      get_cols <- make.names(input$sel_qcols)
+      print(input$sel_col)
       if (!is.null(get_cols)) {
         print("removing zeroes")
         tdata <- data.frame(indata())
@@ -284,11 +284,11 @@ server <- function(input, output, session) {
       }
     })
   })
-
+  
   ## Make characters NA
   observeEvent(input$remove_char, {
     isolate({
-      get_cols <- make.names(input$sel_col)
+      get_cols <- make.names(input$sel_qcols)
       if (!is.null(get_cols)) {
         print("removing chars")
         tclasses <- sapply(indata(), class)
@@ -297,14 +297,14 @@ server <- function(input, output, session) {
           tdata[, col] <- as.numeric(tdata[, col])
           class(tdata[, col]) <- tclasses[col]
         }
-        tolog <- log_operations()
+        tlog <- log_operations()
         tlog[["preprocess_remove_char"]] <- TRUE
         log_operations(tlog)
         indata(tdata)
       }
     })
   })
-
+  
   ## Send further to next tab
   observeEvent(input$proceed_to_expdesign, isolate({
     print("proceed to expdesign")
@@ -325,10 +325,10 @@ server <- function(input, output, session) {
     shinyjs::show("ed_c3")
     shinyjs::show("ed_c2")
   }))
-
+  
   ##### EXPERIMENTAL DESIGN
   ##### #########################################################
-
+  
   # update threshold
   observe({
     input$dist_type
@@ -336,21 +336,21 @@ server <- function(input, output, session) {
       if (!is.null(exp_design())) {
         print("dist_type")
         expd_d <- expd_dist(colnames(exp_design()),
-          method = input$dist_type,
-          p = 0.2
+                            method = input$dist_type,
+                            p = 0.2
         ) # p=0.1 prioritizes the start of the strings
         median_dist <- median(expd_d[expd_d != 0], na.rm = T)
         print(median_dist)
         updateSliderInput(session, "dist_thresh",
-          value = median_dist,
-          min = min(expd_d,
-            na.rm = T
-          ), max = max(expd_d, na.rm = T)
+                          value = median_dist,
+                          min = min(expd_d,
+                                    na.rm = T
+                          ), max = max(expd_d, na.rm = T)
         )
       }
     })
   })
-
+  
   # update exp. design
   observe({
     input$dist_thresh
@@ -359,8 +359,8 @@ server <- function(input, output, session) {
       if (!is.null(tdesign)) {
         print("dist_thres")
         expd_d <- expd_dist(colnames(tdesign),
-          method = input$dist_type,
-          p = 0.1
+                            method = input$dist_type,
+                            p = 0.1
         ) # p=0.1 prioritizes the start of the strings
         median_dist <- input$dist_thresh
         groups <- cutree(hclust(as.dist(expd_d)), h = median_dist)
@@ -368,13 +368,13 @@ server <- function(input, output, session) {
         for (j in unique(groups)) {
           tdesign[2, groups == j] <- 1:sum(groups == j)
         }
-
+        
         exp_design(tdesign)
       }
     })
   })
-
-
+  
+  
   # Manually change design
   observeEvent(input$ed_sel_samples, isolate({
     ted <- exp_design()
@@ -388,7 +388,7 @@ server <- function(input, output, session) {
       exp_design(ted)
     }
   }))
-
+  
   # Table for editing design
   output$etable <- DT::renderDT({
     if (!is.null(exp_design())) {
@@ -397,31 +397,31 @@ server <- function(input, output, session) {
       show_table[is.na(show_table)] <- 1
       datatable(show_table, editable = T) %>%
         formatStyle("Group",
-          target = "row", backgroundColor =
-            styleEqual(unique(show_table[
-              ,
-              "Group"
-            ]), rainbow(length(unique(show_table[, "Group"])), alpha = 0.7))
+                    target = "row", backgroundColor =
+                      styleEqual(unique(show_table[
+                        ,
+                        "Group"
+                      ]), rainbow(length(unique(show_table[, "Group"])), alpha = 0.7))
         )
     }
   })
-
+  
   observeEvent(input$etable_cell_edit, {
     tdata <- t(exp_design())
     tdata[input$etable_cell_edit$row, input$etable_cell_edit$col] <-
       input$etable_cell_edit$value
     exp_design(t(tdata))
   })
-
+  
   output$downloadeTable <- downloadHandler(filename = function() {
     validate(need(NULL, "No data"))
     paste("ExpDesign", Sys.Date(), ".csv", sep = "")
   }, content = function(file) {
     write.csv(exp_design(), file)
   })
-
-
-
+  
+  
+  
   ## Send further to next tab
   observeEvent(input$proceed_to_process, {
     # reordering sample names for easier treatment
@@ -432,13 +432,13 @@ server <- function(input, output, session) {
     )])
     pexp_design(exp_design())
     tdata <- indata()
-
+    
     icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
     ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
     ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
     process_table(tdata[, c(icol, colnames(final_exp_design), ocols)])
     processed_table(process_table())
-
+    
     shinyjs::show("pr_c1")
     shinyjs::show("pr_c2")
     shinyjs::show("pr_c3")
@@ -448,12 +448,12 @@ server <- function(input, output, session) {
     if (sum(duplicated(tdata[, icol])) == 0) {
       enable("proceed_apps")
     }
-
+    
     tdata <- tdata[, colnames(final_exp_design)]
     # try to find out whether already log-transformed
     tlog <- log_operations()
     if (max(tdata, na.rm = T) / min(tdata, na.rm = T) < 100 &&
-      min(tdata, na.rm = T) <
+        min(tdata, na.rm = T) <
         0) {
       updateCheckboxInput(session, "logtrafo", value = TRUE)
       tlog[["preprocess_take_log2"]] <- FALSE
@@ -461,14 +461,14 @@ server <- function(input, output, session) {
       tlog[["preprocess_take_log2"]] <- TRUE
     }
     updateNumericInput(session, "max_na",
-      min = 0, max = ncol(tdata),
-      value = ncol(tdata)
+                       min = 0, max = ncol(tdata),
+                       value = ncol(tdata)
     )
     log_operations(tlog)
-
+    
     updateTabsetPanel(session, "mainpage", selected = "process")
   })
-
+  
   ##### PRE-PROCESSING
   ##### ######################################################### PCA plot of
   ##### all selected samples
@@ -487,8 +487,8 @@ server <- function(input, output, session) {
     loadings <- pca$x
     texp_design <- pexp_design()
     plot(loadings,
-      pch = 19,
-      col = rainbow(max(texp_design[1, ]))[texp_design[1, ]]
+         pch = 19,
+         col = rainbow(max(texp_design[1, ]))[texp_design[1, ]]
     )
     title(
       main = "Principal component analysis of data set (loadings)",
@@ -496,24 +496,24 @@ server <- function(input, output, session) {
     )
     text(loadings, pos = 2, labels = colnames(texp_design))
   })
-
+  
   output$corrplot <- renderPlot({
     print("corrplot")
     tdata <- processed_table()
     tdata <- tdata[, grep("quant", sapply(tdata, class))]
     tdata <- tdata[, colSums(!is.na(tdata)) > 0]
     shiny::validate(need(nrow(tdata) > 10 &
-      ncol(tdata) > 2, "Data matrix too small"))
+                           ncol(tdata) > 2, "Data matrix too small"))
     gplots::heatmap.2(cor(tdata, use = "pairwise.complete.obs"),
-      main = "Pairwise correlations between samples",
-      symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(
-        -1, 1,
-        0.01
-      ), trace = "none"
+                      main = "Pairwise correlations between samples",
+                      symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(
+                        -1, 1,
+                        0.01
+                      ), trace = "none"
     )
   })
-
-
+  
+  
   ## Check for balanced exp. design
   output$res_num_reps <- renderText({
     print("check for balancing")
@@ -535,7 +535,7 @@ server <- function(input, output, session) {
     }
     tout
   })
-
+  
   ## Summary of main properties of data table
   output$ptable_summary <- renderText({
     tdata <- processed_table()
@@ -554,16 +554,16 @@ server <- function(input, output, session) {
       min(colSums(is.na(tdata))), "to", max(colSums(is.na(tdata))),
       "per sample.<br/><b>Range: </b>The dynamic range is from",
       round(min(tdata, na.rm = T), 2), "to", round(max(tdata, na.rm = T),
-        digits = 2
+                                                   digits = 2
       ),
       ".<br/><b>Summarization: </b> The id column has",
       ifelse(sum(duplicated(ids)) >
-        0, "non-unique ids and thus needs to be summarized.",
-      "unique ids and thus does not need to be summarized</p>"
+               0, "non-unique ids and thus needs to be summarized.",
+             "unique ids and thus does not need to be summarized</p>"
       )
     )
   })
-
+  
   ## data operations like removing reps, log, nas, and normalization
   observe({
     input$remove_reps
@@ -581,7 +581,7 @@ server <- function(input, output, session) {
             tdata,
             class
           ))]
-
+          
           # log-transformation
           tlog <- log_operations()
           if (!input$logtrafo) {
@@ -594,51 +594,51 @@ server <- function(input, output, session) {
           } else {
             tlog[["preprocess_take_log2"]] <- FALSE
           }
-
+          
           # move out to avoid repeated calculations and
           # complications?  summarize replicates with the same number
           candreps <- paste(exp_design()[1, ], exp_design()[2, ], sep = "_")
           print("summarizing replicates")
           if (sum(duplicated(candreps)) > 0) {
             incProgress(0.5, detail = "Summarizing replicates")
-
+            
             # Initialize summarized_reps matrix with NA values
             summarized_reps <- matrix(NA,
-              nrow = nrow(tdata),
-              ncol = length(unique(candreps))
+                                      nrow = nrow(tdata),
+                                      ncol = length(unique(candreps))
             )
-
+            
             # Loop over each row of tdata
-            for (r in 1:nrow(tdata)) {
+          for (r in 1:nrow(tdata)) {
               # Group elements in row by candreps values and sum
               # them, replacing 0 with NA
               tsumm <- as.vector(unlist(by(unlist(tdata[r, cnames]), candreps,
-                sum,
-                na.rm = T
+                                           sum,
+                                           na.rm = T
               )))
               tsumm[tsumm == 0] <- NA
-
+              
               # Assign tsumm as a row in summarized_reps
               summarized_reps[r, ] <- tsumm
             }
-
+            
             # Assign new column names to summarized_reps
             new_cnames <- cnames[!duplicated(candreps)]
             colnames(summarized_reps) <- new_cnames
-
+            
             # Update exp_design and tdata with summarized_reps
             exp_design(exp_design()[, new_cnames])
             tdata <- tdata[, -which(names(tdata) %in% cnames), drop = F]
             tdata <- cbind(tdata, summarized_reps)
             cnames <- new_cnames
-
+            
             # Update picker input with new column names
             updatePickerInput(session, "remove_reps",
-              choices = colnames(exp_design())
+                              choices = colnames(exp_design())
             )
             new_cnames <- cnames[!duplicated(candreps)]
           }
-
+          
           # removing reps
           print(paste0("removing", input$remove_reps))
           rem <- -which(names(tdata) %in% input$remove_reps)
@@ -650,38 +650,38 @@ server <- function(input, output, session) {
             cnames <- cnames[rem2]
             tlog[["preprocess_removed_replicates"]] <- input$remove_reps
           }
-
-
+          
+          
           # NAs
           tdata <- tdata[rowSums(is.na(tdata[, cnames])) <= input$max_na, ]
           tlog[[paste0("preprocess_max_missing_values")]] <- input$max_na
-
+          
           # Normalize
           incProgress(0.6, detail = "Normalizing")
           if (input$normalization == "colMedians") {
             tdata[, cnames] <- t(t(tdata[, cnames]) -
-              colMedians(as.matrix(tdata[
-                ,
-                cnames
-              ]), na.rm = T))
+                                   colMedians(as.matrix(tdata[
+                                     ,
+                                     cnames
+                                   ]), na.rm = T))
           } else if (input$normalization == "colMeans") {
             tdata[, cnames] <- t(t(tdata[, cnames]) -
-              colMeans(as.matrix(tdata[
-                ,
-                cnames
-              ]), na.rm = T))
+                                   colMeans(as.matrix(tdata[
+                                     ,
+                                     cnames
+                                   ]), na.rm = T))
           } else {
             tdata[, cnames] <- limma::normalizeBetweenArrays(tdata[, cnames],
-              method = input$normalization
+                                                             method = input$normalization
             )
           }
           tlog[["preprocess_normalization"]] <- input$normalization
-
-
+          
+          
           # Summarization (from MsCoreUtils package)
           if (input$summarize != "none") {
             incProgress(0.8, detail = "Summarization")
-
+            
             if (input$summarize == "sum") {
               summarized <- MsCoreUtils::aggregate_by_vector(2^as.matrix(tdata[
                 ,
@@ -701,7 +701,7 @@ server <- function(input, output, session) {
             colnames(tdata)[1] <- icol
           }
           tlog[["preprocess_summarization"]] <- input$summarize
-
+          
           ## add empty columns if requested
           if (input$add_na_columns) {
             print("adding NA columns")
@@ -735,17 +735,17 @@ server <- function(input, output, session) {
             colSums(is.na(tdata[, cnames])) == nrow(tdata)
           )
           log_operations(tlog)
-
+          
           # set class
           for (cn in cnames) {
             class(tdata[, cn]) <- "quant"
           }
           class(tdata[, icol]) <- "id"
-
+          
           # check whether unique ids and balanced design
           ed_stats <- unique(as.vector(table(pexp_design()[1, ])))
           if (sum(duplicated(is.na(tdata[, icol]))) == 0 && ed_stats ==
-            1) {
+              1) {
             enable("proceed_apps")
           } else {
             disable("proceed_apps")
@@ -755,27 +755,27 @@ server <- function(input, output, session) {
       }
     })
   })
-
+  
   ## Send further to next tab
   observeEvent(input$proceed_to_apps, {
     updateTabsetPanel(session, "mainpage", selected = "apps")
     # reordering sample names for easier treatment
     final_exp_design <- pexp_design()
     tdata <- processed_table()
-
+    
     icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
     ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
     ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
-
-
+    
+    
     shinyjs::show("app_c1")
     shinyjs::show("app_c2")
     shinyjs::show("app_c3")
     # shinyjs::show('pr_plots') updatePickerInput(session,'remove_reps',
     # choices=colnames(exp_design()))
   })
-
-
+  
+  
   ##### SEND TO APPS
   ##### ######################################################### Download
   ##### table
@@ -783,15 +783,23 @@ server <- function(input, output, session) {
     validate(need(NULL, "No data"))
     paste("Results", Sys.Date(), ".csv", sep = "")
   }, content = function(file) {
-    write.csv(result_table(), file)
+    if (is.null(result_table())) {
+      write.csv(processed_table())
+    } else {
+      write.csv(result_table())
+    }
   })
-
+  
   ## Show table
   output$rtable <- DT::renderDT({
-    datatable(result_table(), options = list(scrollX = TRUE))
+    if (is.null(result_table())) {
+      data.table(processed_table(), options = list(scrollX = TRUE))
+  } else {
+      data.table(result_table(), options = list(scrollX = TRUE))
+    }
   })
-
-
+  
+  
   ## VSClust Sent data to VSClust
   observeEvent(input$send_vsclust, isolate({
     # make table in right format
@@ -808,7 +816,7 @@ server <- function(input, output, session) {
       expr_matrix = as.list(as.data.frame(outdat))
     ))
     updateTextInput(session, "app_log",
-      value = "Opening VSClust and data upload ..."
+                    value = "Opening VSClust and data upload ..."
     )
     js$send_message(
       url = input$url_vsclust,
@@ -816,7 +824,7 @@ server <- function(input, output, session) {
     )
     enable("retrieve_vsclust")
   }))
-
+  
   # Log for VSClust
   output$connection_vsclust <- renderText({
     toutput <- log_vsclust()
@@ -831,7 +839,7 @@ server <- function(input, output, session) {
     }
     toutput
   })
-
+  
   # Sending message to retrieve results
   observeEvent(input$retrieve_vsclust, isolate({
     updateTextInput(session, "app_log", value = "Getting VSClust results")
@@ -840,8 +848,8 @@ server <- function(input, output, session) {
       date = date()
     )
   }))
-
-
+  
+  
   # Merging PolySTest results into result r_table
   observeEvent(input$vsclust_results, isolate({
     print("Processing VSClust results")
@@ -863,8 +871,8 @@ server <- function(input, output, session) {
       updateTextInput(session, "app_log", value = "Processed VSClust results")
     }
   }))
-
-
+  
+  
   ## PolySTest Sent data to PolySTest
   observeEvent(input$send_polystest, isolate({
     # make table in right format
@@ -881,7 +889,7 @@ server <- function(input, output, session) {
       expr_matrix = as.list(as.data.frame(outdat))
     ))
     updateTextInput(session, "app_log",
-      value = "Opening PolySTest and data upload ..."
+                    value = "Opening PolySTest and data upload ..."
     )
     js$send_message(
       url = input$url_polystest,
@@ -889,7 +897,7 @@ server <- function(input, output, session) {
     )
     enable("retrieve_polystest")
   }))
-
+  
   # Log for PolySTest
   output$connection_polystest <- renderText({
     toutput <- log_polystest()
@@ -904,7 +912,7 @@ server <- function(input, output, session) {
     }
     toutput
   })
-
+  
   # Sending message to retrieve results
   observeEvent(input$retrieve_polystest, isolate({
     updateTextInput(session, "app_log", value = "Getting PolySTest results")
@@ -913,7 +921,7 @@ server <- function(input, output, session) {
       tool = "PolySTest"
     )
   }))
-
+  
   # Merging PolySTest results into result r_table
   observeEvent(input$polystest_results, isolate({
     print("Processing PolySTest results")
@@ -939,7 +947,7 @@ server <- function(input, output, session) {
       updateTextInput(session, "app_log", value = "Processed PolySTest results")
     }
   }))
-
+  
   ## ComplexBrowser Sending data to ComplexBrowser
   observeEvent(input$send_complexbrowser, isolate({
     # make table in right format
@@ -956,14 +964,14 @@ server <- function(input, output, session) {
       expr_matrix = as.list(as.data.frame(outdat))
     ))
     updateTextInput(session, "app_log",
-      value = "Opening ComplexBrowser and data upload ..."
+                    value = "Opening ComplexBrowser and data upload ..."
     )
     js$send_message(
       url = input$url_complexbrowser, dat = ComplexBrowserMessage,
       tool = "ComplexBrowser"
     )
   }))
-
+  
   # Log for ComplexBrowser
   output$connection_complexbrowser <- renderText({
     toutput <- log_complexbrowser()
@@ -978,21 +986,21 @@ server <- function(input, output, session) {
     }
     toutput
   })
-
-
+  
+  
   ############### Help messages
   ############### #########################################################
   observeEvent(input$h_pfile, sendSweetAlert(session,
-    title = "File types", text = HTML("<p align='justify'>OmicsQ can read
+                                             title = "File types", text = HTML("<p align='justify'>OmicsQ can read
     <i>Excel</i> files, and tables in <i>textual format</i> like csv, tsv and others.<br/>
     The underlying function tries to automatically determine delimiters
     and digit separators.</p>"),
-    type = "info", html = T
+                                             type = "info", html = T
   ))
-
+  
   observeEvent(input$h_csv_input, sendSweetAlert(session,
-    title = "Options of textual input file",
-    text = HTML("<p align='justify'><i>Delimiter:</i> Specify the character
+                                                 title = "Options of textual input file",
+                                                 text = HTML("<p align='justify'><i>Delimiter:</i> Specify the character
     that separates the values. Change only if 'auto' does not
     provide the correct table.<br/>
               <i>Decimal separator:</i> Specify the character to
@@ -1003,12 +1011,12 @@ server <- function(input, output, session) {
               will be lost.<br/>
               <i>Does file have a header: </i>In case that the file does not
               have a first row with information about the data columns, deselect this option.</p>"),
-    type = "info", html = T
+                                                 type = "info", html = T
   ))
-
+  
   observeEvent(input$h_sel_id_col, sendSweetAlert(session,
-    title = "Select relevant columns",
-    text = HTML("<p align='justify'>Select the columns you want to make the ID
+                                                  title = "Select relevant columns",
+                                                  text = HTML("<p align='justify'>Select the columns you want to make the ID
     column and the quantitative columns. You can search for multiple colums.
               This is particularly useful when your quantitative columns have
               similar columns names.<br/><i>ID column:</i> Select column with
@@ -1024,12 +1032,12 @@ server <- function(input, output, session) {
               ID and quant columns are marked in the table below according
               to your selection. You need to select them
               sto proceed to the next analysis step.</p>"),
-    type = "info", html = T
+                                                  type = "info", html = T
   ))
-
+  
   observeEvent(input$h_remove_zeroes, sendSweetAlert(session,
-    title = "Simple data manipulation",
-    text = HTML("<p align='justify'><i>Zeroes to missing values:
+                                                     title = "Simple data manipulation",
+                                                     text = HTML("<p align='justify'><i>Zeroes to missing values:
     </i>Missed measurements are often given by
               zeroes. As the actual value of the features is not known,
               we make them missing values
@@ -1039,21 +1047,21 @@ server <- function(input, output, session) {
               '#DIV/0!'. This buttons converts any non-numeric value
               into a missing values. Only purely numeric <i>quant</i> columns
               are accepted to continue the analysis.</p>"),
-    type = "info", html = T
+                                                     type = "info", html = T
   ))
-
-
+  
+  
   observeEvent(input$h_proceed_expdesign, sendSweetAlert(session,
-    title = "Ready to proceed?",
-    text = HTML("<p align='justify'>In order to change to define the
+                                                         title = "Ready to proceed?",
+                                                         text = HTML("<p align='justify'>In order to change to define the
     experimental design, you need to have selected
             an <i>ID</i> column and multiple numeric <i>quant</i> columns.</p>"),
-    type = "info", html = T
+                                                         type = "info", html = T
   ))
-
+  
   observeEvent(input$h_exp_design, sendSweetAlert(session,
-    title = "Estimate design",
-    text = HTML("<p align='justify'><i>General: </i>We estimate the
+                                                  title = "Estimate design",
+                                                  text = HTML("<p align='justify'><i>General: </i>We estimate the
     experimental design from the similarity
               between column names. Try the different string distances
               below and play with the threshold
@@ -1074,12 +1082,12 @@ server <- function(input, output, session) {
               the same conditions will be summarized in the next step.
               Summarization means the values of the resulting
               replicate will be given by the sum of the summarized replicates.</p>"),
-    type = "info", html = T
+                                                  type = "info", html = T
   ))
-
+  
   observeEvent(input$h_balancing, sendSweetAlert(session,
-    title = "Create a balanced design",
-    text = HTML("<p align='justify'>The different experimental conditions
+                                                 title = "Create a balanced design",
+                                                 text = HTML("<p align='justify'>The different experimental conditions
     (sample types) need to be at least nearly balanced. For the
               further analysis, this means that the number of replicates
               per sample should be the same for each of them. You can balance the data
@@ -1091,30 +1099,30 @@ server <- function(input, output, session) {
               <b>not make a data set more balanced</b>.
               We recommend removing samples from groups that have a
               much larger number of replicates.</p>"),
-    type = "info", html = T
+                                                 type = "info", html = T
   ))
-
+  
   observeEvent(input$h_logtrafo, sendSweetAlert(session,
-    title = "Log transformation",
-    text = HTML("<p align='justify'>In general, quantitative omics data is log-transformed.
+                                                title = "Log transformation",
+                                                text = HTML("<p align='justify'>In general, quantitative omics data is log-transformed.
               OmicsQ estimates whether the data was transformed from the values (data range and
               negative values). Deselecting this box will transform the data by taking the logarithm
               with base 2.</p>"),
-    type = "info", html = T
+                                                type = "info", html = T
   ))
-
+  
   observeEvent(input$h_max_na, sendSweetAlert(session,
-    title = "Deleting features with low coverage",
-    text = HTML("<p align='justify'>Despite of the capability of PolySTest and VSClust to include features
+                                              title = "Deleting features with low coverage",
+                                              text = HTML("<p align='justify'>Despite of the capability of PolySTest and VSClust to include features
               with missing values, we recommend features that have very low coverage as their measurements
               are usually very noisy. Filter for the maximum number of missing values here. The default is
               to take all features.</p>"),
-    type = "info", html = T
+                                              type = "info", html = T
   ))
-
+  
   observeEvent(input$h_normalization, sendSweetAlert(session,
-    title = "Normalization",
-    text = HTML("<p align='justify'>The total amount of molecules per sample can vary when loading them
+                                                     title = "Normalization",
+                                                     text = HTML("<p align='justify'>The total amount of molecules per sample can vary when loading them
               into the instrument. This systematic error can be corrected by assuming that most
               of the features do not change between samples. We offer the main normalization methods
               used in the field.<br/>
@@ -1124,12 +1132,12 @@ server <- function(input, output, session) {
               <i>Mean: </i>Subtract the mean of the sample from the log-transformed values<br/>
               <i>Cyclic Loess: </i>Apply a non-linear transformation to accommodate for non-linear effects and
               large changes and batch effects in the data (see <a href='http://web.mit.edu/~r/current/arch/i386_linux26/lib/R/library/limma/html/normalizeCyclicLoess.html'>cyclicLoess</a>. <br/></p>"),
-    type = "info", html = T
+                                                     type = "info", html = T
   ))
-
+  
   observeEvent(input$h_summarize, sendSweetAlert(session,
-    title = "Summarization of feature values",
-    text = HTML("<p align='justify'><i>This option is only needed for id columns with duplicated values.</i>
+                                                 title = "Summarization of feature values",
+                                                 text = HTML("<p align='justify'><i>This option is only needed for id columns with duplicated values.</i>
               This can be multiple features measured over all samples like peptides of the same protein.
               Check the data summary on the right side whether there are any duplicates.
               The here given options summarize the rows with the same feature name using one of the following
@@ -1141,12 +1149,12 @@ server <- function(input, output, session) {
               <i>Robust median: </i>Take the median of log-transformed values but remove outliers
               (see <a href='https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/medpolish'>medpolish</a>)<br/>
               <i>Note: </i>Summarization happens after normalization.</p>"),
-    type = "info", html = T
+                                                 type = "info", html = T
   ))
-
+  
   observeEvent(input$h_apps, sendSweetAlert(session,
-    title = "Call apps for further analysis",
-    text = HTML("<p align='justify'>You can submit your data set to the apps
+                                            title = "Call apps for further analysis",
+                                            text = HTML("<p align='justify'>You can submit your data set to the apps
               <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>PolySTest</a>,
               <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>VSClust</a>, and
               <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>ComplexBrowser</a>. The
@@ -1161,18 +1169,31 @@ server <- function(input, output, session) {
               opening new tabs!</br/>
               <i>Note:</i> Depending on the size of the data set, the data upload could fail due to a too slow
               internet connection.</p>"),
-    type = "info", html = T
+                                            type = "info", html = T
   ))
-
+  
   ###### Logging all operations ######
   observeEvent(input$h_log,{
-        showModal(modalDialog(
-          title = span(h3(strong("Summary of data transformations and used upload options"), style = 'font-size:16px;color:#6cbabf;')),
-          renderPrint(log_operations())
-        ))
-        
-      })
-      
-
-
+    showModal(modalDialog(
+      title = span(h3(strong("Summary of data transformations and used upload options"), style = 'font-size:16px;color:#6cbabf;')),
+      renderPrint(log_operations())
+    ))
+    
+  })
+  
+  ###### General info about app ######
+  observeEvent(input$h_about,{
+    showModal(modalDialog(
+      title = span(h3(strong("OmicsQ: Quantitative analysis of Omics data"),
+                      p("This app aims to facilitate the processing of quantitative data from Omics type experiments. 
+It is furthermore an entrypoint for using Apps like PolySTest for statistical testing, VSClust for clustering and
+ComplexBrowser for the investigation of the behavior of protein complexes."),br(), 
+                  p(strong("More info: "), a("https://computproteomics.bmb.sdu.dk")), 
+                p(strong("Source code:"), a("https://bitbucket.org/veitveit/omicsq")),
+                      style = 'font-size:16px;color:#6cbabf;')),
+    ))
+    
+  })
+  
+  
 }
