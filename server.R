@@ -42,11 +42,12 @@ server <- function(input, output, session) {
     # Read file
     print("Reading file")
     in_file <- input$pfile
+    isolate({
     if (is.null(in_file)) {
       return(NULL)
     }
     tlog <- log_operations()
-    tlog[[file_name]] <- in_file$name
+    tlog[["file_name"]] <- in_file$name
 
     if (tools::file_ext(in_file$datapath) %in% c("xls", "xlsx", "XLS", "XLSX")) {
       # Set Options for file input
@@ -63,8 +64,8 @@ server <- function(input, output, session) {
         input$in_sheet
         selectInput("in_sheet", "Which table sheet?", choices = sheets)
       })
-      tlog[[file_type]] <- "excel"
-      tlog[[file_options]] <- c("sheet" = currsheet)
+      tlog[["file_type"]] <- "excel"
+      tlog[["file_options"]] <- c("sheet" = currsheet)
     } else {
       # file options
       currdel <- ifelse(is.null(input$in_delimiter), "auto", input$in_delimiter)
@@ -92,8 +93,8 @@ server <- function(input, output, session) {
           label = "Does file have a header?", value = currheader
         ))
       })
-      tlog[[file_type]] <- "csv"
-      tlog[[file_options]] <- c(
+      tlog[["file_type"]] <- "csv"
+      tlog[["file_options"]] <- c(
         "delimiter" = currdel, "decimal" = currdec,
         "skip" = currskip, "header" = currheader
       )
@@ -118,7 +119,9 @@ server <- function(input, output, session) {
       # set id column
       tdata <- data.frame(tdata)
       class(tdata[, 1]) <- "id"
+      indata(tdata)
     }
+    })
   })
 
   ### Read example file and push through
@@ -220,6 +223,7 @@ server <- function(input, output, session) {
         tlog[["file_idcol"]] <- get_cols
         log_operations(tlog)
       }
+
     })
   })
 
@@ -264,23 +268,20 @@ server <- function(input, output, session) {
 
   ## Manipulate input table
   observeEvent(input$remove_zeroes, {
-    print(input$remove_zeroes)
     isolate({
       get_cols <- make.names(input$sel_col)
+      print(get_cols)
       if (!is.null(get_cols)) {
         print("removing zeroes")
         tdata <- data.frame(indata())
         for (col in get_cols) {
-          tdata[, col] <- replace(tdata[, col], tdata[
-            ,
-            col
-          ] == 0, NA)
+          tdata[, col] <- replace(tdata[, col], tdata[,col] == 0, NA)
         }
         indata(tdata)
+        tlog <- log_operations()
+        tlog[["preprocess_remove_zeroes"]] <- TRUE
+        log_operations(tlog)
       }
-      tlog
-      tlog[["preprocess_remove_zeroes"]] <- TRUE
-      log_operations(tlog)
     })
   })
 
@@ -296,7 +297,7 @@ server <- function(input, output, session) {
           tdata[, col] <- as.numeric(tdata[, col])
           class(tdata[, col]) <- tclasses[col]
         }
-        tlog
+        tolog <- log_operations()
         tlog[["preprocess_remove_char"]] <- TRUE
         log_operations(tlog)
         indata(tdata)
