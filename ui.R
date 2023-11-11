@@ -131,7 +131,7 @@ ui <- navbarPage(
                                  style="pill", 
                                  color = "royal", size = "xs"),
                       hidden(
-                        sliderInput("dist_thresh", "Threshold for string distance", min=0, max=1, value=0)
+                        sliderInput("dist_thresh", "Threshold for string distance", value=0, min=0, max=1)
                       ),  
                       hidden(
                         selectInput("dist_type", "String distance type", 

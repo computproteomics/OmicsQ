@@ -316,7 +316,7 @@ server <- function(input, output, session) {
     print(ted)
     exp_design(ted)
     updateSelectInput(session, "dist_type", selected = "jaccard")
-    updateSelectInput(session, "dist_thresh", selected = NA)
+    updateSelectInput(session, "dist_thresh", selected = 0)
     updateSelectInput(session, "dist_type", selected = "jw")
     updatePickerInput(session, "ed_sel_samples", choices = cnames)
     updateSliderInput(session, "ed_number", max = length(cnames))
@@ -339,13 +339,13 @@ server <- function(input, output, session) {
                             method = input$dist_type,
                             p = 0.2
         ) # p=0.1 prioritizes the start of the strings
+        print(expd_d)
+        th_vals <- sort(unique(expd_d))
         median_dist <- median(expd_d[expd_d != 0], na.rm = T)
         print(median_dist)
-        updateSliderInput(session, "dist_thresh",
-                          value = median_dist,
-                          min = min(expd_d,
-                                    na.rm = T
-                          ), max = max(expd_d, na.rm = T)
+        updateSliderInput(session, "dist_thresh", value=median_dist,
+                         min=min(th_vals), max=max(th_vals), 
+                         step = diff(range(th_vals))/1000
         )
       }
     })
@@ -360,10 +360,12 @@ server <- function(input, output, session) {
         print("dist_thres")
         expd_d <- expd_dist(colnames(tdesign),
                             method = input$dist_type,
-                            p = 0.1
+                            p = 0.2
         ) # p=0.1 prioritizes the start of the strings
         median_dist <- input$dist_thresh
+        # print(median_dist)
         groups <- cutree(hclust(as.dist(expd_d)), h = median_dist)
+        print(groups)
         tdesign[1, ] <- groups
         for (j in unique(groups)) {
           tdesign[2, groups == j] <- 1:sum(groups == j)
