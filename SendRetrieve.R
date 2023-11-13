@@ -79,16 +79,17 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
       
       
       ##### table
-      output$downloadTable <- downloadHandler(filename = function() {
-        validate(need(NULL, "No data"))
-        paste("Results", Sys.Date(), ".csv", sep = "")
-      }, content = function(file) {
-        if (is.null(result_table())) {
-          write.csv(processed_table())
-        } else {
-          write.csv(result_table())
-        }
-      })
+      output$downloadTable <- downloadHandler(
+        filename = function() {
+          validate(need(NULL, "No data"))
+          paste("OmicsQResults", Sys.Date(), ".csv", sep = "")
+        }, content = function(file) {
+          if (is.null(result_table())) {
+            write.csv(processed_table(), file)
+          } else {
+            write.csv(result_table(), file)
+          }
+        })
       
       ## Show table
       output$rtable <- DT::renderDT({
