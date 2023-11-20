@@ -1,4 +1,4 @@
-FROM rocker/shiny:4.2.2
+FROM rocker/shiny:4.3
 LABEL maintainer="Veit Schwaemmle <veits@bmb.sdu.dk>"
 LABEL description="Docker image of PolySTest implementation on top of shiny-server. The number of to-be-installed R packages requires patience when building this image."
 
