@@ -126,7 +126,7 @@ dataInputServer <- function(id, parent, log_operations) {
             
             tdata <- (try(fread(in_file$datapath,
                                 sep = currdel, skip = currskip,
-                                header = currheader, dec = currdec
+                                header = currheader, dec = currdec, fill = TRUE
             )))
             shinyjs::show(id = "in_c1")
             output$file_options <- renderUI({
