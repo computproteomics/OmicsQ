@@ -110,9 +110,16 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
         final_exp_design <- pexp_design()
         NumCond <- length(unique(final_exp_design[1, ]))
         NumReps <- table(final_exp_design[1, ])[1]
+        isStat <- TRUE
+        if (NumReps == 1) {
+          isStat <- FALSE
+          outdat <- cbind(outdat, 1)
+        }
+          
         # print(outdat)
         VSClustMessage <- toJSON(list(
           numrep = NumReps, numcond = NumCond, grouped = F,
+          stat = isStat,
           paired = input$paired, modsandprots = F,
           expr_matrix = as.list(as.data.frame(outdat))
         ))
