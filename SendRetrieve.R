@@ -261,7 +261,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
         # print(outdat) TODO allow PolySTest input for including statistics
         ComplexBrowserMessage <- toJSON(list(
           numrep = NumReps, numcond = NumCond,
-          grouped = F, paired = input$paired, withstats = F,
+          grouped = T, paired = input$paired, withstats = F,
           expr_matrix = as.list(as.data.frame(outdat))
         ))
         updateTextInput(session, "app_log",
