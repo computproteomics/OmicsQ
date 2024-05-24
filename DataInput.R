@@ -4,14 +4,14 @@ dataInputUI <- function(id, prefix="") {
   tagList(
     fluidRow(
       column(3,
-             h3("File input"), 
+             h3("File input"),
              fluidRow(column(6,fileInput(ns("pfile"), label = "Data table"),
                              actionLink(ns("run_example"), "Run example file"),
                              p("Note that this work is still under development. For feedback and bugs,
                                         please write the author: veits@bmb.sdu.dk")),
                       column(6,actionBttn(ns("h_pfile"),
                                           icon=icon("info-circle"),
-                                          style="pill", 
+                                          style="pill",
                                           color = "royal", size = "xs"))
              )),
       hidden(column(3,id=ns("in_c1"),
@@ -19,38 +19,38 @@ dataInputUI <- function(id, prefix="") {
                     fluidRow(column(10,h5("(modify if necessary)")),
                              column(2, actionBttn(ns("h_csv_input"),
                                                   icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  style="pill",
                                                   color = "royal", size = "xs")
-                             )), 
-                    uiOutput(ns("file_options")), 
+                             )),
+                    uiOutput(ns("file_options")),
                     style = 'border-left: 1px solid'
       )),
       hidden(column(3,id=ns("in_c2"),
-                    h4("Select and adjust"), 
+                    h4("Select and adjust"),
                     fluidRow(column(10,p("Select id and data columns:"),
-                                    pickerInput(ns("sel_icol"), "Select ID column", 
-                                                choices=NULL,  multiple=F, 
+                                    pickerInput(ns("sel_icol"), "Select ID column",
+                                                choices=NULL,  multiple=F,
                                                 options = list(
                                                   `live-search` = TRUE,
                                                   `actions-box` = TRUE)),
-                                    pickerInput(ns("sel_qcols"), "Select quantitative columns", 
-                                                choices=NULL,  multiple=T, 
+                                    pickerInput(ns("sel_qcols"), "Select quantitative columns",
+                                                choices=NULL,  multiple=T,
                                                 options = list(
                                                   `live-search` = TRUE,
-                                                  `actions-box` = TRUE)),                                                                                   
+                                                  `actions-box` = TRUE)),
                     ),
                     column(2, actionBttn(ns("h_sel_id_col"),
                                          icon=icon("info-circle"),
-                                         style="pill", 
+                                         style="pill",
                                          color = "royal", size = "xs")
-                    )),                             
+                    )),
                     hr(),
                     fluidRow(column(10,p("Simple manipulations and corrections:"),
                                     actionButton(ns("remove_zeroes"), label="Zeroes to missing values"),
                                     actionButton(ns("remove_char"), label="Non-numeric to missing values"),
                     ),column(2, actionBttn(ns("h_remove_zeroes"),
                                            icon=icon("info-circle"),
-                                           style="pill", 
+                                           style="pill",
                                            color = "royal", size = "xs")
                     )),
                     style = 'border-left: 1px solid'
@@ -60,9 +60,9 @@ dataInputUI <- function(id, prefix="") {
                     fluidRow(column(10,textOutput(ns("txt_proceed_expdesign"),
                     ),column(2, actionBttn(ns("h_proceed_expdesign"),
                                            icon=icon("info-circle"),
-                                           style="pill", 
+                                           style="pill",
                                            color = "royal", size = "xs")
-                    )),                                             
+                    )),
                     disabled(actionButton(ns("proceed_to_expdesign"), "Proceed")),
                     style = 'border-left: 1px solid'
                     ))
@@ -73,13 +73,13 @@ dataInputUI <- function(id, prefix="") {
       DTOutput(ns('ptable'))
     )
   )
-  
+
 }
 
 ###################### Server #####################
 dataInputServer <- function(id, parent, log_operations) {
   moduleServer(
-    id, 
+    id,
     function(input, output, session) {
       ##### READING DATA
       ##### ######################################################### reading
@@ -87,9 +87,15 @@ dataInputServer <- function(id, parent, log_operations) {
       indata <- reactiveVal(NULL)
       next_tab <- reactiveVal(NULL)
       exp_design <- reactiveVal(NULL)
-      
+
       observe({
         tdata <- NULL
+        input$in_sheet
+        input$in_delimiter
+        input$in_dec
+        input$in_skip
+        input$in_header
+
         # Read file
         print("Reading file")
         in_file <- input$pfile
@@ -99,22 +105,24 @@ dataInputServer <- function(id, parent, log_operations) {
           }
           tlog <- log_operations()
           tlog[["file_name"]] <- in_file$name
-          
+
           if (tools::file_ext(in_file$datapath) %in% c("xls", "xlsx", "XLS", "XLSX")) {
             # Set Options for file input
+            print(input$in_sheet)
             currsheet <- ifelse(is.null(input$in_sheet), 1, input$in_sheet)
-            
+
             tdata <- try({
               sheets <- excel_sheets(in_file$datapath)
               read_excel(in_file$datapath, sheet = currsheet)
             })
-            
-            # file options
+
             shinyjs::show(id = "in_c1")
             output$file_options <- renderUI({
               input$in_sheet
-              selectInput(session$ns("in_sheet"), "Which table sheet?", choices = sheets)
+              selectInput(session$ns("in_sheet"), "Which table sheet?", choices = sheets, selected = currsheet)
             })
+
+            # file options
             tlog[["file_type"]] <- "excel"
             tlog[["file_options"]] <- c("sheet" = currsheet)
           } else {
@@ -123,10 +131,10 @@ dataInputServer <- function(id, parent, log_operations) {
             currdec <- ifelse(is.null(input$in_dec), ".", input$in_dec)
             currskip <- ifelse(is.null(input$in_skip), 0, input$in_skip)
             currheader <- ifelse(is.null(input$in_header), T, input$in_header)
-            
+
             tdata <- (try(fread(in_file$datapath,
                                 sep = currdel, skip = currskip,
-                                header = currheader, dec = currdec
+                                header = currheader, dec = currdec, fill = TRUE
             )))
             shinyjs::show(id = "in_c1")
             output$file_options <- renderUI({
@@ -150,14 +158,14 @@ dataInputServer <- function(id, parent, log_operations) {
               "skip" = currskip, "header" = currheader
             )
           }
-          
+
           log_operations(tlog)
-          
+
           shinyjs::show(id = "in_c2")
           shinyjs::show(id = "in_c3")
           updatePickerInput(session, "sel_icol", choices = names(tdata))
           updatePickerInput(session, "sel_qcols", choices = names(tdata))
-          
+
           ## feedbeck via moda
           log_upload <- as.character(geterrmessage())
           if (inherits(tdata, "try-error")) {
@@ -174,7 +182,7 @@ dataInputServer <- function(id, parent, log_operations) {
           }
         })
       })
-      
+
       ### Read example file and push through
       observeEvent(input$run_example, ({
         tdata <- read.csv("Myo_Res.csv")
@@ -198,14 +206,14 @@ dataInputServer <- function(id, parent, log_operations) {
         tlog[["file_qcols"]] <- names(tdata)[2:19]
         log_operations(tlog)
       }))
-      
+
       #### Input data data table
       output$ptable <- DT::renderDT({
         print("dttable")
         show_table <- indata()
         if (!is.null(show_table)) {
           ## create header and footer of table
-          
+
           header.style <- "th { font-family: 'Arial'; font-weight: bold; color: white; background-color: #008080;}"
           # pull header names from the table
           header.names <- c("Columns", colnames(show_table))
@@ -250,7 +258,7 @@ dataInputServer <- function(id, parent, log_operations) {
           NULL
         }
       })
-      
+
       ## select column with ids
       observeEvent(input$sel_icol, {
         isolate({
@@ -270,10 +278,10 @@ dataInputServer <- function(id, parent, log_operations) {
             tlog[["file_idcol"]] <- get_cols
             log_operations(tlog)
           }
-          
+
         })
       })
-      
+
       ## select columns with quant
       observeEvent(input$sel_qcols, {
         isolate({
@@ -296,7 +304,7 @@ dataInputServer <- function(id, parent, log_operations) {
                 log_operations(tlog)
               }
             }
-            
+
             # Control button
             if (sum(sapply(tdata, class) == "quant") > 0) {
               enable("proceed_to_expdesign")
@@ -307,12 +315,12 @@ dataInputServer <- function(id, parent, log_operations) {
           one column with quantified features.
           This column needs to the \"numeric\".")
             }
-            
+
             indata(tdata)
           }
         })
       })
-      
+
       ## Manipulate input table
       observeEvent(input$remove_zeroes, {
         isolate({
@@ -331,7 +339,7 @@ dataInputServer <- function(id, parent, log_operations) {
           }
         })
       })
-      
+
       ## Make characters NA
       observeEvent(input$remove_char, {
         isolate({
@@ -351,7 +359,7 @@ dataInputServer <- function(id, parent, log_operations) {
           }
         })
       })
-      
+
       ## Send further to next tab
       observeEvent(input$proceed_to_expdesign, isolate({
         print("proceed to expdesign")
@@ -363,10 +371,10 @@ dataInputServer <- function(id, parent, log_operations) {
         print(ted)
         exp_design(ted)
         next_tab("ready")
-        
+
       })
       )
-      
+
       ############### Help messages
       observeEvent(input$h_pfile, sendSweetAlert(session,
                                                  title = "File types", text = HTML("<p align='justify'>OmicsQ can read
@@ -375,7 +383,7 @@ dataInputServer <- function(id, parent, log_operations) {
     and digit separators.</p>"),
                                                  type = "info", html = T
       ))
-      
+
       observeEvent(input$h_csv_input, sendSweetAlert(session,
                                                      title = "Options of textual input file",
                                                      text = HTML("<p align='justify'><i>Delimiter:</i> Specify the character
@@ -391,7 +399,7 @@ dataInputServer <- function(id, parent, log_operations) {
               have a first row with information about the data columns, deselect this option.</p>"),
                                                      type = "info", html = T
       ))
-      
+
       observeEvent(input$h_sel_id_col, sendSweetAlert(session,
                                                       title = "Select relevant columns",
                                                       text = HTML("<p align='justify'>Select the columns you want to make the ID
@@ -412,7 +420,7 @@ dataInputServer <- function(id, parent, log_operations) {
               sto proceed to the next analysis step.</p>"),
                                                       type = "info", html = T
       ))
-      
+
       observeEvent(input$h_remove_zeroes, sendSweetAlert(session,
                                                          title = "Simple data manipulation",
                                                          text = HTML("<p align='justify'><i>Zeroes to missing values:
@@ -427,16 +435,16 @@ dataInputServer <- function(id, parent, log_operations) {
               are accepted to continue the analysis.</p>"),
                                                          type = "info", html = T
       ))
-      
-      
+
+
       ### return info for using in expDesign
       return(list(
         next_tab = next_tab,
         exp_design = exp_design,
         indata = indata
       ))
-      
-      
+
+
     }
   )
 }
