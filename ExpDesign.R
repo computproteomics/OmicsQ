@@ -205,7 +205,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         )])
         pexp_design(exp_design())
         tdata <- dataInput$indata()
-        
+
         icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
         ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
         ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
@@ -213,7 +213,12 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         
         updateTabsetPanel(parent, "mainpage", selected = "process")
         
-        next_tab("ready")
+        
+        if (!is.null(next_tab())) {
+          next_tab(paste0(next_tab(), "_new"))
+        } else {
+          next_tab("ready")
+        }
       })
       
       ############### Help messages
