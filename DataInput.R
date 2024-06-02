@@ -370,7 +370,12 @@ dataInputServer <- function(id, parent, log_operations) {
         rownames(ted) <- c("Group", "Replicate")
         print(ted)
         exp_design(ted)
-        next_tab("ready")
+        
+        if (!is.null(next_tab())) {
+          next_tab(paste0(next_tab(), "_new"))
+        } else {
+          next_tab("ready")
+        }
 
       })
       )

@@ -1,11 +1,9 @@
 ############
 # TODO:
-- log file recording all operations (can be done automatically), make list with text entries to be merged to methods afterwards
-- Include VIQoR
 - Add more links to methods and lectures
 - Use PolySTest output as input for ComplexBrowser
 - Return table with eventlistener? Or store event.source in window.orig_data or similar?
-- Set column names in first tab to original onees
+- Set column names in first tab to original ones
 - Color merged output from appes
 - Allow sdrf as input
 - Correct ComplexBrowser input as not working

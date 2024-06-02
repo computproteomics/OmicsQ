@@ -427,8 +427,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       observeEvent(input$proceed_to_apps, {
         updateTabsetPanel(parent, "mainpage", selected = "apps")
         
-        next_tab("ready")
-        # reordering sample names for easier treatment
+        if (!is.null(next_tab())) {
+          next_tab(paste0(next_tab(), "_new"))
+        } else {
+          next_tab("ready")
+        }
+
+                # reordering sample names for easier treatment
         # final_exp_design <- pexp_design()
         # tdata <- processed_table()
         # 
