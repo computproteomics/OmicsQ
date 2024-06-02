@@ -111,12 +111,12 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                                 p = 0.2
             ) # p=0.1 prioritizes the start of the strings
             th_vals <- sort(unique(as.vector(expd_d)))
-            print(th_vals)
+            #print(th_vals)
             median_dist <- median(th_vals[th_vals != 0], na.rm = T)
-            print(median_dist)
             updateSliderInput(session, "dist_thresh", value=median_dist,
-                              min=min(th_vals), max=max(th_vals), 
-                              step = diff(range(th_vals))/1000
+                              min=round(min(th_vals), digits=3), 
+                              max=round(max(th_vals), digits=3), 
+                              step = round(diff(range(th_vals)/100), digits=3)
             )
           }
         })
