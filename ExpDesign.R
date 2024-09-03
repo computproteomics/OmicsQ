@@ -42,16 +42,26 @@ expDesignUI <- function(id, prefix="") {
                                        "soundex"="soundex"), selected="")
              )
       ),
-      hidden(column(width=4,id=ns("ed_c2"),
-                    h4("Assign sample types manually"),
+      hidden(column(width=4, id=ns("ed_c2"),
+                    h4("Assign Sample Types and Batch Number"),
                     pickerInput(ns("ed_sel_samples"), "Select columns for setting sample type", 
                                 choices=NULL,  multiple=T, 
                                 options = list(
                                   `live-search` = TRUE,
                                   `actions-box` = TRUE)),
-                    sliderInput(ns("ed_number"), "Set to this sample type",min=1,max=1,value=1,step=1),
-                    downloadBttn(ns("downloadeTable"),label = "Download table"),
+                    sliderInput(ns("ed_number"), "Set to this sample type", min=1, max=1, value=1, step=1),
+                    
+                    pickerInput(ns("ed_sel_batches"), "Select columns for setting batch number", 
+                                choices=NULL, multiple=T, 
+                                options = list(
+                                  `live-search` = TRUE,
+                                  `actions-box` = TRUE)),
+                    sliderInput(ns("batch_number"), "Set to this batch number", min=1, max=1, value=1, step=1),
+                    
+                    downloadBttn(ns("downloadeTable"), label = "Download table"),
+                    style = 'border-left: 1px solid' # Adding a left border to align with other sections
       )),
+      
       hidden(column(3,id=ns("ed_c3"),
                     h4("Proceed to data pre-processing"),
                     p("Note: Samples with equal group and replicate number will be merged."),
@@ -86,21 +96,37 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
           exp_design(dataInput$exp_design())
           cnames <- colnames(exp_design())
           print("init ExpDesign")
+          
+          # Ensure exp_design has 3 rows with Batch row initialized to 1 if not present
+          current_design <- exp_design()
+          if (nrow(current_design) < 3) {
+            if (nrow(current_design) == 2) {
+              # Add a third row named "Batch" initialized with 1s
+              current_design <- rbind(current_design, Batch = rep(1, ncol(current_design)))
+              rownames(current_design)[3] <- "Batch"
+            } else if (nrow(current_design) == 1) {
+              # Add second row for Replicate and third row for Batch initialized with 1s
+              current_design <- rbind(current_design, Replicate = rep(1, ncol(current_design)), Batch = rep(1, ncol(current_design)))
+              rownames(current_design)[2:3] <- c("Replicate", "Batch")
+            }
+            exp_design(current_design)  # Update exp_design with the modified matrix
+          }
+          
           updateSelectInput(session, "dist_type", selected = "jaccard")
           updateSelectInput(session, "dist_thresh", selected = 0)
           updateSelectInput(session, "dist_type", selected = "jw")
           updatePickerInput(session, "ed_sel_samples", choices = cnames)
           updateSliderInput(session, "ed_number", max = length(cnames))
+          updatePickerInput(session, "ed_sel_batches", choices = cnames)
+          updateSliderInput(session, "batch_number", max = length(cnames))
           shinyjs::show("dist_thresh")
           shinyjs::show("dist_type")
           shinyjs::show("ed_c3")
-          shinyjs::show("ed_c2")
-          
+          shinyjs::show("ed_c2")  # Show the combined sample type and batch assignment UI
         }
       })
       
-      
-      # update threshold
+      # Update threshold
       observe({
         input$dist_type
         isolate({
@@ -111,7 +137,6 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                                 p = 0.2
             ) # p=0.1 prioritizes the start of the strings
             th_vals <- sort(unique(as.vector(expd_d)))
-            #print(th_vals)
             median_dist <- median(th_vals[th_vals != 0], na.rm = T)
             updateSliderInput(session, "dist_thresh", value=median_dist,
                               min=round(min(th_vals), digits=3), 
@@ -122,7 +147,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         })
       })
       
-      # update exp. design
+      # Update experimental design based on threshold
       observe({
         input$dist_thresh
         isolate({
@@ -134,7 +159,6 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                                 p = 0.2
             ) # p=0.1 prioritizes the start of the strings
             median_dist <- input$dist_thresh
-            # print(median_dist)
             groups <- cutree(hclust(as.dist(expd_d)), h = median_dist)
             print(groups)
             tdesign[1, ] <- groups
@@ -147,20 +171,61 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         })
       })
       
-      
-      # Manually change design
-      observeEvent(input$ed_sel_samples, isolate({
-        ted <- exp_design()
-        input$ed_sel_samples
-        if (length(input$ed_sel_samples > 0)) {
-          ted[1, input$ed_sel_samples] <- input$ed_number
-          idx <- (ted[1, ] == input$ed_number)
-          if (length(idx) > 0) {
-            ted[2, idx] <- 1:sum(idx)
+      # Manually change sample types
+      observeEvent(input$ed_sel_samples, {
+        isolate({
+          ted <- exp_design()
+          
+          if (!is.null(ted) && length(input$ed_sel_samples) > 0) {
+            print("Updating sample types")
+            ted[1, input$ed_sel_samples] <- input$ed_number
+            idx <- (ted[1, ] == input$ed_number)
+            if (any(idx)) {
+              ted[2, idx] <- 1:sum(idx)
+            }
+            exp_design(ted)
+          } else {
+            print("No samples selected or invalid selection for sample types.")
           }
-          exp_design(ted)
-        }
-      }))
+        })
+      })
+      
+      # Update the experimental design based on the selected batch number
+      observeEvent(input$ed_sel_batches, {
+        isolate({
+          ted <- exp_design()
+          
+          if (!is.null(ted) && length(input$ed_sel_batches) > 0) {
+            print("Updating batch numbers")
+            
+            if (nrow(ted) < 3) {
+              ted <- rbind(ted, Batch = rep(1, ncol(ted)))
+              rownames(ted)[3] <- "Batch"
+              print("Added third row named 'Batch' to 'ted' matrix for batch numbers.")
+            }
+            
+            print("Structure of ted after adding 'Batch' row:")
+            print(ted)
+            
+            valid_batches <- input$ed_sel_batches[input$ed_sel_batches %in% colnames(ted)]
+            
+            if (length(valid_batches) > 0) {
+              tryCatch({
+                ted["Batch", valid_batches] <- input$batch_number
+                exp_design(ted)
+                print("Batch number assignment successful.")
+                print(ted)
+              }, error = function(e) {
+                print(paste("Error during batch number assignment:", e$message))
+              })
+            } else {
+              print("No valid columns selected for batch number assignment.")
+            }
+          } else {
+            print("Invalid operation: ExpDesign matrix does not have enough rows or invalid batch number selection.")
+          }
+        })
+      })
       
       # Table for editing design
       output$etable <- DT::renderDT({
@@ -193,11 +258,9 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         write.csv(exp_design(), file)
       })
       
-      
-      ## Send further to next tab
+      # Send further to next tab
       observeEvent(input$proceed_to_process, {
         print("send to processing")
-        # reordering sample names for easier treatment
         final_exp_design <- exp_design()
         exp_design(final_exp_design[, order(
           final_exp_design[1, ],
@@ -205,14 +268,13 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
         )])
         pexp_design(exp_design())
         tdata <- dataInput$indata()
-
+        
         icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
         ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
         ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
         process_table(tdata[, c(icol, colnames(final_exp_design), ocols)])
         
         updateTabsetPanel(parent, "mainpage", selected = "process")
-        
         
         if (!is.null(next_tab())) {
           next_tab(paste0(next_tab(), "_new"))
@@ -256,14 +318,13 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                                                       type = "info", html = T
       ))
       
-      
       return(list(
         next_tab = next_tab,
         pexp_design = pexp_design,
         process_table = process_table
       ))
-      
     }
   )
 }
+
 

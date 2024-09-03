@@ -53,6 +53,16 @@ preProcessingUI <- function(id, prefix="") {
                                                   style="pill", 
                                                   color = "royal", size = "xs")
                              )),
+                    
+                    fluidRow(column(10, 
+                                    h5(strong("Batch effect detection/correction")),
+                                    actionButton(ns("batch_effect_button"), label = "Check Batch Effect")  # Added button for checking batch effect
+                    ),
+                    column(2, actionBttn(ns("batch_effect"),
+                                         icon=icon("info-circle"),
+                                         style="pill", 
+                                         color = "royal", size = "xs")
+                    )),
                     style = 'border-left: 1px solid' 
       )              
       ),
@@ -61,17 +71,20 @@ preProcessingUI <- function(id, prefix="") {
                     htmlOutput(ns("ptable_summary"),style="border:solid;border-width:1px;"),
                     h5("Proceed to interaction with apps"),
                     textOutput(ns("txt_proceed_apps")),
-                    disabled(actionButton(ns("proceed_to_apps"), "Proceed")),
+                    #disabled(actionButton(ns("proceed_to_apps"), "Proceed")),
+                    (actionButton(ns("proceed_to_apps"), "Proceed")),
                     style = 'border-left: 1px solid'    
       ))),        
     
-    hidden(fluidRow(id=ns("pr_plots"),
-                    column(5,
-                           plotOutput(ns("pca"))),
-                    column(5,
-                           plotOutput(ns("corrplot"))
-                    ))
-    )
+    hidden(fluidRow(id = ns("pr_plots"),
+                    column(4, 
+                           plotOutput(ns("pca_replicate"))), # Plot PCA with color by Replicate
+                    column(4, 
+                           plotOutput(ns("pca_batch"))), # Plot PCA with color by Batch
+                    column(4, 
+                           plotOutput(ns("corrplot")) # Keep existing correlation plot
+                    )
+    ))
     
   )
 }
@@ -90,6 +103,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       exp_design <- reactiveVal(NULL)
       next_tab <-reactiveVal(NULL)
       
+      # Reactive values to store batch and replicate information
+      batch_info <- reactiveVal(NULL)
+      replicate_info <- reactiveVal(NULL)
       
       observeEvent(expDesign$next_tab(), {
         if (!is.null(expDesign$next_tab())) {
@@ -103,18 +119,17 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           shinyjs::show("pr_c3")
           shinyjs::show("pr_plots")
           updatePickerInput(session, "remove_reps", choices = colnames(exp_design()))
-          # # check whether unique ids
-          # if (sum(duplicated(tdata[, icol])) == 0) {
-          #   enable("proceed_apps")
-          # }
+          
+          # Initialize batch and replicate information
+          replicate_info(pexp_design()[2,]) # Adjust index based on data structure
+          batch_info(pexp_design()[3,]) # Adjust index based on data structure
           
           tdata <- process_table()
           tdata <- tdata[, colnames(exp_design())]
-          # try to find out whether already log-transformed
+          
+          # Determine if the data has been log-transformed
           tlog <- log_operations()
-          if (max(tdata, na.rm = T) / min(tdata, na.rm = T) < 100 ||
-              min(tdata, na.rm = T) <
-              0) {
+          if (max(tdata, na.rm = T) / min(tdata, na.rm = T) < 100 || min(tdata, na.rm = T) < 0) {
             updateCheckboxInput(session, "logtrafo", value = TRUE)
             tlog[["preprocess_take_log2"]] <- FALSE
           } else {
@@ -129,31 +144,123 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         }
       })
       
-      ##### all selected samples
-      output$pca <- renderPlot({
-        print("pca")
+      ##### PCA plot colored by Replicate
+      output$pca_replicate <- renderPlot({
+        print("PCA colored by Replicate")
         tdata <- processed_table()
         texp_design <- pexp_design()
         tdata <- tdata[, grep("quant", sapply(tdata, class))]
         tdata <- tdata[, colSums(!is.na(tdata)) > 0]
         texp_design <- texp_design[, colnames(tdata)]
         tdata <- (tdata[complete.cases(tdata), ])
-        print(length(tdata))
-        shiny::validate(need(length(tdata) > 0, "Principal component analysis not
-    calculated as too many missing values"))
-        shiny::validate(need(nrow(tdata) > 20, "Principal component analysis not
-    calculated as too many missing values"))
+        
+        shiny::validate(need(length(tdata) > 0, "PCA not calculated due to too many missing values"))
+        shiny::validate(need(nrow(tdata) > 20, "PCA not calculated due to too few samples"))
+        
         pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
         loadings <- pca$x
+        
+        # Plot PCA with colors denoting different replicates
         plot(loadings,
              pch = 19,
-             col = rainbow(max(texp_design[1, ]))[texp_design[1, ]]
+             col = rainbow(length(unique(replicate_info())))[as.factor(replicate_info())],
+             main = "PCA Plot: Colored by Replicate",
+             xlab = "PC1", ylab = "PC2"
         )
-        title(
-          main = "Principal component analysis of data set (loadings)",
-          sub = "Colors denote different conditions"
-        )
+        legend("topright", legend = unique(replicate_info()), 
+               col = rainbow(length(unique(replicate_info()))), pch = 19)
         text(loadings, pos = 2, labels = colnames(texp_design))
+      })
+      
+      ##### PCA plot colored by Batch
+      output$pca_batch <- renderPlot({
+        print("PCA colored by Batch")
+        tdata <- processed_table()
+        texp_design <- pexp_design()
+        tdata <- tdata[, grep("quant", sapply(tdata, class))]
+        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
+        texp_design <- texp_design[, colnames(tdata)]
+        tdata <- (tdata[complete.cases(tdata), ])
+        
+        shiny::validate(need(length(tdata) > 0, "PCA not calculated due to too many missing values"))
+        shiny::validate(need(nrow(tdata) > 20, "PCA not calculated due to too few samples"))
+        
+        pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
+        loadings <- pca$x
+        
+        # Plot PCA with colors denoting different batches
+        plot(loadings,
+             pch = 19,
+             col = rainbow(length(unique(batch_info())))[as.factor(batch_info())],
+             main = "PCA Plot: Colored by Batch",
+             xlab = "PC1", ylab = "PC2"
+        )
+        legend("topright", legend = unique(batch_info()), 
+               col = rainbow(length(unique(batch_info()))), pch = 19)
+        text(loadings, pos = 2, labels = colnames(texp_design))
+      })
+      
+      ##### Batch effect detection logic
+      observeEvent(input$batch_effect_button, {
+        print("Detecting batch effects using BEclear...")
+        
+        # Prepare the data
+        tdata <- processed_table()
+        texp_design <- pexp_design()
+        
+        # Select only quantitative columns and remove columns with all NAs
+        tdata <- tdata[, grep("quant", sapply(tdata, class))]
+        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
+        texp_design <- texp_design[, colnames(tdata)]
+        tdata <- (tdata[complete.cases(tdata), ])
+        
+        batch_labels <- batch_info()
+        
+        # Ensure batch_labels has at least two levels
+        if (length(unique(batch_labels)) < 2) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection",
+                         text = "Batch effect detection requires at least two distinct batch levels. Your data has only one batch. Please check your batch assignments.",
+                         type = "warning")
+          return()
+        }
+        
+        # Create a samples data frame required for BEclear
+        sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
+        samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels)
+        colnames(samples) <- c("sample_id", "batch_id")
+        
+        # Use BEclear to calculate batch effects
+        batch_effect_results <- tryCatch({
+          BEclear::calcBatchEffects(
+            data = tdata, 
+            samples = samples,
+            adjusted = TRUE, 
+            method = "fdr"
+          )
+        }, error = function(e) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection Error",
+                         text = paste("An error occurred during batch effect detection:", e$message),
+                         type = "error")
+          return(NULL)
+        })
+        
+        if (is.null(batch_effect_results)) return() # Exit if error occurred
+        
+        # Extract median differences and p-values from the results
+        mdifs <- batch_effect_results$med
+        pvals <- batch_effect_results$pval
+        
+        # Determine the number of features with significant batch effects (p < 0.05)
+        significant_batches <- sum(pvals < 0.05)
+        
+        # Show an alert with batch effect detection results
+        sendSweetAlert(session,
+                       title = "Batch Effect Detection Results",
+                       text = paste("Number of features with significant batch effects (p < 0.05):", significant_batches
+                                    ),
+                       type = "info")
       })
       
       output$corrplot <- renderPlot({
@@ -172,36 +279,46 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         )
       })
       
+
       
       ## Check for balanced exp. design
       output$res_num_reps <- renderText({
         print("check for balancing")
         print(pexp_design())
+        
         # Check whether balanced
         texp_design <- pexp_design()
-        ed_stats <- unique(as.vector(table(texp_design[1, ])))
-        if (length(ed_stats) > 1) {
+        
+        # Calculate the number of replicates per experimental condition
+        ed_stats <- as.vector(table(texp_design[1, ]))
+        
+        # Check if all experimental conditions have the same number of replicates
+        if (length(unique(ed_stats)) > 1) {
+          # If the design is unbalanced, disable the Proceed button
           disable("proceed_to_apps")
           tout <- paste(
             "This unbalanced design has between ",
-            min(table(pexp_design()[1, ])),
-            " and maximally", max(table(pexp_design()[1, ])),
+            min(ed_stats),
+            " and maximally", max(ed_stats),
             "replicates for each experimental condition (sample type)."
           )
         } else {
+          # If the design is balanced, enable the Proceed button
           enable("proceed_to_apps")
           tout <- paste("Experimental design is balanced.")
         }
+        
         tout
       })
+      
+      
       
       ## Summary of main properties of data table
       output$ptable_summary <- renderText({
         tdata <- processed_table()
         ids <- tdata[, grep("id", sapply(tdata, class))]
         tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        shiny::validate(need(nrow(tdata) > 50 & ncol(tdata) > 2, "Data matrix
-    too small"))
+        shiny::validate(need(nrow(tdata) > 50 & ncol(tdata) > 2, "Data matrix too small"))
         paste(
           "<p><b>Size: </b>The current data table contains", ncol(tdata),
           "different samples in ",
@@ -380,7 +497,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                       i
                     )
                     tdata[paste0("new", cond, "_", i)] <- NA
-                    # print(head(tdata, 1))
                     print(paste0("new", cond, "_", i))
                   }
                 }
@@ -389,8 +505,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 cnames <- colnames(tedes)
                 pexp_design(tedes)
               }
-              # print(-(colnames(tdata) %in% cnames))
-              # print(cnames)
               tdata <- data.frame(
                 tdata[, !(colnames(tdata) %in% cnames), drop = F],
                 tdata[, cnames]
@@ -408,22 +522,18 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               
               # check whether unique ids and balanced design
               ed_stats <- unique(as.vector(table(pexp_design()[1, ])))
-              if (sum(duplicated(is.na(tdata[, icol]))) == 0 && ed_stats ==
-                  1) {
-                enable("proceed_apps")
+              if (sum(duplicated(is.na(tdata[, icol]))) == 0 && ed_stats == 1) {
+                enable("proceed_to_apps")
               } else {
-                disable("proceed_apps")
+                disable("proceed_to_apps")
               }
               processed_table(tdata)
-              
-              # print(head(processed_table(), 1))
-              # print(exp_design())
             })
           }
         })
       })
       
-      ## Send further to next tab
+            ## Send further to next tab
       observeEvent(input$proceed_to_apps, {
         updateTabsetPanel(parent, "mainpage", selected = "apps")
         
@@ -432,8 +542,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         } else {
           next_tab("ready")
         }
-
-                # reordering sample names for easier treatment
+        
+        # reordering sample names for easier treatment
         # final_exp_design <- pexp_design()
         # tdata <- processed_table()
         # 
@@ -442,7 +552,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         # ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
         
       })
-      
       
       
       ############### Help messages
@@ -454,7 +563,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               per sample should be the same for each of them. You can balance the data
               by adding empty columns and/or removing excess replicates.
               Replicates with the same number have already been summarized.<br/>
-              <i>Select beliow</i> the samples you wnat to exclude.<br/>
+              <i>Select below</i> the samples you want to exclude.<br/>
               <i>Fill with empty columns: </i>Use this switch to reach
               the same number of replicates per condition. This does
               <b>not make a data set more balanced</b>.
