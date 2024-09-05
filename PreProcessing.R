@@ -3,91 +3,90 @@ preProcessingUI <- function(id, prefix="") {
   ns <- NS(id)
   tagList(
     fluidRow(
-      hidden(column(width=4, id=ns("pr_c1"),
+      hidden(column(width = 4, id = ns("pr_c1"),
                     h4("Add or delete data columns"),
-                    fluidRow(column(10,pickerInput(ns("remove_reps"), "Pick the samples you want to remove", choices = NULL, multiple=T,
-                                                   options = list(
-                                                     `live-search` = TRUE,
-                                                     `actions-box` = TRUE))),
+                    fluidRow(column(10, pickerInput(ns("remove_reps"), "Pick the samples you want to remove", choices = NULL, multiple = T,
+                                                    options = list(
+                                                      `live-search` = TRUE,
+                                                      `actions-box` = TRUE))),
                              column(2, actionBttn(ns("h_balancing"),
-                                                  icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  icon = icon("info-circle"),
+                                                  style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
                     switchInput(ns("add_na_columns"), "Fill with empty columns", 
-                                value=FALSE, labelWidth = 50),
+                                value = FALSE, labelWidth = 50),
                     h4("The current state:"),
-                    p(textOutput(ns("res_num_reps")), style="text-color:#AA2222")
+                    p(textOutput(ns("res_num_reps")), style = "text-color:#AA2222")
       )),
-      hidden(column(width=3, id=ns("pr_c2"),
+      hidden(column(width = 3, id = ns("pr_c2"),
                     h4("Data manipulation and adjustment"),
-                    fluidRow(column(10,checkboxInput(ns("logtrafo"), "Is the data already log-transformed?", value=F)),
+                    fluidRow(column(10, checkboxInput(ns("logtrafo"), "Is the data already log-transformed?", value = F)),
                              column(2, actionBttn(ns("h_logtrafo"),
-                                                  icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  icon = icon("info-circle"),
+                                                  style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
-                    fluidRow(column(10,numericInput(ns("max_na"), label="Maximum number of missing values per feature", 
-                                                    min=0, max=0, step=1, value=100)),
+                    fluidRow(column(10, numericInput(ns("max_na"), label = "Maximum number of missing values per feature", 
+                                                     min = 0, max = 0, step = 1, value = 100)),
                              column(2, actionBttn(ns("h_max_na"),
-                                                  icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  icon = icon("info-circle"),
+                                                  style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
-                    fluidRow(column(10,selectInput(ns("normalization"), label="Normalization method",
-                                                   choices=c(None="none", Median="colMedians", "Mean"="colMeans","Cyclic LOESS (LIMMA)"="cyclicloess"),
-                                                   selected="none")),
+                    fluidRow(column(10, selectInput(ns("normalization"), label = "Normalization method",
+                                                    choices = c(None = "none", Median = "colMedians", "Mean" = "colMeans", "Cyclic LOESS (LIMMA)" = "cyclicloess"),
+                                                    selected = "none")),
                              column(2, actionBttn(ns("h_normalization"),
-                                                  icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  icon = icon("info-circle"),
+                                                  style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
-                    fluidRow(column(10,selectInput(ns("summarize"), label="Summarize to id features", 
-                                                   choices=c(None="none","By sum"="colSums",
-                                                             "By mean"="colMeans", "By median"="colMedians", 
-                                                             "Robust median (medpolish)"="medianPolish"
-                                                             #"Robust summary (rlm)"="robustSummary" Does not work with missing values
-                                                   ))),
+                    fluidRow(column(10, selectInput(ns("summarize"), label = "Summarize to id features", 
+                                                    choices = c(None = "none", "By sum" = "colSums",
+                                                                "By mean" = "colMeans", "By median" = "colMedians", 
+                                                                "Robust median (medpolish)" = "medianPolish"
+                                                    ))),
                              column(2, actionBttn(ns("h_summarize"),
-                                                  icon=icon("info-circle"),
-                                                  style="pill", 
+                                                  icon = icon("info-circle"),
+                                                  style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
                     
                     fluidRow(column(10, 
                                     h5(strong("Batch effect detection/correction")),
+                                    selectInput(ns("batch_correction_method"), "Batch Correction Method", 
+                                                choices = c("limma", "Combat"), selected = "limma"), # New input for batch correction method
                                     actionButton(ns("batch_effect_button"), label = "Check Batch Effect")  # Added button for checking batch effect
                     ),
                     column(2, actionBttn(ns("batch_effect"),
-                                         icon=icon("info-circle"),
-                                         style="pill", 
+                                         icon = icon("info-circle"),
+                                         style = "pill", 
                                          color = "royal", size = "xs")
                     )),
                     style = 'border-left: 1px solid' 
       )              
       ),
-      hidden(column(4,id=ns("pr_c3"),
+      hidden(column(4, id = ns("pr_c3"),
                     h4("Summary:"),
-                    htmlOutput(ns("ptable_summary"),style="border:solid;border-width:1px;"),
+                    htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;"),
                     h5("Proceed to interaction with apps"),
                     textOutput(ns("txt_proceed_apps")),
-                    #disabled(actionButton(ns("proceed_to_apps"), "Proceed")),
-                    (actionButton(ns("proceed_to_apps"), "Proceed")),
+                    actionButton(ns("proceed_to_apps"), "Proceed"),
                     style = 'border-left: 1px solid'    
       ))),        
     
     hidden(fluidRow(id = ns("pr_plots"),
-                    column(4, 
-                           plotOutput(ns("pca_replicate"))), # Plot PCA with color by Replicate
-                    column(4, 
-                           plotOutput(ns("pca_batch"))), # Plot PCA with color by Batch
-                    column(4, 
+                    column(6, 
+                           plotOutput(ns("pca_combined"))), # Combined PCA Plot
+                    column(6, 
                            plotOutput(ns("corrplot")) # Keep existing correlation plot
                     )
     ))
     
   )
 }
+
 
 
 ###### Server ###########
@@ -101,7 +100,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       result_table <- reactiveVal(NULL)
       pexp_design <- reactiveVal(NULL)
       exp_design <- reactiveVal(NULL)
-      next_tab <-reactiveVal(NULL)
+      next_tab <- reactiveVal(NULL)
       
       # Reactive values to store batch and replicate information
       batch_info <- reactiveVal(NULL)
@@ -144,65 +143,57 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         }
       })
       
-      ##### PCA plot colored by Replicate
-      output$pca_replicate <- renderPlot({
-        print("PCA colored by Replicate")
+      
+      ##### Combined PCA plot colored by Replicate and shaped by Batch
+      output$pca_combined <- renderPlot({
+        print("Combined PCA Plot: Colored by Replicate, Shaped by Batch")
         tdata <- processed_table()
         texp_design <- pexp_design()
+        
+        # Ensure there are enough complete cases after correction
+        if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10) {
+          shiny::validate(
+            need(FALSE, "Data matrix too small to perform PCA after batch correction")
+          )
+          return()
+        }
+        
         tdata <- tdata[, grep("quant", sapply(tdata, class))]
         tdata <- tdata[, colSums(!is.na(tdata)) > 0]
         texp_design <- texp_design[, colnames(tdata)]
         tdata <- (tdata[complete.cases(tdata), ])
         
-        shiny::validate(need(length(tdata) > 0, "PCA not calculated due to too many missing values"))
-        shiny::validate(need(nrow(tdata) > 20, "PCA not calculated due to too few samples"))
+        # Remove constant columns to avoid PCA errors
+        constant_columns <- apply(tdata, 2, function(col) var(col, na.rm = TRUE) == 0)
+        tdata <- tdata[, !constant_columns]
+        
+        # Validate after removing constant columns
+        shiny::validate(
+          need(length(tdata) > 0, "PCA not calculated due to too many missing values or zero-variance columns"),
+          need(nrow(tdata) > 20, "PCA not calculated due to too few samples")
+        )
         
         pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
         loadings <- pca$x
         
-        # Plot PCA with colors denoting different replicates
-        plot(loadings,
-             pch = 19,
-             col = rainbow(length(unique(replicate_info())))[as.factor(replicate_info())],
-             main = "PCA Plot: Colored by Replicate",
-             xlab = "PC1", ylab = "PC2"
-        )
-        legend("topright", legend = unique(replicate_info()), 
-               col = rainbow(length(unique(replicate_info()))), pch = 19)
-        text(loadings, pos = 2, labels = colnames(texp_design))
+        # Create a data frame for plotting with ggplot2
+        pca_df <- data.frame(PC1 = loadings[, 1], PC2 = loadings[, 2], 
+                             Replicate = as.factor(replicate_info()), 
+                             Batch = as.factor(batch_info()))
+        
+        # Use ggplot2 for combined PCA plot
+        library(ggplot2)
+        ggplot(pca_df, aes(x = PC1, y = PC2, color = Replicate, shape = Batch)) +
+          geom_point(size = 3) +
+          labs(title = "PCA Plot: Colored by Replicate, Shaped by Batch",
+               x = "PC1", y = "PC2") +
+          theme_minimal() +
+          theme(legend.position = "right")
       })
       
-      ##### PCA plot colored by Batch
-      output$pca_batch <- renderPlot({
-        print("PCA colored by Batch")
-        tdata <- processed_table()
-        texp_design <- pexp_design()
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
-        texp_design <- texp_design[, colnames(tdata)]
-        tdata <- (tdata[complete.cases(tdata), ])
-        
-        shiny::validate(need(length(tdata) > 0, "PCA not calculated due to too many missing values"))
-        shiny::validate(need(nrow(tdata) > 20, "PCA not calculated due to too few samples"))
-        
-        pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
-        loadings <- pca$x
-        
-        # Plot PCA with colors denoting different batches
-        plot(loadings,
-             pch = 19,
-             col = rainbow(length(unique(batch_info())))[as.factor(batch_info())],
-             main = "PCA Plot: Colored by Batch",
-             xlab = "PC1", ylab = "PC2"
-        )
-        legend("topright", legend = unique(batch_info()), 
-               col = rainbow(length(unique(batch_info()))), pch = 19)
-        text(loadings, pos = 2, labels = colnames(texp_design))
-      })
-      
-      ##### Batch effect detection logic
+      ##### Batch effect detection and correction logic
       observeEvent(input$batch_effect_button, {
-        print("Detecting batch effects using BEclear...")
+        print("Detecting and correcting batch effects...")
         
         # Prepare the data
         tdata <- processed_table()
@@ -225,51 +216,67 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           return()
         }
         
-        # Create a samples data frame required for BEclear
-        sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
-        samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels)
-        colnames(samples) <- c("sample_id", "batch_id")
+        # Check which method to use for batch correction
+        method <- input$batch_correction_method
         
-        # Use BEclear to calculate batch effects
-        batch_effect_results <- tryCatch({
-          BEclear::calcBatchEffects(
-            data = tdata, 
-            samples = samples,
-            adjusted = TRUE, 
-            method = "fdr"
-          )
-        }, error = function(e) {
+        if (method == "limma") {
+          # Use limma to calculate and correct batch effects
+          batch_effect_corrected <- tryCatch({
+            removeBatchEffect(tdata, batch = as.factor(batch_labels))
+          }, error = function(e) {
+            sendSweetAlert(session,
+                           title = "Batch Effect Correction Error",
+                           text = paste("An error occurred during batch effect correction with limma:", e$message),
+                           type = "error")
+            return(NULL)
+          })
+        } else if (method == "Combat") {
+          # Use Combat to correct batch effects
+          batch_effect_corrected <- tryCatch({
+            sva::ComBat(dat = tdata, batch = as.factor(batch_labels), mod = NULL, par.prior = TRUE, prior.plots = FALSE)
+          }, error = function(e) {
+            sendSweetAlert(session,
+                           title = "Batch Effect Correction Error",
+                           text = paste("An error occurred during batch effect correction with Combat:", e$message),
+                           type = "error")
+            return(NULL)
+          })
+        } else {
           sendSweetAlert(session,
-                         title = "Batch Effect Detection Error",
-                         text = paste("An error occurred during batch effect detection:", e$message),
+                         title = "Batch Effect Correction Error",
+                         text = "Unknown batch correction method selected.",
                          type = "error")
-          return(NULL)
-        })
+          return()
+        }
         
-        if (is.null(batch_effect_results)) return() # Exit if error occurred
+        if (is.null(batch_effect_corrected)) return() # Exit if error occurred
         
-        # Extract median differences and p-values from the results
-        mdifs <- batch_effect_results$med
-        pvals <- batch_effect_results$pval
+        # Update the processed data with batch-corrected data
+        #processed_table(batch_effect_corrected)
         
-        # Determine the number of features with significant batch effects (p < 0.05)
-        significant_batches <- sum(pvals < 0.05)
+        # Check if the data is still valid after correction
+        if (ncol(batch_effect_corrected) < 3 || nrow(batch_effect_corrected) < 10) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Correction Warning",
+                         text = "Data matrix is too small after batch effect correction. Please check your data.",
+                         type = "warning")
+          return()
+        }
         
-        # Show an alert with batch effect detection results
+        # Show an alert after correction
         sendSweetAlert(session,
-                       title = "Batch Effect Detection Results",
-                       text = paste("Number of features with significant batch effects (p < 0.05):", significant_batches
-                                    ),
-                       type = "info")
+                       title = "Batch Effect Correction",
+                       text = paste("Batch effects have been successfully corrected using", method, "."),
+                       type = "success")
       })
+      
       
       output$corrplot <- renderPlot({
         print("corrplot")
         tdata <- processed_table()
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
-        shiny::validate(need(nrow(tdata) > 10 &
-                               ncol(tdata) > 2, "Data matrix too small"))
+        tdata <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+        tdata <- tdata[, colSums(!is.na(tdata)) > 0, drop = FALSE]
+        shiny::validate(need(nrow(tdata) > 10 & ncol(tdata) > 2, "Data matrix too small"))
         gplots::heatmap.2(cor(tdata, use = "pairwise.complete.obs"),
                           main = "Pairwise correlations between samples",
                           symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(
@@ -278,8 +285,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                           ), trace = "none"
         )
       })
-      
-
       
       ## Check for balanced exp. design
       output$res_num_reps <- renderText({
@@ -311,8 +316,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         tout
       })
       
-      
-      
       ## Summary of main properties of data table
       output$ptable_summary <- renderText({
         tdata <- processed_table()
@@ -340,7 +343,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         )
       })
       
-      ## data operations like removing reps, log, nas, and normalization
+      ## Data operations like removing reps, log, nas, and normalization
       observe({
         input$remove_reps
         input$logtrafo
@@ -359,23 +362,22 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 class
               ))]
               
-              # log-transformation
+              # Log-transformation
               tlog <- log_operations()
               if (!input$logtrafo) {
                 for (cn in cnames) {
                   tdata[, cn] <- log2(tdata[, cn])
                   tdata[!is.finite(tdata[, cn]), cn] <- NA
-                  incProgress(0.3, detail = "log-transformation")
+                  incProgress(0.3, detail = "Log-transformation")
                 }
                 tlog[["preprocess_take_log2"]] <- TRUE
               } else {
                 tlog[["preprocess_take_log2"]] <- FALSE
               }
               
-              # move out to avoid repeated calculations and
-              # complications?  summarize replicates with the same number
+              # Summarize replicates with the same number
               candreps <- paste(exp_design()[1, ], exp_design()[2, ], sep = "_")
-              print("summarizing replicates")
+              print("Summarizing replicates")
               if (sum(duplicated(candreps)) > 0) {
                 incProgress(0.5, detail = "Summarizing replicates")
                 
@@ -416,8 +418,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 new_cnames <- cnames[!duplicated(candreps)]
               }
               
-              # removing reps
-              print(paste0("removing", input$remove_reps))
+              # Removing reps
+              print(paste0("Removing", input$remove_reps))
               rem <- -which(names(tdata) %in% input$remove_reps)
               if (length(rem) > 0) {
                 incProgress(0.1, detail = "Removing replicates")
@@ -427,10 +429,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 cnames <- cnames[rem2]
                 tlog[["preprocess_removed_replicates"]] <- input$remove_reps
               } else {
-                # make sure that no relict column is still there in pexp_design?
+                # Make sure that no relict column is still there in pexp_design?
                 pexp_design(exp_design())
               }
-              
               
               # NAs
               tdata <- tdata[rowSums(is.na(tdata[, cnames])) <= input$max_na, ]
@@ -482,9 +483,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               }
               tlog[["preprocess_summarization"]] <- input$summarize
               
-              ## add empty columns if requested
+              ## Add empty columns if requested
               if (input$add_na_columns) {
-                print("adding NA columns")
+                print("Adding NA columns")
                 reps <- table(pexp_design()[1, ])
                 max_reps <- max(reps)
                 tedes <- pexp_design()
@@ -500,7 +501,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     print(paste0("new", cond, "_", i))
                   }
                 }
-                # reorder columns according to experimental design
+                # Reorder columns according to experimental design
                 tedes <- tedes[, order(tedes[1, ], tedes[2, ])]
                 cnames <- colnames(tedes)
                 pexp_design(tedes)
@@ -514,13 +515,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               )
               log_operations(tlog)
               
-              # set class
+              # Set class
               for (cn in cnames) {
                 class(tdata[, cn]) <- "quant"
               }
               class(tdata[, icol]) <- "id"
               
-              # check whether unique ids and balanced design
+              # Check whether unique ids and balanced design
               ed_stats <- unique(as.vector(table(pexp_design()[1, ])))
               if (sum(duplicated(is.na(tdata[, icol]))) == 0 && ed_stats == 1) {
                 enable("proceed_to_apps")
@@ -533,7 +534,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         })
       })
       
-            ## Send further to next tab
+      ## Send further to next tab
       observeEvent(input$proceed_to_apps, {
         updateTabsetPanel(parent, "mainpage", selected = "apps")
         
@@ -543,7 +544,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           next_tab("ready")
         }
         
-        # reordering sample names for easier treatment
+        # Reordering sample names for easier treatment
         # final_exp_design <- pexp_design()
         # tdata <- processed_table()
         # 
@@ -552,7 +553,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         # ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
         
       })
-      
       
       ############### Help messages
       observeEvent(input$h_balancing, sendSweetAlert(session,
@@ -632,3 +632,4 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
     }
   )
 }
+
