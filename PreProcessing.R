@@ -57,16 +57,29 @@ preProcessingUI <- function(id, prefix="") {
                                                   color = "royal", size = "xs")
                              )),
                     
-                    fluidRow(column(10, 
-                                    h5(strong("Batch effect detection/correction")),
-                                    selectInput(ns("batch_correction_method"), "Batch Correction Method", 
-                                                choices = c("limma", "Combat"), selected = "limma"), # New input for batch correction method
-                                    actionButton(ns("batch_effect_button"), label = "Check Batch Effect")  # Added button for checking batch effect
+                    # UI section for batch effect check button and indicator
+                    fluidRow(column(10, h5(strong("Batch effect detection/correction")),
+                                    actionButton(ns("batch_detection_button"), label = "Batch effect detection"),
+                                    span(textOutput(ns("batch_effect_indicator")), style = "font-weight:bold; margin-left:10px;")
                     ),
                     column(2, actionBttn(ns("batch_effect"),
                                          icon = icon("info-circle"),
                                          style = "pill", 
                                          color = "royal", size = "xs")
+                    )
+                    ),
+                    
+                    # Added margin between Batch effect detection and correction
+                    tags$div(style = "margin-top: 20px;"),
+                    
+                    fluidRow(column(10, 
+                                    actionButton(ns("batch_correction_button"), label = "Batch effect correction")  # Added button for checking batch effect
+                    )),
+                    
+                    # Batch correction method moved here, below the button
+                    fluidRow(column(10, 
+                                    selectInput(ns("batch_correction_method"), "Method", 
+                                                choices = c("limma", "Combat"), selected = "limma") # New input for batch correction method
                     )),
                     style = 'border-left: 1px solid' 
       )              
@@ -92,6 +105,9 @@ preProcessingUI <- function(id, prefix="") {
 }
 
 
+
+
+
 #################### Server ##################
 preProcessingServer <- function(id, parent, expDesign, log_operations) {
   moduleServer(
@@ -111,6 +127,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       batch_info <- reactiveVal(NULL)
       replicate_info <- reactiveVal(NULL)
       
+      
+      ##########################################################################
+      ##########################################################################
       observeEvent(expDesign$next_tab(), {
         if (!is.null(expDesign$next_tab())) {
           process_table(expDesign$process_table())
@@ -159,7 +178,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         }
       })
       
-      
+      ##########################################################################
+      ##########################################################################
       # Reactive observer to update processed_table when user modifies max_na, normalization, or summarization options
       observe({
         input$max_na
@@ -217,7 +237,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       })
       
       
-      
+      ##########################################################################
+      ##########################################################################
       ## Check for balanced exp. design
       output$res_num_reps <- renderText({
         print("check for balancing")
@@ -251,6 +272,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       })
       
       
+      ##########################################################################
+      ##########################################################################
       # Observe event for the "Fill with empty columns" button
       observeEvent(input$add_na_columns, {
         print("Adding NA columns...")
@@ -318,7 +341,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         pexp_design(tedes)
         
         # Disable batch correction when filling with empty columns
-        shinyjs::disable("batch_effect_button")
+        shinyjs::disable("batch_correction_button")
         
         # Update the uncorrected and processed tables
         id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
@@ -382,7 +405,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       
       
       
-      
+      ##########################################################################
+      ##########################################################################
       # Observe event for removing columns
       observe({
         input$remove_reps
@@ -418,8 +442,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         })
       })
       
-      ################## PCA plot
-      ##### PCA Plot
+      ##########################################################################
+      ##########################################################################
+      ### PCA Plot
       output$pca_combined <- renderPlot({
         print("Combined PCA Plot: Colored by Replicate, Shaped by Batch")
         
@@ -514,6 +539,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           )
       })
       
+      ##########################################################################
+      ##########################################################################
       ##### Correlation Plot
       output$corrplot <- renderPlot({
         print("corrplot")
@@ -556,8 +583,134 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                           cex.main = 1.5)  # Equivalent to setting font size of the title)
       })
       
-      ########### Batch effect detection and correction logic
-      observeEvent(input$batch_effect_button, {
+      
+      
+      
+      ##########################################################################
+      #################### Updated Code for Batch Effect Detection #############
+      
+      # Hide the batch_correction_button and batch_correction_method by default
+      shinyjs::hide("batch_correction_button")
+      shinyjs::hide("batch_correction_method")
+      
+      observeEvent(input$batch_detection_button, {
+        tdata <- uncorrected_table()
+        
+        print("Detecting batch effects using BEclear...")
+        
+        # Store total number of features before processing
+        total_features <- nrow(tdata)
+        
+        # Prepare the data
+        texp_design <- pexp_design()
+        
+        # Select only quantitative columns and remove columns with all NAs
+        tdata <- tdata[, grep("quant", sapply(tdata, class))]
+        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
+        texp_design <- texp_design[, colnames(tdata)]
+        
+        # Store number of features after removing NAs
+        features_without_na <- nrow(tdata[complete.cases(tdata), ])
+        
+        # Filter out rows with missing values
+        tdata <- (tdata[complete.cases(tdata), ])
+        
+        batch_labels <- batch_info()
+        
+        # Ensure batch_labels has at least two levels
+        if (length(unique(batch_labels)) < 2) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection",
+                         text = "Batch effect detection requires at least two distinct batch levels. Your data has only one batch. Please check your batch assignments.",
+                         type = "warning")
+          return()
+        }
+        
+        # Create a samples data frame required for BEclear
+        sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
+        samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels, pvaluesTreshold = 0.05)
+        colnames(samples) <- c("sample_id", "batch_id")
+        
+        # Use BEclear to calculate batch effects
+        batch_effect_results <- tryCatch({
+          BEclear::calcBatchEffects(
+            data = tdata, 
+            samples = samples,
+            adjusted = TRUE, 
+            method = "fdr"
+          )
+        }, error = function(e) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection Error",
+                         text = paste("An error occurred during batch effect detection:", e$message),
+                         type = "error")
+          return(NULL)
+        })
+        
+        if (is.null(batch_effect_results)) return() # Exit if error occurred
+        
+        # Extract median differences and p-values from the results
+        mdifs <- batch_effect_results$med
+        pvals <- batch_effect_results$pval
+        summary <- calcSummary(medians = mdifs, pvalues = pvals, pvaluesTreshold = 0.05)
+        
+        # Determine the number of features with significant batch effects (p < 0.05)
+        significant_batches <- nrow(summary)
+        
+        # Prepare the message with detailed information using HTML <br/> for line breaks
+        message <- paste(
+          "<div style='text-align: left;'>",  # Start of left-aligned div
+          "Total features: <strong>", total_features, "</strong><br/>",
+          "Features without missing values: <strong>", features_without_na, "</strong><br/>",
+          "Features affected by batch effects (p < 0.05): <strong>", significant_batches, "</strong>",
+          "<br/><br/>Would you like to run batch effect correction?",
+          "</div>"  # End of left-aligned div
+        )
+        
+        # Ask user whether they want to run batch correction along with the results
+        confirmSweetAlert(
+          session = session,
+          inputId = "confirm_batch_correction",
+          title = "Batch Effect Detection Finish!",
+          text = HTML(message),  # Use HTML() to render the message
+          type = "question",
+          btn_labels = c("No", "Yes"),
+          html = TRUE  # Enable HTML rendering
+        )
+      })
+      
+      # Observe the user's response from the confirmation dialog
+      observeEvent(input$confirm_batch_correction, {
+        if (input$confirm_batch_correction) {
+          # User chooses Yes -> Show batch correction button and method dropdown
+          shinyjs::show("batch_correction_button")
+          shinyjs::show("batch_correction_method")
+          #shinyjs::hide("batch_detection_button")
+        } else {
+          # User chooses No -> Keep batch correction button and method dropdown hidden
+          shinyjs::hide("batch_correction_button")
+          shinyjs::hide("batch_correction_method")
+        }
+      })
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      ##########################################################################
+      ##########################################################################
+      # Batch effect correction
+      observeEvent(input$batch_correction_button, {
         print("Detecting and correcting batch effects...")
         
         # Use the updated uncorrected table which reflects any changes made in data treatment before batch correction
@@ -689,6 +842,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                        type = "success")
       })
       
+      
+      ##########################################################################
+      ##########################################################################
       # Summary of main properties of data table
       output$ptable_summary <- renderText({
         
@@ -743,6 +899,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       })
       
       
+      ##########################################################################
+      ##########################################################################
       ## Send further to next tab
       observeEvent(input$proceed_to_apps, {
         # Ensure the processed_table is up to date
@@ -760,6 +918,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       })
       
       
+      ##########################################################################
+      ##########################################################################
       ############### Help messages
       observeEvent(input$h_balancing, sendSweetAlert(session,
                                                      title = "Create a balanced design",
@@ -826,6 +986,12 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               (see <a href='https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/medpolish'>medpolish</a>)<br/>
               <i>Note: </i>Summarization happens after normalization.</p>"),
                                                      type = "info", html = T
+      ))
+      
+      observeEvent(input$batch_effect, sendSweetAlert(session,
+                                                      title = "Batch effect detection/correction",
+                                                      text = HTML("<p align='justify'><i> For batch effect detection, BEclear package was used.</p>"),
+                                                      type = "info", html = T
       ))
       
       return(list(
