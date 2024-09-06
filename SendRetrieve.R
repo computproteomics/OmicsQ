@@ -1,55 +1,61 @@
 #################### UI ##################
 sendRetrieveUI <- function(id, prefix="") {
-  ns <- NS(id)
+  ns <- NS(id)  # Namespace function to avoid ID conflicts in Shiny modules
   tagList(
-    fluidRow(column(7,h3("Analyze the table with the different apps")),
-             column(1,actionBttn(ns("h_apps"),
-                                 icon=icon("info-circle"),
-                                 style="pill", 
-                                 color = "royal", size = "xs")
+    # Section for analyzing table with external apps
+    fluidRow(column(7, h3("Analyze the table with the different apps")),
+             column(1, actionBttn(ns("h_apps"),
+                                  icon = icon("info-circle"),  # Info button for app analysis help
+                                  style = "pill", 
+                                  color = "royal", size = "xs")
              )),
-    fluidRow(column(10, switchInput(ns("paired"), "Paired experimental design",value=F))
+    # Paired experimental design toggle switch
+    fluidRow(column(10, switchInput(ns("paired"), "Paired experimental design", value = F))
     ),
     
-    
+    # UI for sending and retrieving results from different apps
     fluidRow(
-      hidden(column(width=4, id=ns("app_c1"),
+      # PolySTest section for statistical testing
+      (column(width = 4, id = ns("app_c1"),
                     h4("Statistical testing"),
-                    actionButton(ns("send_polystest"), "Send to PolySTest"),
-                    span(textOutput(ns("connection_polystest")), style="color:#33DD33;"),
-                    #textInput("url_polystest",label="URL",value="http://localhost:3838/Apps/PolySTest/"),
-                    textInput(ns("url_polystest"),label="URL",value="http://computproteomics.bmb.sdu.dk/app_direct/PolySTest/"),
-                    disabled(actionButton(ns("retrieve_polystest"), "Retrieve results from PolySTest"))
+                    actionButton(ns("send_polystest"), "Send to PolySTest"),  # Send button for PolySTest
+                    span(textOutput(ns("connection_polystest")), style = "color:#33DD33;"),  # Display connection status
+                    textInput(ns("url_polystest"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/PolySTest/"),  # PolySTest URL input
+                    disabled(actionButton(ns("retrieve_polystest"), "Retrieve results from PolySTest"))  # Retrieve button, initially disabled
       )),
-      hidden(column(width=4, id=ns("app_c2"),
+      # VSClust section for clustering
+      (column(width = 4, id = ns("app_c2"),
                     h4("Clustering"),
-                    actionButton(ns("send_vsclust"), "Send to VSClust"),
-                    span(textOutput(ns("connection_vsclust")), style="color:#33DD33;"),
-                    #textInput("url_vsclust",label="URL",value="http://localhost:3838/Apps/vsclust/inst/shiny/"),
-                    textInput(ns("url_vsclust"),label="URL",value="http://computproteomics.bmb.sdu.dk/app_direct/VSClust/"),
-                    disabled(actionButton(ns("retrieve_vsclust"), "Retrieve results from VSClust")),
+                    actionButton(ns("send_vsclust"), "Send to VSClust"),  # Send button for VSClust
+                    span(textOutput(ns("connection_vsclust")), style = "color:#33DD33;"),  # Display connection status
+                    textInput(ns("url_vsclust"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/VSClust/"),  # VSClust URL input
+                    disabled(actionButton(ns("retrieve_vsclust"), "Retrieve results from VSClust")),  # Retrieve button, initially disabled
                     style = 'border-left: 1px solid'    
-      )
-      ),
-      hidden(column(width=4, id=ns("app_c3"),
+      )),
+      # ComplexBrowser section for investigating protein complexes
+      (column(width = 4, id = ns("app_c3"),
                     h4("Investigate protein complex behavior"),
-                    actionButton(ns("send_complexbrowser"), "Send to ComplexBrowser"),
-                    span(textOutput(ns("connection_complexbrowser")), style="color:#33DD33;"),
-                    textInput(ns("url_complexbrowser"),label="URL",value="http://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/"),
-                    hidden(actionButton(ns("retrieve_complexbrowser"), "Retrieve results from ComplexBrowser")),
+                    actionButton(ns("send_complexbrowser"), "Send to ComplexBrowser"),  # Send button for ComplexBrowser
+                    span(textOutput(ns("connection_complexbrowser")), style = "color:#33DD33;"),  # Display connection status
+                    textInput(ns("url_complexbrowser"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/"),  # ComplexBrowser URL input
+                    hidden(actionButton(ns("retrieve_complexbrowser"), "Retrieve results from ComplexBrowser")),  # Retrieve button, hidden by default
                     style = 'border-left: 1px solid'    
       ))
     ),
+    # Download button for processed table
     br(),
-    fluidRow(hidden(column(width=4, id=ns("download_apps"), )),downloadBttn(ns("downloadTable"),label = "Download table")),
+    fluidRow(hidden(column(width = 4, id = ns("download_apps"), )), downloadBttn(ns("downloadTable"), label = "Download table")),
     br(),
-    hidden(textInput(ns("app_log"), "app_log", value=NULL)),
+    hidden(textInput(ns("app_log"), "app_log", value = NULL)),  # Hidden field to store log messages
     br(),
+    # Display the processed table
     fluidRow(
-      DTOutput(ns('rtable'))
-    )
+      DTOutput(ns('rtable'))  # Display processed table in a DataTable
+    ),
+    
   )
 }
+
 
 
 ############## Server #######
@@ -57,242 +63,225 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
   moduleServer(
     id,
     function(input, output, session) {
+      # Reactive values to store logs and data
       log_vsclust <- reactiveVal(NULL)
       log_complexbrowser <- reactiveVal(NULL)
       log_polystest <- reactiveVal(NULL)
-      result_table <- reactiveVal(NULL)
-      processed_table <- reactiveVal(NULL)
-      pexp_design <- reactiveVal(NULL)
+      result_table <- reactiveVal(NULL)  # Store the final table with results
+      processed_table <- reactiveVal(NULL)  # Store the processed table from PreProcessing
+      pexp_design <- reactiveVal(NULL)  # Store experimental design information
       
-      observeEvent(preProcessing$next_tab(), {
-        if (!is.null(preProcessing$next_tab())) {
-          processed_table(preProcessing$processed_table())
-          result_table(preProcessing$result_table())
-          pexp_design(preProcessing$pexp_design())
-          
-          shinyjs::show("app_c1")
-          shinyjs::show("app_c2")
-          shinyjs::show("app_c3")
-          
+      # Update and display the logs
+      output$log_output <- renderText({
+        input$app_log  # This will display the current log text
+      })
+      
+      # Ensure processed_table is always updated with changes from PreProcessing
+      observe({
+        processed_table(preProcessing$processed_table())  # Update processed_table reactively
+        pexp_design(preProcessing$pexp_design())  # Update experimental design reactively
+        result_table(preProcessing$result_table())  # Update result table if it exists
+      })
+      
+      ## Show the processed table in a DataTable
+      output$rtable <- DT::renderDT({
+        # Display the processed_table or result_table if available
+        if (is.null(result_table())) {
+          datatable(processed_table())  # Show processed_table if no result table
+        } else {
+          datatable(result_table())  # Show result_table if it exists
         }
       })
       
-      
-      ##### table
+      ##### Download Table Logic
       output$downloadTable <- downloadHandler(
         filename = function() {
-          validate(need(NULL, "No data"))
-          paste("OmicsQResults", Sys.Date(), ".csv", sep = "")
-        }, content = function(file) {
-          if (is.null(result_table())) {
-            write.csv(processed_table(), file)
-          } else {
-            write.csv(result_table(), file)
+          # Validate that there is data before proceeding
+          if (is.null(result_table()) && is.null(processed_table())) {
+            return(NULL)  # If no data, do not generate filename
           }
-        })
-      
-      ## Show table
-      output$rtable <- DT::renderDT({
-        if (is.null(result_table())) {
-          data.table(processed_table())
-        } else {
-          data.table(result_table())
+          paste("OmicsQResults", Sys.Date(), ".csv", sep = "")  # Name the file as a CSV
+        }, 
+        content = function(file) {
+          # Write the data to CSV: either processed or result table
+          if (!is.null(result_table())) {
+            write.csv(result_table(), file, row.names = FALSE)
+          } else if (!is.null(processed_table())) {
+            write.csv(processed_table(), file, row.names = FALSE)
+          }
         }
-      })
+      )
       
-      
-      ## VSClust Sent data to VSClust
+      ###################################################
+      ## VSClust: Send data to VSClust app
       observeEvent(input$send_vsclust, isolate({
-        # make table in right format
+        # Extract processed data and prepare it for sending
         tdata <- processed_table()
-        outdat <- as.matrix(tdata[, grep("quant", sapply(tdata, class))])
-        outdat <- cbind(tdata[, grep("id", sapply(tdata, class))], outdat)
-        final_exp_design <- pexp_design()
-        NumCond <- length(unique(final_exp_design[1, ]))
-        NumReps <- table(final_exp_design[1, ])[1]
-        isStat <- TRUE
-        if (NumReps == 1) {
-          isStat <- FALSE
-          outdat <- cbind(outdat, 1)
-        }
-          
-        # print(outdat)
+        outdat <- tdata
+        final_exp_design <- pexp_design()  # Get experimental design
+        NumCond <- length(unique(final_exp_design[1, ]))  # Number of conditions
+        NumReps <- table(final_exp_design[1, ])[1]  # Number of replicates per condition
+        
+        # Prepare the message to send to VSClust
         VSClustMessage <- toJSON(list(
           numrep = NumReps, numcond = NumCond, grouped = F,
-          stat = isStat,
           paired = input$paired, modsandprots = F,
-          expr_matrix = as.list(as.data.frame(outdat))
+          expr_matrix = as.list(as.data.frame(outdat))  # Send data matrix
         ))
-        updateTextInput(session, "app_log",
-                        value = "Opening VSClust and data upload ..."
-        )
+        
+        # Update the log message
+        updateTextInput(session, "app_log", value = paste(input$app_log, "Opening VSClust and data upload ...", sep = "\n"))  # Log the action
+        
         js$send_message(
-          url = input$url_vsclust,
+          url = input$url_vsclust,  # Send to VSClust URL
           dat = VSClustMessage, tool = "VSClust"
         )
-        enable("retrieve_vsclust")
+        enable("retrieve_vsclust")  # Enable the retrieve button
       }))
       
-      # Log for VSClust
+      # Log connection status for VSClust
       output$connection_vsclust <- renderText({
-        toutput <- log_vsclust()
-        # print(input$app_log)
+        toutput <- log_vsclust()  # Display the log for VSClust
         if (input$app_log != "" & !is.null(input$app_log)) {
           if (grepl("vsclust", tolower(input$app_log))) {
             toutput <- input$app_log
-            # print(toutput)
-            log_vsclust(toutput)
+            log_vsclust(toutput)  # Update VSClust log
             updateTextInput(session, "app_log", value = "")
           }
         }
-        toutput
+        toutput  # Return the log output
       })
       
-      # Sending message to retrieve results
+      # Sending message to retrieve results from VSClust
       observeEvent(input$retrieve_vsclust, isolate({
-        updateTextInput(session, "app_log", value = "Getting VSClust results")
+        updateTextInput(session, "app_log", value = "Getting VSClust results")  # Log the retrieval
         js$retrieve_results(
           url = input$url_vsclust, dat = "Retrieve results", tool = "VSClust",
-          date = date()
+          date = date()  # Retrieve results from VSClust
         )
       }))
       
-      
-      # Merging PolySTest results into result r_table
+      # Handle results from VSClust and merge them into result_table
       observeEvent(input$vsclust_results, isolate({
-        print("Processing VSClust results")
         if (is.list(input$vsclust_results)) {
-          print("data table received")
           tdata <- NULL
+          # Convert JSON response to table
           for (n in names(input$vsclust_results[[1]])) {
-            tdata <-
-              cbind(tdata, as.numeric(input$vsclust_results[[1]][[n]]))
+            tdata <- cbind(tdata, as.numeric(input$vsclust_results[[1]][[n]]))
           }
-          colnames(tdata) <- names(input$vsclust_results[[1]])
-          # print(head(tdata)) print(summary(input$polystest_results[[1]]))
-          # print(dim(as.data.frame(input$polystest_results[[1]])))
-          if (is.null(result_table)) {
-            result_table(cbind(processed_table(), tdata))
+          colnames(tdata) <- names(input$vsclust_results[[1]])  # Assign column names
+          if (is.null(result_table())) {
+            result_table(cbind(processed_table(), tdata))  # Combine results with processed table
           } else {
             result_table(cbind(result_table(), tdata))
           }
-          updateTextInput(session, "app_log", value = "Processed VSClust results")
+          
+          # Update the log with processed results
+          updateTextInput(session, "app_log", value = paste(input$app_log, "Processed VSClust results", sep = "\n"))
         }
       }))
       
-      
-      ## PolySTest Sent data to PolySTest
+      ################################################### 
+      ## PolySTest: Send data to PolySTest app
       observeEvent(input$send_polystest, isolate({
-        # make table in right format
+        # Extract processed data and prepare it for PolySTest
         tdata <- processed_table()
-        outdat <- as.matrix(tdata[, grep("quant", sapply(tdata, class))])
-        outdat <- cbind(tdata[, grep("id", sapply(tdata, class))], outdat)
-        final_exp_design <- pexp_design()
-        NumCond <- length(unique(final_exp_design[1, ]))
-        NumReps <- table(final_exp_design[1, ])[1]
-        # print(outdat)
+        outdat <- tdata
+        final_exp_design <- pexp_design()  # Get experimental design
+        NumCond <- length(unique(final_exp_design[1, ]))  # Number of conditions
+        NumReps <- table(final_exp_design[1, ])[1]  # Number of replicates per condition
+        
+        # Prepare the message to send to PolySTest
         PolySTestMessage <- toJSON(list(
           numrep = NumReps, numcond = NumCond, grouped = F,
           paired = input$paired, firstquantcol = 2,
-          expr_matrix = as.list(as.data.frame(outdat))
+          expr_matrix = as.list(as.data.frame(outdat))  # Send data matrix
         ))
-        updateTextInput(session, "app_log",
-                        value = "Opening PolySTest and data upload ..."
-        )
+        
+        # Update the log
+        updateTextInput(session, "app_log", value = paste(input$app_log, "Opening PolySTest and data upload ...", sep = "\n"))  # Log the action
+        
         js$send_message(
-          url = input$url_polystest,
+          url = input$url_polystest,  # Send to PolySTest URL
           dat = PolySTestMessage, tool = "PolySTest"
         )
-        enable("retrieve_polystest")
+        enable("retrieve_polystest")  # Enable the retrieve button
       }))
       
-      # Log for PolySTest
+      # Log connection status for PolySTest
       output$connection_polystest <- renderText({
-        toutput <- log_polystest()
-        # print(input$app_log)
+        toutput <- log_polystest()  # Display the log for PolySTest
         if (!is.list(input$app_log) & input$app_log != "" & !is.null(input$app_log)) {
           if (grepl("polystest", tolower(input$app_log))) {
             toutput <- input$app_log
-            # print(toutput)
-            log_polystest(toutput)
+            log_polystest(toutput)  # Update PolySTest log
             updateTextInput(session, "app_log", value = "")
           }
         }
-        toutput
+        toutput  # Return the log output
       })
       
-      # Sending message to retrieve results
+      # Retrieve results from PolySTest
       observeEvent(input$retrieve_polystest, isolate({
-        updateTextInput(session, "app_log", value = "Getting PolySTest results")
+        updateTextInput(session, "app_log", value = "Getting PolySTest results")  # Log the retrieval
         js$retrieve_results(
-          url = input$url_polystest, dat = "Retrieve results",
-          tool = "PolySTest"
+          url = input$url_polystest, dat = "Retrieve results", tool = "PolySTest"
         )
       }))
       
-      # Merging PolySTest results into result r_table
+      # Handle results from PolySTest and merge them into result_table
       observeEvent(input$polystest_results, isolate({
-        print("Processing PolySTest results")
         if (is.list(input$polystest_results)) {
-          print("data table received")
-          # jsonmessage <- fromJSON(input$polystest_results)
-          # print(head(jsonmessage[['expr_matrix']]))
           tdata <- NULL
+          # Convert JSON response to table
           for (n in names(input$polystest_results[[1]])) {
-            tdata <- cbind(
-              tdata,
-              as.numeric(input$polystest_results[[1]][[n]])
-            )
+            tdata <- cbind(tdata, as.numeric(input$polystest_results[[1]][[n]]))
           }
-          colnames(tdata) <- names(input$polystest_results[[1]])
-          # print(head(tdata)) print(summary(input$polystest_results[[1]]))
-          # print(dim(as.data.frame(input$polystest_results[[1]])))
+          colnames(tdata) <- names(input$polystest_results[[1]])  # Assign column names
           if (is.null(result_table())) {
-            result_table(cbind(processed_table(), tdata))
+            result_table(cbind(processed_table(), tdata))  # Combine results with processed table
           } else {
             result_table(cbind(result_table(), tdata))
           }
-          updateTextInput(session, "app_log", value = "Processed PolySTest results")
+          updateTextInput(session, "app_log", value = paste(input$app_log, "Processed PolySTest results", sep = "\n"))  # Log the processing
         }
       }))
       
-      ## ComplexBrowser Sending data to ComplexBrowser
+      
+      ###################################################
+      ## ComplexBrowser: Send data to ComplexBrowser app
       observeEvent(input$send_complexbrowser, isolate({
-        # make table in right format
+        # Extract processed data and prepare it for ComplexBrowser
         tdata <- processed_table()
-        outdat <- as.matrix(tdata[, grep("quant", sapply(tdata, class))])
-        outdat <- cbind(tdata[, grep("id", sapply(tdata, class))], outdat)
-        final_exp_design <- pexp_design()
-        NumCond <- length(unique(final_exp_design[1, ]))
-        NumReps <- table(final_exp_design[1, ])[1]
-        # print(outdat) TODO allow PolySTest input for including statistics
+        outdat <- tdata
+        final_exp_design <- pexp_design()  # Get experimental design
+        NumCond <- length(unique(final_exp_design[1, ]))  # Number of conditions
+        NumReps <- table(final_exp_design[1, ])[1]  # Number of replicates per condition
+        
+        # Prepare the message to send to ComplexBrowser
         ComplexBrowserMessage <- toJSON(list(
           numrep = NumReps, numcond = NumCond,
           grouped = T, paired = input$paired, withstats = F,
-          expr_matrix = as.list(as.data.frame(outdat))
+          expr_matrix = as.list(as.data.frame(outdat))  # Send data matrix
         ))
-        updateTextInput(session, "app_log",
-                        value = "Opening ComplexBrowser and data upload ..."
-        )
+        updateTextInput(session, "app_log", value = paste(input$app_log, "Opening ComplexBrowser and data upload ...", sep = "\n"))  # Log the action
         js$send_message(
           url = input$url_complexbrowser, dat = ComplexBrowserMessage,
           tool = "ComplexBrowser"
         )
       }))
       
-      # Log for ComplexBrowser
+      # Log connection status for ComplexBrowser
       output$connection_complexbrowser <- renderText({
-        toutput <- log_complexbrowser()
-        # print(input$app_log)
+        toutput <- log_complexbrowser()  # Display the log for ComplexBrowser
         if (input$app_log != "" & !is.null(input$app_log)) {
           if (grepl("complexbrowser", tolower(input$app_log))) {
             toutput <- input$app_log
-            # print(toutput)
-            log_complexbrowser(toutput)
+            log_complexbrowser(toutput)  # Update ComplexBrowser log
             updateTextInput(session, "app_log", value = "")
           }
         }
-        toutput
+        toutput  # Return the log output
       })
       
       ############### Help messages
@@ -300,8 +289,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                                                 title = "Call apps for further analysis",
                                                 text = HTML("<p align='justify'>You can submit your data set to the apps
               <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>PolySTest</a>,
-              <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>VSClust</a>, and
-              <a href='http://computproteomics.bmb.sdu.dk/Apps/PolySTest'>ComplexBrowser</a>. The
+              <a href='http://computproteomics.bmb.sdu.dk/Apps/VSClust'>VSClust</a>, and
+              <a href='http://computproteomics.bmb.sdu.dk/Apps/ComplexBrowser'>ComplexBrowser</a>. The
               URLs are set to the public servers which should be fully functional but
               might be busy due to limited user access.<br/>
               If you, for example due to privacy reasons, want to call the apps on a local or another
@@ -315,9 +304,6 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
               internet connection.</p>"),
                                                 type = "info", html = T
       ))
-      
-      
     }
   )
 }
-
