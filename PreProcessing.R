@@ -2,22 +2,26 @@
 preProcessingUI <- function(id, prefix="") {
   ns <- NS(id)
   tagList(
+    useShinyjs(),  # Include shinyjs to enable/disable UI elements
     fluidRow(
       hidden(column(width = 4, id = ns("pr_c1"),
                     h4("Add or delete data columns"),
-                    fluidRow(column(10, pickerInput(ns("remove_reps"), "Pick the samples you want to remove", choices = NULL, multiple = T,
+                    fluidRow(column(10, pickerInput(ns("remove_reps"), "Pick the samples you want to remove", 
+                                                    choices = NULL, multiple = T,
                                                     options = list(
                                                       `live-search` = TRUE,
-                                                      `actions-box` = TRUE))),
+                                                      `actions-box` = FALSE,
+                                                      `max-options` = -2, # Prevent selecting more than n-2 columns
+                                                      `max-options-text` = "Cannot select more than n-2 columns"
+                                                    ))),
                              column(2, actionBttn(ns("h_balancing"),
                                                   icon = icon("info-circle"),
                                                   style = "pill", 
                                                   color = "royal", size = "xs")
                              )),
-                    switchInput(ns("add_na_columns"), "Fill with empty columns", 
-                                value = FALSE, labelWidth = 50),
                     h4("The current state:"),
-                    p(textOutput(ns("res_num_reps")), style = "text-color:#AA2222")
+                    p(textOutput(ns("res_num_reps")), style = "text-color:#AA2222"),
+                    actionButton(ns("add_na_columns"), "Fill with empty columns", icon = icon("plus-circle"), style = "margin-top: 10px;"),
       )),
       hidden(column(width = 3, id = ns("pr_c2"),
                     h4("Data manipulation and adjustment"),
@@ -88,8 +92,7 @@ preProcessingUI <- function(id, prefix="") {
 }
 
 
-
-###### Server ###########
+#################### Server ##################
 preProcessingServer <- function(id, parent, expDesign, log_operations) {
   moduleServer(
     id,
@@ -97,115 +100,525 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       
       process_table <- reactiveVal(NULL)
       processed_table <- reactiveVal(NULL)
+      uncorrected_table <- reactiveVal(NULL) # Reactive value to store the uncorrected state of the data
       result_table <- reactiveVal(NULL)
       pexp_design <- reactiveVal(NULL)
       exp_design <- reactiveVal(NULL)
       next_tab <- reactiveVal(NULL)
       
-      # Reactive values to store batch and replicate information
+      # Reactive values to store group, batch and replicate information
+      group_info <- reactiveVal(NULL)
       batch_info <- reactiveVal(NULL)
       replicate_info <- reactiveVal(NULL)
       
       observeEvent(expDesign$next_tab(), {
         if (!is.null(expDesign$next_tab())) {
-          processed_table(expDesign$process_table())
           process_table(expDesign$process_table())
           pexp_design(expDesign$pexp_design())
           exp_design(expDesign$pexp_design())
+          
+          # Initialize processed_table with 'id' and 'quant' columns from process_table
+          initial_data <- process_table()
+          id_column <- initial_data[, grep("id", sapply(initial_data, class)), drop = FALSE]
+          quant_columns <- initial_data[, grep("quant", sapply(initial_data, class)), drop = FALSE]
+          uncorrected_table(cbind(id_column, quant_columns)) # Store initial uncorrected data
+          processed_table(uncorrected_table()) # Initialize processed_table from uncorrected_table
           
           shinyjs::show("pr_c1")
           shinyjs::show("pr_c2")
           shinyjs::show("pr_c3")
           shinyjs::show("pr_plots")
-          updatePickerInput(session, "remove_reps", choices = colnames(exp_design()))
           
-          # Initialize batch and replicate information
+          # Update pickerInput with new column names and set max-options dynamically
+          total_columns <- ncol(expDesign$pexp_design())
+          updatePickerInput(session, "remove_reps", 
+                            choices = colnames(exp_design()),
+                            options = list(
+                              `max-options` = total_columns - 2, # Set max-options dynamically
+                              `max-options-text` = "Cannot select more than n-2 columns"
+                            ))
+          
+          # Initialize group, batch and replicate information
+          group_info(pexp_design()[1,]) # Assuming Group info is in the first row
           replicate_info(pexp_design()[2,]) # Adjust index based on data structure
           batch_info(pexp_design()[3,]) # Adjust index based on data structure
           
-          tdata <- process_table()
-          tdata <- tdata[, colnames(exp_design())]
-          
           # Determine if the data has been log-transformed
           tlog <- log_operations()
-          if (max(tdata, na.rm = T) / min(tdata, na.rm = T) < 100 || min(tdata, na.rm = T) < 0) {
+          if (max(quant_columns, na.rm = T) / min(quant_columns, na.rm = T) < 100 || min(quant_columns, na.rm = T) < 0) {
             updateCheckboxInput(session, "logtrafo", value = TRUE)
             tlog[["preprocess_take_log2"]] <- FALSE
           } else {
             tlog[["preprocess_take_log2"]] <- TRUE
           }
           updateNumericInput(session, "max_na",
-                             min = 0, max = ncol(tdata),
-                             value = ncol(tdata)
+                             min = 0, max = ncol(quant_columns),
+                             value = ncol(quant_columns)
           )
           log_operations(tlog)
-          
         }
       })
       
       
-      ##### Combined PCA plot colored by Replicate and shaped by Batch
-      output$pca_combined <- renderPlot({
-        print("Combined PCA Plot: Colored by Replicate, Shaped by Batch")
-        tdata <- processed_table()
+      # Reactive observer to update processed_table when user modifies max_na, normalization, or summarization options
+      observe({
+        input$max_na
+        input$normalization
+        input$summarize
+        tdata <- uncorrected_table()
+        
+        isolate({
+          if (!is.null(tdata)) {
+            withProgress(message = "Processing...", value = 0, min = 0, max = 1, {
+              
+              # Step 1: Filter based on maximum number of missing values per feature
+              if (!is.null(input$max_na)) {
+                tdata <- tdata[rowSums(is.na(tdata[, -1])) <= input$max_na, ]
+                incProgress(0.3, detail = "Filtering based on missing values")
+              }
+              
+              # Update processed_table after filtering
+              processed_table(tdata)
+              
+              # Step 2: Apply normalization method
+              if (input$normalization != "none") {
+                if (input$normalization == "colMedians") {
+                  tdata[, -1] <- t(t(tdata[, -1]) - colMedians(as.matrix(tdata[, -1]), na.rm = TRUE))
+                } else if (input$normalization == "colMeans") {
+                  tdata[, -1] <- t(t(tdata[, -1]) - colMeans(as.matrix(tdata[, -1]), na.rm = TRUE))
+                } else if (input$normalization == "cyclicloess") {
+                  tdata[, -1] <- limma::normalizeBetweenArrays(as.matrix(tdata[, -1]), method = "cyclicloess")
+                }
+                incProgress(0.4, detail = "Applying normalization")
+              }
+              
+              # Update processed_table after normalization
+              processed_table(tdata)
+              
+              # Step 3: Apply summarization method
+              if (input$summarize != "none") {
+                if (input$summarize == "colSums") {
+                  tdata <- aggregate(. ~ id, data = tdata, FUN = sum, na.rm = TRUE)
+                } else if (input$summarize == "colMeans") {
+                  tdata <- aggregate(. ~ id, data = tdata, FUN = mean, na.rm = TRUE)
+                } else if (input$summarize == "colMedians") {
+                  tdata <- aggregate(. ~ id, data = tdata, FUN = median, na.rm = TRUE)
+                } else if (input$summarize == "medianPolish") {
+                  tdata <- MsCoreUtils::aggregate_by_vector(tdata, tdata$id, FUN = medianPolish, na.rm = TRUE)
+                }
+                incProgress(0.3, detail = "Applying summarization")
+              }
+              
+              # Final update of processed_table after summarization
+              processed_table(tdata)
+            })
+          }
+        })
+      })
+      
+      
+      
+      ## Check for balanced exp. design
+      output$res_num_reps <- renderText({
+        print("check for balancing")
+        print(pexp_design())
+        
+        # Check whether balanced
         texp_design <- pexp_design()
         
-        # Ensure there are enough complete cases after correction
-        if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10) {
+        # Calculate the number of replicates per experimental condition
+        ed_stats <- as.vector(table(texp_design[1, ]))
+        
+        # Check if all experimental conditions have the same number of replicates
+        if (length(unique(ed_stats)) > 1) {
+          # If the design is unbalanced, disable the Proceed button
+          disable("proceed_to_apps")
+          enable("add_na_columns")  # Enable fill with empty columns when unbalanced
+          tout <- paste(
+            "This unbalanced design has between ",
+            min(ed_stats),
+            " and maximally", max(ed_stats),
+            "replicates for each experimental condition (sample type). Please click below button to make data balanced."
+          )
+        } else {
+          # If the design is balanced, enable the Proceed button
+          enable("proceed_to_apps")
+          disable("add_na_columns")  # Disable fill with empty columns when balanced
+          tout <- paste("Experimental design is balanced.")
+        }
+        
+        tout
+      })
+      
+      
+      # Observe event for the "Fill with empty columns" button
+      observeEvent(input$add_na_columns, {
+        print("Adding NA columns...")
+        
+        tdata <- uncorrected_table()
+        if (is.null(tdata)) return()
+        
+        reps <- table(pexp_design()[1, ])
+        max_reps <- max(reps)
+        tedes <- pexp_design()
+        
+        added_columns <- c()  # Track added columns for the summary
+        
+        # Generate a summary of the data before filling with empty columns
+        before_filling_summary <- {
+          # Identify "id" and "quant" columns
+          id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
+          quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+          
+          # Prepare the summary text
+          paste(
+            "<p><b>Before Filling:</b><br/><b>Size:</b> The current data table contains ", 
+            ncol(quant_columns), " samples and ", nrow(quant_columns), " features.<br/><b>Missingness: </b>The proportion of missing values is ",
+            round(sum(is.na(quant_columns)) / length(as.matrix(quant_columns)), 3), 
+            ", with the number of missing values ranging from ", min(colSums(is.na(quant_columns))), 
+            " to ", max(colSums(is.na(quant_columns))), " per sample.<br/><b>Range:</b> The dynamic range is from ",
+            round(min(quant_columns, na.rm = TRUE), 2), " to ", round(max(quant_columns, na.rm = TRUE), 2), 
+            ".<br/><b>Summarization:</b> The ID column contains ", 
+            ifelse(sum(duplicated(id_column)) > 0, "non-unique IDs, and thus needs summarization.",
+                   "unique IDs, so summarization is not required."), "</p>"
+          )
+        }
+        
+        # Add the new columns
+        for (cond in unique(tedes[1, ])) {
+          tt <- tedes[, tedes[1, ] == cond, drop = F]
+          
+          for (i in seq_len(max_reps - reps[cond])) {
+            # Get the number of rows in tedes
+            n_rows <- nrow(tedes)
+            
+            # Create a new column that matches the number of rows in tedes
+            new_col <- c(rep(cond, n_rows - 1), max(tt[2, ]) + i)
+            
+            # Name the new column as new_oldname_numbering
+            oldname <- colnames(tt)[1]  # Assuming the first column is the old name
+            new_col_name <- paste0("new_", oldname, "_", i)  # Add numbering for each new column
+            
+            # Add the new column to tedes
+            tedes <- cbind(tedes, new_col)
+            
+            # Rename the new column in tedes
+            colnames(tedes)[ncol(tedes)] <- new_col_name
+            
+            # Add an NA column to tdata (the actual data)
+            tdata[new_col_name] <- NA
+            
+            # Track the added column name for the summary
+            added_columns <- c(added_columns, new_col_name)
+          }
+        }
+        
+        # Reorder columns according to experimental design
+        tedes <- tedes[, order(tedes[1, ], tedes[2, ])]
+        pexp_design(tedes)
+        
+        # Disable batch correction when filling with empty columns
+        shinyjs::disable("batch_effect_button")
+        
+        # Update the uncorrected and processed tables
+        id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
+        quant_columns <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+        
+        # Update the uncorrected table
+        uncorrected_table(cbind(id_column, quant_columns))
+        
+        # Update the processed table
+        processed_table(cbind(id_column, quant_columns))  # Make sure new columns are added here
+        
+        ### Data Treatment Pre-submission and Data Manipulation Adjustment ###
+        
+        # Apply maximum number of missing values per feature
+        if (!is.null(input$max_na)) {
+          tdata <- tdata[rowSums(is.na(tdata[, -1])) <= input$max_na, ]
+        }
+        
+        # Apply normalization method
+        if (input$normalization != "none") {
+          if (input$normalization == "colMedians") {
+            tdata[, -1] <- t(t(tdata[, -1]) - colMedians(as.matrix(tdata[, -1]), na.rm = TRUE))
+          } else if (input$normalization == "colMeans") {
+            tdata[, -1] <- t(t(tdata[, -1]) - colMeans(as.matrix(tdata[, -1]), na.rm = TRUE))
+          } else if (input$normalization == "cyclicloess") {
+            tdata[, -1] <- limma::normalizeBetweenArrays(as.matrix(tdata[, -1]), method = "cyclicloess")
+          }
+        }
+        
+        # Apply summarization method
+        if (input$summarize != "none") {
+          if (input$summarize == "colSums") {
+            tdata <- aggregate(. ~ id, data = tdata, FUN = sum, na.rm = TRUE)
+          } else if (input$summarize == "colMeans") {
+            tdata <- aggregate(. ~ id, data = tdata, FUN = mean, na.rm = TRUE)
+          } else if (input$summarize == "colMedians") {
+            tdata <- aggregate(. ~ id, data = tdata, FUN = median, na.rm = TRUE)
+          } else if (input$summarize == "medianPolish") {
+            tdata <- MsCoreUtils::aggregate_by_vector(tdata, tdata$id, FUN = medianPolish, na.rm = TRUE)
+          }
+        }
+        
+        # Update processed table after adjustments
+        processed_table(tdata)
+        
+        # Regenerate summary after all adjustments
+        after_adjustments_summary <- {
+          paste(
+            "<p><b>After Filling:</b><br/>New empty columns added: ", 
+            paste(added_columns, collapse = ", "), "</p>"
+          )
+        }
+        
+        # Update the summary output
+        output$ptable_summary <- renderUI({
+          HTML(paste(before_filling_summary, after_adjustments_summary))
+        })
+      })
+      
+      
+      
+      
+      
+      
+      # Observe event for removing columns
+      observe({
+        input$remove_reps
+        tdata <- process_table()
+        
+        isolate({
+          if (!is.null(tdata)) {
+            withProgress(message = "Processing...", value = 0, min = 0, max = 1, {
+              cnames <- colnames(exp_design())
+              
+              # Removing selected columns
+              rem <- -which(names(tdata) %in% input$remove_reps)
+              if (length(rem) > 0) {
+                incProgress(0.1, detail = "Removing replicates")
+                tdata <- tdata[, rem]
+                rem2 <- -which(cnames %in% input$remove_reps)
+                pexp_design(exp_design()[, rem2])
+                cnames <- cnames[rem2]
+                tlog <- log_operations()
+                tlog[["preprocess_removed_replicates"]] <- input$remove_reps
+                log_operations(tlog)
+              } else {
+                pexp_design(exp_design())
+              }
+              
+              # Update uncorrected_table to keep only 'id' and 'quant' columns
+              id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
+              quant_columns <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+              uncorrected_table(cbind(id_column, quant_columns))
+              processed_table(uncorrected_table()) # Keep processed_table in sync with uncorrected_table after modifications
+            })
+          }
+        })
+      })
+      
+      ################## PCA plot
+      ##### PCA Plot
+      output$pca_combined <- renderPlot({
+        print("Combined PCA Plot: Colored by Replicate, Shaped by Batch")
+        
+        # Get the processed table, which reflects any changes made in data treatment
+        tdata <- processed_table()
+        
+        # Check if processed_table is available and valid
+        if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10) { 
           shiny::validate(
             need(FALSE, "Data matrix too small to perform PCA after batch correction")
           )
           return()
         }
         
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
-        texp_design <- texp_design[, colnames(tdata)]
-        tdata <- (tdata[complete.cases(tdata), ])
+        # Convert the processed_table to the format before batch correction
+        # Identify "id" and "quant" columns
+        id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
+        quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+        
+        # Debugging: Print dimensions and sample data of id_column and quant_columns
+        print(paste("id_column dimensions:", dim(id_column)))
+        print(paste("quant_columns dimensions:", dim(quant_columns)))
+        print("Sample of id_column:")
+        print(head(id_column))
+        print("Sample of quant_columns:")
+        print(head(quant_columns))
+        
+        # Ensure there is still enough data after filtering quantitative columns
+        if (ncol(quant_columns) < 2) {
+          shiny::validate(
+            need(FALSE, "Not enough quantitative columns for PCA calculation")
+          )
+          return()
+        }
+        
+        # Remove columns with all NAs
+        quant_columns <- quant_columns[, colSums(!is.na(quant_columns)) > 0, drop = FALSE]
         
         # Remove constant columns to avoid PCA errors
-        constant_columns <- apply(tdata, 2, function(col) var(col, na.rm = TRUE) == 0)
-        tdata <- tdata[, !constant_columns]
+        constant_columns <- apply(quant_columns, 2, function(col) var(col, na.rm = TRUE) == 0)
+        quant_columns <- quant_columns[, !constant_columns]
         
-        # Validate after removing constant columns
+        # Remove rows with missing or infinite values
+        quant_columns <- quant_columns[complete.cases(quant_columns),]
+        
+        # Check if there is still enough data for PCA
         shiny::validate(
-          need(length(tdata) > 0, "PCA not calculated due to too many missing values or zero-variance columns"),
-          need(nrow(tdata) > 20, "PCA not calculated due to too few samples")
+          need(ncol(quant_columns) > 2, "Not enough columns with variance for PCA calculation"),
+          need(nrow(quant_columns) > 20, "Not enough samples for PCA calculation")
         )
         
-        pca <- prcomp(t(tdata), scale = TRUE, retx = TRUE)
+        # Perform PCA
+        pca <- prcomp(t(quant_columns), scale = TRUE, retx = TRUE)
         loadings <- pca$x
         
-        # Create a data frame for plotting with ggplot2
-        pca_df <- data.frame(PC1 = loadings[, 1], PC2 = loadings[, 2], 
-                             Replicate = as.factor(replicate_info()), 
-                             Batch = as.factor(batch_info()))
+        # Get the current experimental design to align replicate and batch information
+        texp_design <- pexp_design()
+        
+        # Ensure replicate_info() and batch_info() match the data after processing
+        # Find the common indices based on column names that are retained after processing
+        valid_indices <- match(colnames(quant_columns), colnames(texp_design))
+        replicate_info_filtered <- replicate_info()[valid_indices]
+        batch_info_filtered <- batch_info()[valid_indices]
+        group_info_filtered <- group_info()[valid_indices]
+        
+        # Check if the valid_indices has NAs which mean the alignment was not successful
+        if (any(is.na(valid_indices))) {
+          shiny::validate(
+            need(FALSE, "Mismatch between data and experimental design. Ensure alignment of data columns.")
+          )
+          return()
+        }
+        
+        # Create data frame for plotting
+        pca_df <- data.frame(
+          PC1 = loadings[, 1], 
+          PC2 = loadings[, 2], 
+          Group = as.factor(group_info_filtered),
+          Replicate = as.factor(replicate_info_filtered), 
+          Batch = as.factor(batch_info_filtered)
+        )
         
         # Use ggplot2 for combined PCA plot
         library(ggplot2)
-        ggplot(pca_df, aes(x = PC1, y = PC2, color = Replicate, shape = Batch)) +
+        ggplot(pca_df, aes(x = PC1, y = PC2, color = Group, shape = Batch)) +
           geom_point(size = 3) +
-          labs(title = "PCA Plot: Colored by Replicate, Shaped by Batch",
+          labs(title = "PCA Plot: Colored by Group, Shaped by Batch",
                x = "PC1", y = "PC2") +
           theme_minimal() +
-          theme(legend.position = "right")
+          theme(legend.position = "right",
+                plot.title = element_text(size = 16, face = "bold", hjust = 0.5)  # Set title font size to 14
+          )
       })
       
-      ##### Batch effect detection and correction logic
+      ##### Correlation Plot
+      output$corrplot <- renderPlot({
+        print("corrplot")
+        tdata <- processed_table()
+        
+        # Check if processed_table is available and valid
+        if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10) { 
+          shiny::validate(
+            need(FALSE, "Data matrix too small to perform correlation analysis")
+          )
+          return()
+        }
+        
+        # Identify "quant" columns
+        quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+        
+        # Remove columns with all NAs
+        quant_columns <- quant_columns[, colSums(!is.na(quant_columns)) > 0, drop = FALSE]
+        
+        # Remove constant columns to avoid errors in correlation calculation
+        constant_columns <- apply(quant_columns, 2, function(col) var(col, na.rm = TRUE) == 0)
+        quant_columns <- quant_columns[, !constant_columns]
+        
+        # Check for missing or infinite values
+        quant_columns <- quant_columns[complete.cases(quant_columns),]
+        
+        # Ensure there is still enough data for correlation plot
+        shiny::validate(
+          need(ncol(quant_columns) > 2, "Not enough columns with variance for correlation calculation"),
+          need(nrow(quant_columns) > 20, "Not enough samples for correlation calculation")
+        )
+        
+        # Compute correlation matrix
+        correlation_matrix <- cor(quant_columns, use = "pairwise.complete.obs")
+        
+        # Plot the correlation matrix
+        gplots::heatmap.2(correlation_matrix,
+                          main = "Pairwise correlations between samples",
+                          symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(-1, 1, 0.01), trace = "none",
+                          cex.main = 1.5)  # Equivalent to setting font size of the title)
+      })
+      
+      ########### Batch effect detection and correction logic
       observeEvent(input$batch_effect_button, {
         print("Detecting and correcting batch effects...")
         
-        # Prepare the data
-        tdata <- processed_table()
-        texp_design <- pexp_design()
+        # Use the updated uncorrected table which reflects any changes made in data treatment before batch correction
+        tdata <- uncorrected_table()
+        
+        # Print initial dimensions of uncorrected_table
+        print(paste("Initial uncorrected_table dimensions:", nrow(tdata), ncol(tdata)))
+        
+        # Ensure enough data is available for batch effect detection
+        if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection Warning",
+                         text = "Data matrix too small to perform batch effect detection.",
+                         type = "warning")
+          return()
+        }
         
         # Select only quantitative columns and remove columns with all NAs
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
-        texp_design <- texp_design[, colnames(tdata)]
-        tdata <- (tdata[complete.cases(tdata), ])
+        tdata <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+        print(paste("tdata after selecting quant columns:", nrow(tdata), ncol(tdata)))
         
-        batch_labels <- batch_info()
+        tdata <- tdata[, colSums(!is.na(tdata)) > 0, drop = FALSE]
+        print(paste("tdata after removing columns with all NAs:", nrow(tdata), ncol(tdata)))
+        
+        tdata <- tdata[complete.cases(tdata), ]
+        print(paste("tdata after removing rows with NAs:", nrow(tdata), ncol(tdata)))
+        
+        # Remove constant columns to avoid errors in batch correction
+        constant_columns <- apply(tdata, 2, function(col) var(col, na.rm = TRUE) == 0)
+        tdata <- tdata[, !constant_columns]
+        print(paste("tdata after removing constant columns:", nrow(tdata), ncol(tdata)))
+        
+        # Ensure there is still enough data after removing columns
+        if (ncol(tdata) < 2) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection Warning",
+                         text = "Not enough columns with variance for batch effect detection after removing constant columns.",
+                         type = "warning")
+          return()
+        }
+        
+        # Get the current experimental design to align replicate and batch information
+        texp_design <- pexp_design()
+        
+        # Ensure replicate_info() and batch_info() match the data after processing
+        # Find the common indices based on column names that are retained after processing
+        valid_indices <- match(colnames(tdata), colnames(texp_design))
+        replicate_info_filtered <- replicate_info()[valid_indices]
+        batch_info_filtered <- batch_info()[valid_indices]
+        
+        # Check if the valid_indices has NAs which mean the alignment was not successful
+        if (any(is.na(valid_indices))) {
+          sendSweetAlert(session,
+                         title = "Batch Effect Detection Error",
+                         text = "Mismatch between data and experimental design. Ensure alignment of data columns.",
+                         type = "error")
+          return()
+        }
+        
+        # Proceed with batch effect detection and correction
+        batch_labels <- batch_info_filtered
         
         # Ensure batch_labels has at least two levels
         if (length(unique(batch_labels)) < 2) {
@@ -251,17 +664,23 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         
         if (is.null(batch_effect_corrected)) return() # Exit if error occurred
         
-        # Update the processed data with batch-corrected data
-        #processed_table(batch_effect_corrected)
+        # Print dimensions after batch effect correction
+        print(paste("batch_effect_corrected dimensions:", nrow(batch_effect_corrected), ncol(batch_effect_corrected)))
         
-        # Check if the data is still valid after correction
-        if (ncol(batch_effect_corrected) < 3 || nrow(batch_effect_corrected) < 10) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Correction Warning",
-                         text = "Data matrix is too small after batch effect correction. Please check your data.",
-                         type = "warning")
-          return()
-        }
+        # Separate ID column and Quant columns
+        id_column <- uncorrected_table()[, grep("id", sapply(uncorrected_table(), class)), drop = FALSE]
+        quant_columns_corrected <- batch_effect_corrected
+        
+        # Ensure the id_column matches the number of rows in quant_columns_corrected after subsetting
+        id_column <- id_column[rownames(quant_columns_corrected), , drop = FALSE]
+        print(paste("id_column dimensions after subsetting:", nrow(id_column), ncol(id_column)))
+        print(paste("quant_columns_corrected dimensions after subsetting:", nrow(quant_columns_corrected), ncol(quant_columns_corrected)))
+        
+        # Update processed_table with corrected batch data and ensure to keep ID and quant columns
+        processed_table(data.frame(id_column, quant_columns_corrected))
+        
+        # Print the updated dimensions of processed_table
+        print(paste("Updated processed_table dimensions after batch correction:", nrow(processed_table()), ncol(processed_table())))
         
         # Show an alert after correction
         sendSweetAlert(session,
@@ -270,289 +689,76 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                        type = "success")
       })
       
-      
-      output$corrplot <- renderPlot({
-        print("corrplot")
+      # Summary of main properties of data table
+      output$ptable_summary <- renderText({
+        
+        # Get the processed table, which reflects any changes made in data treatment
         tdata <- processed_table()
-        tdata <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0, drop = FALSE]
-        shiny::validate(need(nrow(tdata) > 10 & ncol(tdata) > 2, "Data matrix too small"))
-        gplots::heatmap.2(cor(tdata, use = "pairwise.complete.obs"),
-                          main = "Pairwise correlations between samples",
-                          symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(
-                            -1, 1,
-                            0.01
-                          ), trace = "none"
-        )
-      })
-      
-      ## Check for balanced exp. design
-      output$res_num_reps <- renderText({
-        print("check for balancing")
-        print(pexp_design())
         
-        # Check whether balanced
-        texp_design <- pexp_design()
-        
-        # Calculate the number of replicates per experimental condition
-        ed_stats <- as.vector(table(texp_design[1, ]))
-        
-        # Check if all experimental conditions have the same number of replicates
-        if (length(unique(ed_stats)) > 1) {
-          # If the design is unbalanced, disable the Proceed button
-          disable("proceed_to_apps")
-          tout <- paste(
-            "This unbalanced design has between ",
-            min(ed_stats),
-            " and maximally", max(ed_stats),
-            "replicates for each experimental condition (sample type)."
+        # Ensure processed_table is available and valid
+        if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
+          shiny::validate(
+            need(FALSE, "Data matrix too small for generating summary")
           )
-        } else {
-          # If the design is balanced, enable the Proceed button
-          enable("proceed_to_apps")
-          tout <- paste("Experimental design is balanced.")
+          return()
         }
         
-        tout
-      })
-      
-      ## Summary of main properties of data table
-      output$ptable_summary <- renderText({
-        tdata <- processed_table()
-        ids <- tdata[, grep("id", sapply(tdata, class))]
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        shiny::validate(need(nrow(tdata) > 50 & ncol(tdata) > 2, "Data matrix too small"))
-        paste(
-          "<p><b>Size: </b>The current data table contains", ncol(tdata),
-          "different samples in ",
-          length(unique(pexp_design()[1, ])), " conditions, and is comprised of",
-          nrow(tdata), "features.<br/><b>Missingness: </b>The proportion of
-      missing values is",
-          round(sum(is.na(tdata)) / length(as.matrix(tdata)), digits = 3),
-          "and the number of missing values varies from",
-          min(colSums(is.na(tdata))), "to", max(colSums(is.na(tdata))),
-          "per sample.<br/><b>Range: </b>The dynamic range is from",
-          round(min(tdata, na.rm = T), 2), "to", round(max(tdata, na.rm = T),
-                                                       digits = 2
-          ),
-          ".<br/><b>Summarization: </b> The id column has",
-          ifelse(sum(duplicated(ids)) >
-                   0, "non-unique ids and thus needs to be summarized.",
-                 "unique ids and thus does not need to be summarized</p>"
+        # Identify "id" and "quant" columns
+        id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
+        quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+        
+        # Debugging: Print dimensions and sample data of id_column and quant_columns
+        print(paste("id_column dimensions:", dim(id_column)))
+        print(paste("quant_columns dimensions:", dim(quant_columns)))
+        print("Sample of id_column:")
+        print(head(id_column))
+        print("Sample of quant_columns:")
+        print(head(quant_columns))
+        print("Show final_exp_design:")
+        print(pexp_design)
+        
+        # Ensure there is still enough data after filtering quantitative columns
+        if (ncol(quant_columns) < 2 || nrow(quant_columns) < 10) {
+          shiny::validate(
+            need(FALSE, "Not enough quantitative columns or rows for summary generation")
           )
+          return()
+        }
+        
+        # Prepare the summary text
+        paste(
+          "<p><b>Size:</b> The current data table contains ", ncol(quant_columns),
+          " distinct samples across ",
+          length(unique(pexp_design()[1, ])), " conditions, and comprises ",
+          nrow(quant_columns), " features.<br/><b>Missingness:</b> The proportion of missing values is ",
+          round(sum(is.na(quant_columns)) / length(as.matrix(quant_columns)), 3),
+          ", with the number of missing values ranging from ",
+          min(colSums(is.na(quant_columns))), " to ", max(colSums(is.na(quant_columns))),
+          " per sample.<br/><b>Range:</b> The dynamic range is from ",
+          round(min(quant_columns, na.rm = TRUE), 2), " to ", round(max(quant_columns, na.rm = TRUE), 2),
+          ".<br/><b>Summarization:</b> The ID column contains ",
+          ifelse(sum(duplicated(id_column)) > 0, "non-unique IDs, and thus needs summarization.",
+                 "unique IDs, so summarization is not required."), "</p>"
         )
       })
       
-      ## Data operations like removing reps, log, nas, and normalization
-      observe({
-        input$remove_reps
-        input$logtrafo
-        input$normalization
-        input$max_na
-        input$add_na_columns
-        input$summarize
-        tdata <- process_table()
-        
-        isolate({
-          if (!is.null(tdata)) {
-            withProgress(message = "Calculating...", value = 0, min = 0, max = 1, {
-              cnames <- colnames(exp_design())
-              icol <- colnames(process_table())[grep("id", sapply(
-                tdata,
-                class
-              ))]
-              
-              # Log-transformation
-              tlog <- log_operations()
-              if (!input$logtrafo) {
-                for (cn in cnames) {
-                  tdata[, cn] <- log2(tdata[, cn])
-                  tdata[!is.finite(tdata[, cn]), cn] <- NA
-                  incProgress(0.3, detail = "Log-transformation")
-                }
-                tlog[["preprocess_take_log2"]] <- TRUE
-              } else {
-                tlog[["preprocess_take_log2"]] <- FALSE
-              }
-              
-              # Summarize replicates with the same number
-              candreps <- paste(exp_design()[1, ], exp_design()[2, ], sep = "_")
-              print("Summarizing replicates")
-              if (sum(duplicated(candreps)) > 0) {
-                incProgress(0.5, detail = "Summarizing replicates")
-                
-                # Initialize summarized_reps matrix with NA values
-                summarized_reps <- matrix(NA,
-                                          nrow = nrow(tdata),
-                                          ncol = length(unique(candreps))
-                )
-                
-                # Loop over each row of tdata
-                for (r in 1:nrow(tdata)) {
-                  # Group elements in row by candreps values and sum
-                  # them, replacing 0 with NA
-                  tsumm <- as.vector(unlist(by(unlist(tdata[r, cnames]), candreps,
-                                               sum,
-                                               na.rm = T
-                  )))
-                  tsumm[tsumm == 0] <- NA
-                  
-                  # Assign tsumm as a row in summarized_reps
-                  summarized_reps[r, ] <- tsumm
-                }
-                
-                # Assign new column names to summarized_reps
-                new_cnames <- cnames[!duplicated(candreps)]
-                colnames(summarized_reps) <- new_cnames
-                
-                # Update exp_design and tdata with summarized_reps
-                exp_design(exp_design()[, new_cnames])
-                tdata <- tdata[, -which(names(tdata) %in% cnames), drop = F]
-                tdata <- cbind(tdata, summarized_reps)
-                cnames <- new_cnames
-                
-                # Update picker input with new column names
-                updatePickerInput(session, "remove_reps",
-                                  choices = colnames(exp_design())
-                )
-                new_cnames <- cnames[!duplicated(candreps)]
-              }
-              
-              # Removing reps
-              print(paste0("Removing", input$remove_reps))
-              rem <- -which(names(tdata) %in% input$remove_reps)
-              if (length(rem) > 0) {
-                incProgress(0.1, detail = "Removing replicates")
-                tdata <- tdata[, rem]
-                rem2 <- -which(cnames %in% input$remove_reps)
-                pexp_design(exp_design()[, rem2])
-                cnames <- cnames[rem2]
-                tlog[["preprocess_removed_replicates"]] <- input$remove_reps
-              } else {
-                # Make sure that no relict column is still there in pexp_design?
-                pexp_design(exp_design())
-              }
-              
-              # NAs
-              tdata <- tdata[rowSums(is.na(tdata[, cnames])) <= input$max_na, ]
-              tlog[[paste0("preprocess_max_missing_values")]] <- input$max_na
-              
-              # Normalize
-              incProgress(0.6, detail = "Normalizing")
-              if (input$normalization == "colMedians") {
-                tdata[, cnames] <- t(t(tdata[, cnames]) -
-                                       colMedians(as.matrix(tdata[
-                                         ,
-                                         cnames
-                                       ]), na.rm = T))
-              } else if (input$normalization == "colMeans") {
-                tdata[, cnames] <- t(t(tdata[, cnames]) -
-                                       colMeans(as.matrix(tdata[
-                                         ,
-                                         cnames
-                                       ]), na.rm = T))
-              } else {
-                tdata[, cnames] <- limma::normalizeBetweenArrays(tdata[, cnames],
-                                                                 method = input$normalization
-                )
-              }
-              tlog[["preprocess_normalization"]] <- input$normalization
-              
-              
-              # Summarization (from MsCoreUtils package)
-              if (input$summarize != "none") {
-                incProgress(0.8, detail = "Summarization")
-                
-                if (input$summarize == "sum") {
-                  summarized <- MsCoreUtils::aggregate_by_vector(2^as.matrix(tdata[
-                    ,
-                    cnames
-                  ]), tdata[, icol], input$summarize, na.rm = T)
-                  summarized <- log2(summarized)
-                } else {
-                  summarized <- MsCoreUtils::aggregate_by_vector(as.matrix(tdata[
-                    ,
-                    cnames
-                  ]), tdata[, icol], input$summarize, na.rm = T)
-                }
-                tdata <- data.frame(
-                  summarized_ids = rownames(summarized),
-                  summarized
-                )
-                colnames(tdata)[1] <- icol
-              }
-              tlog[["preprocess_summarization"]] <- input$summarize
-              
-              ## Add empty columns if requested
-              if (input$add_na_columns) {
-                print("Adding NA columns")
-                reps <- table(pexp_design()[1, ])
-                max_reps <- max(reps)
-                tedes <- pexp_design()
-                for (cond in unique(tedes[1, ])) {
-                  tt <- tedes[, tedes[1, ] == cond, drop = F]
-                  for (i in seq_len(max_reps - reps[cond])) {
-                    tedes <- cbind(tedes, c(cond, max(tt[2, ]) + i))
-                    colnames(tedes)[ncol(tedes)] <- paste0(
-                      "new", cond, "_",
-                      i
-                    )
-                    tdata[paste0("new", cond, "_", i)] <- NA
-                    print(paste0("new", cond, "_", i))
-                  }
-                }
-                # Reorder columns according to experimental design
-                tedes <- tedes[, order(tedes[1, ], tedes[2, ])]
-                cnames <- colnames(tedes)
-                pexp_design(tedes)
-              }
-              tdata <- data.frame(
-                tdata[, !(colnames(tdata) %in% cnames), drop = F],
-                tdata[, cnames]
-              )
-              tlog[["preprocess_number_of_empty_columns"]] <- sum(
-                colSums(is.na(tdata[, cnames])) == nrow(tdata)
-              )
-              log_operations(tlog)
-              
-              # Set class
-              for (cn in cnames) {
-                class(tdata[, cn]) <- "quant"
-              }
-              class(tdata[, icol]) <- "id"
-              
-              # Check whether unique ids and balanced design
-              ed_stats <- unique(as.vector(table(pexp_design()[1, ])))
-              if (sum(duplicated(is.na(tdata[, icol]))) == 0 && ed_stats == 1) {
-                enable("proceed_to_apps")
-              } else {
-                disable("proceed_to_apps")
-              }
-              processed_table(tdata)
-            })
-          }
-        })
-      })
       
       ## Send further to next tab
       observeEvent(input$proceed_to_apps, {
-        updateTabsetPanel(parent, "mainpage", selected = "apps")
-        
-        if (!is.null(next_tab())) {
-          next_tab(paste0(next_tab(), "_new"))
-        } else {
-          next_tab("ready")
+        # Ensure the processed_table is up to date
+        tdata <- processed_table()  # Fetch the current processed_table data
+        if (!is.null(tdata)) {
+          processed_table(tdata)  # Reassign the same data to ensure it is up-to-date
+          print("processed_table has been updated before proceeding.")
         }
         
-        # Reordering sample names for easier treatment
-        # final_exp_design <- pexp_design()
-        # tdata <- processed_table()
-        # 
-        # icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
-        # ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
-        # ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
+        # Proceed to the next tab
+        updateTabsetPanel(parent, "mainpage", selected = "apps")
+        next_tab("ready")
         
+        print("Proceeding to interaction with apps, processed_table has been updated.")
       })
+      
       
       ############### Help messages
       observeEvent(input$h_balancing, sendSweetAlert(session,
@@ -625,6 +831,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       return(list(
         next_tab = next_tab,
         processed_table = processed_table,
+        uncorrected_table = uncorrected_table,
         result_table = result_table,
         pexp_design = pexp_design
       ))
@@ -632,4 +839,3 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
     }
   )
 }
-

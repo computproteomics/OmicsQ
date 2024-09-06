@@ -38,9 +38,12 @@ ui <- navbarPage(
                color = "default", size = "s"),
     style="float:right;")),
   theme = shinythemes::shinytheme("spacelab"),
-  tags$head(tags$script(src="CallShiny.js")),
   useShinyjs(),
+  
   extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message","run_button")),
+  
+  tags$head(tags$script(src="CallShiny.js")),
+  
   # Define tabs
   tabPanel("Reading data", value = "read", # reading file and experimental design (add/delete replicates), 
            useSweetAlert(),
