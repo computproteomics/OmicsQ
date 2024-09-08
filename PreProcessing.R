@@ -95,9 +95,9 @@ preProcessingUI <- function(id, prefix="") {
     
     hidden(fluidRow(id = ns("pr_plots"),
                     column(6, 
-                           plotOutput(ns("pca_combined"))), # Combined PCA Plot
+                           plotOutput(ns("pca_combined"), height = "400px")), # Combined PCA Plot
                     column(6, 
-                           plotOutput(ns("corrplot")) # Keep existing correlation plot
+                           plotOutput(ns("corrplot"), height = "400px") # Keep existing correlation plot
                     )
     ))
     
@@ -660,6 +660,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         # Prepare the message with detailed information using HTML <br/> for line breaks
         message <- paste(
           "<div style='text-align: left;'>",  # Start of left-aligned div
+          "Number of batches: <strong>", uniqueN(batch_labels), "</strong><br/>",
           "Total features: <strong>", total_features, "</strong><br/>",
           "Features without missing values: <strong>", features_without_na, "</strong><br/>",
           "Features affected by batch effects (p < 0.05): <strong>", significant_batches, "</strong>",
