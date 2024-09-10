@@ -73,12 +73,7 @@ preProcessingUI <- function(id, prefix="") {
                     tags$div(style = "margin-top: 20px;"),
                     
                     fluidRow(column(10, 
-                                    actionButton(ns("batch_correction_button"), label = "Batch effect correction")  # Added button for checking batch effect
-                    )),
-                    
-                    # Batch correction method moved here, below the button
-                    fluidRow(column(10, 
-                                    selectInput(ns("batch_correction_method"), "Method", 
+                                    selectInput(ns("batch_correction_method"), "Correction method", 
                                                 choices = c("limma", "Combat"), selected = "limma") # New input for batch correction method
                     )),
                     style = 'border-left: 1px solid' 
@@ -589,8 +584,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       ##########################################################################
       #################### Updated Code for Batch Effect Detection #############
       
-      # Hide the batch_correction_button and batch_correction_method by default
-      shinyjs::hide("batch_correction_button")
+      # Hide the batch_correction_method by default
       shinyjs::hide("batch_correction_method")
       
       observeEvent(input$batch_detection_button, {
@@ -598,98 +592,268 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         
         print("Detecting batch effects using BEclear...")
         
-        # Store total number of features before processing
-        total_features <- nrow(tdata)
-        
-        # Prepare the data
-        texp_design <- pexp_design()
-        
-        # Select only quantitative columns and remove columns with all NAs
-        tdata <- tdata[, grep("quant", sapply(tdata, class))]
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0]
-        texp_design <- texp_design[, colnames(tdata)]
-        
-        # Store number of features after removing NAs
-        features_without_na <- nrow(tdata[complete.cases(tdata), ])
-        
-        # Filter out rows with missing values
-        tdata <- (tdata[complete.cases(tdata), ])
-        
-        batch_labels <- batch_info()
-        
-        # Ensure batch_labels has at least two levels
-        if (length(unique(batch_labels)) < 2) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection",
-                         text = "Batch effect detection requires at least two distinct batch levels. Your data has only one batch. Please check your batch assignments.",
-                         type = "warning")
-          return()
-        }
-        
-        # Create a samples data frame required for BEclear
-        sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
-        samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels, pvaluesTreshold = 0.05)
-        colnames(samples) <- c("sample_id", "batch_id")
-        
-        # Use BEclear to calculate batch effects
-        batch_effect_results <- tryCatch({
-          BEclear::calcBatchEffects(
-            data = tdata, 
-            samples = samples,
-            adjusted = TRUE, 
-            method = "fdr"
+        # Show progress bar
+        withProgress(message = 'Detecting batch effects', value = 0, {
+          # Store total number of features before processing
+          total_features <- nrow(tdata)
+          incProgress(0.1, detail = "Reading input data")
+          
+          # Prepare the data
+          texp_design <- pexp_design()
+          
+          # Select only quantitative columns and remove columns with all NAs
+          tdata <- tdata[, grep("quant", sapply(tdata, class))]
+          tdata <- tdata[, colSums(!is.na(tdata)) > 0]
+          texp_design <- texp_design[, colnames(tdata)]
+          
+          # Store number of features after removing NAs
+          features_without_na <- nrow(tdata[complete.cases(tdata), ])
+          incProgress(0.3, detail = "Preprocessing data")
+          
+          # Filter out rows with missing values
+          tdata <- tdata[complete.cases(tdata), ]
+          
+          batch_labels <- batch_info()
+          
+          # Ensure batch_labels has at least two levels
+          if (length(unique(batch_labels)) < 2) {
+            sendSweetAlert(session,
+                           title = "Batch Effect Detection",
+                           text = "Your data has only one batch, so no batch effect!",
+                           type = "warning")
+            return()
+          }
+          
+          # Create a samples data frame required for BEclear
+          sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
+          samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels, pvaluesTreshold = 0.05)
+          colnames(samples) <- c("sample_id", "batch_id")
+          
+          # Update progress bar
+          incProgress(0.5, detail = "Running batch effect detection")
+          
+          # Use BEclear to calculate batch effects
+          batch_effect_results <- tryCatch({
+            BEclear::calcBatchEffects(
+              data = tdata, 
+              samples = samples,
+              adjusted = TRUE, 
+              method = "fdr"
+            )
+          }, error = function(e) {
+            sendSweetAlert(session,
+                           title = "Batch Effect Detection Error",
+                           text = paste("An error occurred during batch effect detection:", e$message),
+                           type = "error")
+            return(NULL)
+          })
+          
+          if (is.null(batch_effect_results)) return() # Exit if error occurred
+          
+          incProgress(0.8, detail = "Processing results")
+          
+          # Extract median differences and p-values from the results
+          mdifs <- batch_effect_results$med
+          pvals <- batch_effect_results$pval
+          summary <- calcSummary(medians = mdifs, pvalues = pvals, pvaluesTreshold = 0.05)
+          
+          # Determine the number of features with significant batch effects (p < 0.05)
+          significant_batches <- nrow(summary)
+          
+          incProgress(1, detail = "Finishing up")
+          
+          # Prepare the message with detailed information using HTML <br/> for line breaks
+          message <- paste(
+            "<div style='text-align: left;'>",  # Start of left-aligned div
+            "Number of batches: <strong>", uniqueN(batch_labels), "</strong><br/>",
+            "Total features: <strong>", total_features, "</strong><br/>",
+            "Features without missing values: <strong>", features_without_na, "</strong><br/>",
+            "Features affected by batch effects (p < 0.05): <strong>", significant_batches, "</strong>",
+            "<br/><br/>Would you like to run batch effect correction?",
+            "</div>"  # End of left-aligned div
           )
-        }, error = function(e) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection Error",
-                         text = paste("An error occurred during batch effect detection:", e$message),
-                         type = "error")
-          return(NULL)
+          
+          # Ask user whether they want to run batch correction along with the results
+          confirmSweetAlert(
+            session = session,
+            inputId = "confirm_batch_correction",
+            title = "Batch Effect Detection Finished!",
+            text = HTML(message),  # Use HTML() to render the message
+            type = "question",
+            btn_labels = c("No", "Yes"),
+            html = TRUE  # Enable HTML rendering
+          )
         })
-        
-        if (is.null(batch_effect_results)) return() # Exit if error occurred
-        
-        # Extract median differences and p-values from the results
-        mdifs <- batch_effect_results$med
-        pvals <- batch_effect_results$pval
-        summary <- calcSummary(medians = mdifs, pvalues = pvals, pvaluesTreshold = 0.05)
-        
-        # Determine the number of features with significant batch effects (p < 0.05)
-        significant_batches <- nrow(summary)
-        
-        # Prepare the message with detailed information using HTML <br/> for line breaks
-        message <- paste(
-          "<div style='text-align: left;'>",  # Start of left-aligned div
-          "Number of batches: <strong>", uniqueN(batch_labels), "</strong><br/>",
-          "Total features: <strong>", total_features, "</strong><br/>",
-          "Features without missing values: <strong>", features_without_na, "</strong><br/>",
-          "Features affected by batch effects (p < 0.05): <strong>", significant_batches, "</strong>",
-          "<br/><br/>Would you like to run batch effect correction?",
-          "</div>"  # End of left-aligned div
-        )
-        
-        # Ask user whether they want to run batch correction along with the results
-        confirmSweetAlert(
-          session = session,
-          inputId = "confirm_batch_correction",
-          title = "Batch Effect Detection Finish!",
-          text = HTML(message),  # Use HTML() to render the message
-          type = "question",
-          btn_labels = c("No", "Yes"),
-          html = TRUE  # Enable HTML rendering
-        )
       })
+      
+      
+      
+      
+      
       
       # Observe the user's response from the confirmation dialog
       observeEvent(input$confirm_batch_correction, {
         if (input$confirm_batch_correction) {
-          # User chooses Yes -> Show batch correction button and method dropdown
-          shinyjs::show("batch_correction_button")
+          # User chooses Yes -> Show batch correction method dropdown
           shinyjs::show("batch_correction_method")
-          #shinyjs::hide("batch_detection_button")
+          
+          # Trigger batch correction when method is selected or changed
+          observeEvent(input$batch_correction_method, {
+            # Show progress bar for batch correction
+            withProgress(message = 'Performing batch correction', value = 0, {
+              # Perform batch effect correction
+              # Use the updated uncorrected table which reflects any changes made in data treatment before batch correction
+              tdata <- uncorrected_table()
+              
+              # Print initial dimensions of uncorrected_table
+              print(paste("Initial uncorrected_table dimensions:", nrow(tdata), ncol(tdata)))
+              
+              # Ensure enough data is available for batch effect detection
+              if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
+                sendSweetAlert(session,
+                               title = "Batch Effect Detection Warning",
+                               text = "Data matrix too small to perform batch effect detection.",
+                               type = "warning")
+                return()
+              }
+              
+              # Increment progress to 20%
+              incProgress(0.2, detail = "Selecting quantitative columns")
+              
+              # Select only quantitative columns and remove columns with all NAs
+              tdata <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+              print(paste("tdata after selecting quant columns:", nrow(tdata), ncol(tdata)))
+              
+              tdata <- tdata[, colSums(!is.na(tdata)) > 0, drop = FALSE]
+              print(paste("tdata after removing columns with all NAs:", nrow(tdata), ncol(tdata)))
+              
+              tdata <- tdata[complete.cases(tdata), ]
+              print(paste("tdata after removing rows with NAs:", nrow(tdata), ncol(tdata)))
+              
+              # Increment progress to 40%
+              incProgress(0.4, detail = "Processing data and removing constant columns")
+              
+              # Remove constant columns to avoid errors in batch correction
+              constant_columns <- apply(tdata, 2, function(col) var(col, na.rm = TRUE) == 0)
+              tdata <- tdata[, !constant_columns]
+              print(paste("tdata after removing constant columns:", nrow(tdata), ncol(tdata)))
+              
+              # Ensure there is still enough data after removing columns
+              if (ncol(tdata) < 2) {
+                sendSweetAlert(session,
+                               title = "Batch Effect Detection Warning",
+                               text = "Not enough columns with variance for batch effect detection after removing constant columns.",
+                               type = "warning")
+                return()
+              }
+              
+              # Increment progress to 60%
+              incProgress(0.6, detail = "Aligning experimental design with batch information")
+              
+              # Get the current experimental design to align replicate and batch information
+              texp_design <- pexp_design()
+              
+              # Ensure replicate_info() and batch_info() match the data after processing
+              valid_indices <- match(colnames(tdata), colnames(texp_design))
+              replicate_info_filtered <- replicate_info()[valid_indices]
+              batch_info_filtered <- batch_info()[valid_indices]
+              
+              # Check if the valid_indices has NAs which mean the alignment was not successful
+              if (any(is.na(valid_indices))) {
+                sendSweetAlert(session,
+                               title = "Batch Effect Detection Error",
+                               text = "Mismatch between data and experimental design. Ensure alignment of data columns.",
+                               type = "error")
+                return()
+              }
+              
+              # Increment progress to 80%
+              incProgress(0.8, detail = "Running batch correction")
+              
+              # Proceed with batch effect detection and correction
+              batch_labels <- batch_info_filtered
+              
+              # Ensure batch_labels has at least two levels
+              if (length(unique(batch_labels)) < 2) {
+                sendSweetAlert(session,
+                               title = "Batch Effect Detection",
+                               text = "Your data has only one batch, no batch effect.",
+                               type = "warning")
+                return()
+              }
+              
+              # Check which method to use for batch correction
+              method <- input$batch_correction_method
+              
+              if (method == "limma") {
+                # Use limma to calculate and correct batch effects
+                batch_effect_corrected <- tryCatch({
+                  removeBatchEffect(tdata, batch = as.factor(batch_labels))
+                }, error = function(e) {
+                  sendSweetAlert(session,
+                                 title = "Batch Effect Correction Error",
+                                 text = paste("An error occurred during batch effect correction with limma:", e$message),
+                                 type = "error")
+                  return(NULL)
+                })
+              } else if (method == "Combat") {
+                # Use Combat to correct batch effects
+                batch_effect_corrected <- tryCatch({
+                  sva::ComBat(dat = tdata, batch = as.factor(batch_labels), mod = NULL, par.prior = TRUE, prior.plots = FALSE)
+                }, error = function(e) {
+                  sendSweetAlert(session,
+                                 title = "Batch Effect Correction Error",
+                                 text = paste("An error occurred during batch effect correction with Combat:", e$message),
+                                 type = "error")
+                  return(NULL)
+                })
+              } else {
+                sendSweetAlert(session,
+                               title = "Batch Effect Correction Error",
+                               text = "Unknown batch correction method selected.",
+                               type = "error")
+                return()
+              }
+              
+              if (is.null(batch_effect_corrected)) return() # Exit if error occurred
+              
+              # Increment progress to 90%
+              incProgress(0.9, detail = "Updating processed table with corrected data")
+              
+              # Print dimensions after batch effect correction
+              print(paste("batch_effect_corrected dimensions:", nrow(batch_effect_corrected), ncol(batch_effect_corrected)))
+              
+              # Separate ID column and Quant columns
+              id_column <- uncorrected_table()[, grep("id", sapply(uncorrected_table(), class)), drop = FALSE]
+              quant_columns_corrected <- batch_effect_corrected
+              
+              # Ensure the id_column matches the number of rows in quant_columns_corrected after subsetting
+              id_column <- id_column[rownames(quant_columns_corrected), , drop = FALSE]
+              print(paste("id_column dimensions after subsetting:", nrow(id_column), ncol(id_column)))
+              print(paste("quant_columns_corrected dimensions after subsetting:", nrow(quant_columns_corrected), ncol(quant_columns_corrected)))
+              
+              # Update processed_table with corrected batch data and ensure to keep ID and quant columns
+              processed_table(data.frame(id_column, quant_columns_corrected))
+              
+              # Print the updated dimensions of processed_table
+              print(paste("Updated processed_table dimensions after batch correction:", nrow(processed_table()), ncol(processed_table())))
+              
+              # Increment progress to 100%
+              incProgress(1, detail = "Batch correction completed")
+              
+              # Show an alert after correction
+              sendSweetAlert(session,
+                             title = "Batch Effect Correction",
+                             text = paste("Batch effects have been successfully corrected using", method, "."),
+                             type = "success")
+              
+              # Close the dropdown using JavaScript
+              shinyjs::runjs("$('#batch_correction_method').selectpicker('toggle');")
+              
+            }) # End of withProgress block
+          })
         } else {
-          # User chooses No -> Keep batch correction button and method dropdown hidden
-          shinyjs::hide("batch_correction_button")
+          # User chooses No -> Keep batch correction method dropdown hidden
           shinyjs::hide("batch_correction_method")
         }
       })
@@ -697,151 +861,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      ##########################################################################
-      ##########################################################################
-      # Batch effect correction
-      observeEvent(input$batch_correction_button, {
-        print("Detecting and correcting batch effects...")
-        
-        # Use the updated uncorrected table which reflects any changes made in data treatment before batch correction
-        tdata <- uncorrected_table()
-        
-        # Print initial dimensions of uncorrected_table
-        print(paste("Initial uncorrected_table dimensions:", nrow(tdata), ncol(tdata)))
-        
-        # Ensure enough data is available for batch effect detection
-        if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection Warning",
-                         text = "Data matrix too small to perform batch effect detection.",
-                         type = "warning")
-          return()
-        }
-        
-        # Select only quantitative columns and remove columns with all NAs
-        tdata <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
-        print(paste("tdata after selecting quant columns:", nrow(tdata), ncol(tdata)))
-        
-        tdata <- tdata[, colSums(!is.na(tdata)) > 0, drop = FALSE]
-        print(paste("tdata after removing columns with all NAs:", nrow(tdata), ncol(tdata)))
-        
-        tdata <- tdata[complete.cases(tdata), ]
-        print(paste("tdata after removing rows with NAs:", nrow(tdata), ncol(tdata)))
-        
-        # Remove constant columns to avoid errors in batch correction
-        constant_columns <- apply(tdata, 2, function(col) var(col, na.rm = TRUE) == 0)
-        tdata <- tdata[, !constant_columns]
-        print(paste("tdata after removing constant columns:", nrow(tdata), ncol(tdata)))
-        
-        # Ensure there is still enough data after removing columns
-        if (ncol(tdata) < 2) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection Warning",
-                         text = "Not enough columns with variance for batch effect detection after removing constant columns.",
-                         type = "warning")
-          return()
-        }
-        
-        # Get the current experimental design to align replicate and batch information
-        texp_design <- pexp_design()
-        
-        # Ensure replicate_info() and batch_info() match the data after processing
-        # Find the common indices based on column names that are retained after processing
-        valid_indices <- match(colnames(tdata), colnames(texp_design))
-        replicate_info_filtered <- replicate_info()[valid_indices]
-        batch_info_filtered <- batch_info()[valid_indices]
-        
-        # Check if the valid_indices has NAs which mean the alignment was not successful
-        if (any(is.na(valid_indices))) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection Error",
-                         text = "Mismatch between data and experimental design. Ensure alignment of data columns.",
-                         type = "error")
-          return()
-        }
-        
-        # Proceed with batch effect detection and correction
-        batch_labels <- batch_info_filtered
-        
-        # Ensure batch_labels has at least two levels
-        if (length(unique(batch_labels)) < 2) {
-          sendSweetAlert(session,
-                         title = "Batch Effect Detection",
-                         text = "Batch effect detection requires at least two distinct batch levels. Your data has only one batch. Please check your batch assignments.",
-                         type = "warning")
-          return()
-        }
-        
-        # Check which method to use for batch correction
-        method <- input$batch_correction_method
-        
-        if (method == "limma") {
-          # Use limma to calculate and correct batch effects
-          batch_effect_corrected <- tryCatch({
-            removeBatchEffect(tdata, batch = as.factor(batch_labels))
-          }, error = function(e) {
-            sendSweetAlert(session,
-                           title = "Batch Effect Correction Error",
-                           text = paste("An error occurred during batch effect correction with limma:", e$message),
-                           type = "error")
-            return(NULL)
-          })
-        } else if (method == "Combat") {
-          # Use Combat to correct batch effects
-          batch_effect_corrected <- tryCatch({
-            sva::ComBat(dat = tdata, batch = as.factor(batch_labels), mod = NULL, par.prior = TRUE, prior.plots = FALSE)
-          }, error = function(e) {
-            sendSweetAlert(session,
-                           title = "Batch Effect Correction Error",
-                           text = paste("An error occurred during batch effect correction with Combat:", e$message),
-                           type = "error")
-            return(NULL)
-          })
-        } else {
-          sendSweetAlert(session,
-                         title = "Batch Effect Correction Error",
-                         text = "Unknown batch correction method selected.",
-                         type = "error")
-          return()
-        }
-        
-        if (is.null(batch_effect_corrected)) return() # Exit if error occurred
-        
-        # Print dimensions after batch effect correction
-        print(paste("batch_effect_corrected dimensions:", nrow(batch_effect_corrected), ncol(batch_effect_corrected)))
-        
-        # Separate ID column and Quant columns
-        id_column <- uncorrected_table()[, grep("id", sapply(uncorrected_table(), class)), drop = FALSE]
-        quant_columns_corrected <- batch_effect_corrected
-        
-        # Ensure the id_column matches the number of rows in quant_columns_corrected after subsetting
-        id_column <- id_column[rownames(quant_columns_corrected), , drop = FALSE]
-        print(paste("id_column dimensions after subsetting:", nrow(id_column), ncol(id_column)))
-        print(paste("quant_columns_corrected dimensions after subsetting:", nrow(quant_columns_corrected), ncol(quant_columns_corrected)))
-        
-        # Update processed_table with corrected batch data and ensure to keep ID and quant columns
-        processed_table(data.frame(id_column, quant_columns_corrected))
-        
-        # Print the updated dimensions of processed_table
-        print(paste("Updated processed_table dimensions after batch correction:", nrow(processed_table()), ncol(processed_table())))
-        
-        # Show an alert after correction
-        sendSweetAlert(session,
-                       title = "Batch Effect Correction",
-                       text = paste("Batch effects have been successfully corrected using", method, "."),
-                       type = "success")
-      })
       
       
       ##########################################################################
