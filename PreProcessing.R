@@ -364,60 +364,87 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       ##########################################################################
       ##########################################################################
       # Data manipulation and adjustment
-      observe({
-        input$max_na
-        input$normalization
-        input$summarize
-        tdata <- processed_table()
+      # Store the original data before any normalization
+      original_data <- reactiveVal(NULL)  # This will hold the original unmodified data
+      
+      # Separate observer for normalization to avoid multiple reactivity loops
+      observeEvent(input$normalization, {
+        tdata <- processed_table() # Fetch current table
+        if (is.null(tdata)) return() # Exit if tdata is NULL
         
-        isolate({
-          if (!is.null(tdata)) {
-            withProgress(message = "Processing...", value = 0, min = 0, max = 1, {
-              
-              # Step 1: Filter based on maximum number of missing values per feature
-              if (!is.null(input$max_na)) {
-                tdata <- tdata[rowSums(is.na(tdata[, -1])) <= input$max_na, ]
-                incProgress(0.3, detail = "Filtering based on missing values")
-              }
-              
-              # Update processed_table after filtering
-              processed_table(tdata)
-              
-              # Step 2: Apply normalization method
-              if (input$normalization != "none") {
-                if (input$normalization == "colMedians") {
-                  tdata[, -1] <- t(t(tdata[, -1]) - colMedians(as.matrix(tdata[, -1]), na.rm = TRUE))
-                } else if (input$normalization == "colMeans") {
-                  tdata[, -1] <- t(t(tdata[, -1]) - colMeans(as.matrix(tdata[, -1]), na.rm = TRUE))
-                } else if (input$normalization == "cyclicloess") {
-                  tdata[, -1] <- limma::normalizeBetweenArrays(as.matrix(tdata[, -1]), method = "cyclicloess")
-                }
-                incProgress(0.4, detail = "Applying normalization")
-              }
-              
-              # Update processed_table after normalization
-              processed_table(tdata)
-              
-              # Step 3: Apply summarization method
-              if (input$summarize != "none") {
-                if (input$summarize == "colSums") {
-                  tdata <- aggregate(. ~ id, data = tdata, FUN = sum, na.rm = TRUE)
-                } else if (input$summarize == "colMeans") {
-                  tdata <- aggregate(. ~ id, data = tdata, FUN = mean, na.rm = TRUE)
-                } else if (input$summarize == "colMedians") {
-                  tdata <- aggregate(. ~ id, data = tdata, FUN = median, na.rm = TRUE)
-                } else if (input$summarize == "medianPolish") {
-                  tdata <- MsCoreUtils::aggregate_by_vector(tdata, tdata$id, FUN = medianPolish, na.rm = TRUE)
-                }
-                incProgress(0.3, detail = "Applying summarization")
-              }
-              
-              # Final update of processed_table after summarization
-              processed_table(tdata)
-            })
-          }
+        # Store the original data when normalization is applied for the first time
+        if (is.null(original_data())) {
+          original_data(tdata)  # Save the original data before normalization
+        }
+        
+        isolate({  # Isolate the update to avoid reactivity loop
+          withProgress(message = "Applying Normalization...", value = 0, min = 0, max = 1, {
+            # Step 2: Apply normalization method
+            if (input$normalization == "none") {
+              tdata <- original_data()  # Restore the original data when "None" is selected
+            } else if (input$normalization == "colMedians") {
+              tdata[, -1] <- t(t(tdata[, -1]) - colMedians(as.matrix(tdata[, -1]), na.rm = TRUE))
+            } else if (input$normalization == "colMeans") {
+              tdata[, -1] <- t(t(tdata[, -1]) - colMeans(as.matrix(tdata[, -1]), na.rm = TRUE))
+            } else if (input$normalization == "cyclicloess") {
+              tdata[, -1] <- limma::normalizeBetweenArrays(as.matrix(tdata[, -1]), method = "cyclicloess")
+            }
+            
+            # After normalization, update the reactive processed_table
+            processed_table(tdata) # Update processed_table reactively only once after normalization
+            incProgress(1, detail = "Normalization complete")
+          })
         })
       })
+      
+      # Separate observer for summarization
+      observeEvent(input$summarize, {
+        tdata <- processed_table() # Fetch current table
+        if (is.null(tdata)) return() # Exit if tdata is NULL
+        
+        isolate({  # Isolate the update to avoid reactivity loop
+          withProgress(message = "Applying Summarization...", value = 0, min = 0, max = 1, {
+            # Step 3: Apply summarization method
+            if (input$summarize == "colSums") {
+              tdata <- aggregate(. ~ id, data = tdata, FUN = sum, na.rm = TRUE)
+            } else if (input$summarize == "colMeans") {
+              tdata <- aggregate(. ~ id, data = tdata, FUN = mean, na.rm = TRUE)
+            } else if (input$summarize == "colMedians") {
+              tdata <- aggregate(. ~ id, data = tdata, FUN = median, na.rm = TRUE)
+            } else if (input$summarize == "medianPolish") {
+              tdata <- MsCoreUtils::aggregate_by_vector(tdata, tdata$id, FUN = medianPolish, na.rm = TRUE)
+            }
+            
+            # After summarization, update the reactive processed_table
+            processed_table(tdata) # Update processed_table reactively only once after summarization
+            incProgress(1, detail = "Summarization complete")
+          })
+        })
+      })
+      
+      # Observer for filtering based on maximum number of missing values
+      observe({
+        input$max_na
+        tdata <- processed_table() # Fetch current table
+        if (is.null(tdata)) return() # Exit if tdata is NULL
+        
+        isolate({
+          withProgress(message = "Processing data...", value = 0, min = 0, max = 1, {
+            # Step 1: Filter based on maximum number of missing values per feature
+            if (!is.null(input$max_na)) {
+              tdata <- tdata[rowSums(is.na(tdata[, -1])) <= input$max_na, ]
+              incProgress(0.5, detail = "Filtering based on missing values")
+            }
+            
+            # Update processed_table after filtering
+            processed_table(tdata) # Update processed_table reactively
+            incProgress(1, detail = "Processing complete")
+          })
+        })
+      })
+      
+      
+      
       
       
       
@@ -431,7 +458,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       
       observeEvent(input$batch_detection_button, {
         tdata <- processed_table()
-        print("tdata at beginning of batch effect detection"); print(head(tdata))
+        print("tdata at beginning of batch effect detection")
         print("Detecting batch effects using BEclear...")
         
         # Show progress bar
@@ -495,7 +522,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           # Create a samples data frame required for BEclear
           sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
           samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels)
-          print(samples)
+          
           # Update progress bar
           incProgress(0.5, detail = "Running batch effect detection")
           
@@ -851,15 +878,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
         quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
         
-        # Debugging: Print dimensions and sample data of id_column and quant_columns
-        print(paste("id_column dimensions:", dim(id_column)))
-        print(paste("quant_columns dimensions:", dim(quant_columns)))
-        print("Sample of id_column:")
-        print(head(id_column))
-        print("Sample of quant_columns:")
-        print(head(quant_columns))
-        print("Show final_exp_design:")
-        print(pexp_design)
         
         # Ensure there is still enough data after filtering quantitative columns
         if (ncol(quant_columns) < 2 || nrow(quant_columns) < 10) {
@@ -916,7 +934,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       ##########################################################################
       ### PCA Plot
       output$pca_combined <- renderPlot({
-        print("Combined PCA Plot: Colored by Replicate, Shaped by Batch")
+        print("PCA Plot")
         
         # Get the processed table, which reflects any changes made in data treatment
         tdata <- processed_table()
@@ -934,13 +952,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
         quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
         
-        # Debugging: Print dimensions and sample data of id_column and quant_columns
-        print(paste("id_column dimensions:", dim(id_column)))
-        print(paste("quant_columns dimensions:", dim(quant_columns)))
-        print("Sample of id_column:")
-        print(head(id_column))
-        print("Sample of quant_columns:")
-        print(head(quant_columns))
         
         # Ensure there is still enough data after filtering quantitative columns
         if (ncol(quant_columns) < 2) {
@@ -1048,11 +1059,27 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         # Compute correlation matrix
         correlation_matrix <- cor(quant_columns, use = "pairwise.complete.obs")
         
-        # Plot the correlation matrix
+        # Plot the correlation matrix with customized color scale and legend position
         gplots::heatmap.2(correlation_matrix,
                           main = "Pairwise correlations between samples",
-                          symm = TRUE, scale = "none", col = gplots::redblue, breaks = seq(-1, 1, 0.01), trace = "none",
-                          cex.main = 1.5)  # Equivalent to setting font size of the title)
+                          symm = TRUE,        # Symmetrical plot
+                          scale = "none",     # No scaling
+                          col = gplots::bluered,  # Blue to red color scale
+                          breaks = seq(-1, 1, 0.01),  # Breaks from -1 to 1 for colors
+                          trace = "none",     # No trace lines
+                          cex.main = 1.5,     # Size of the main title
+                          
+                          # Add cell borders
+                          sepwidth = c(0.01, 0.01),  # Width of the separation between cells
+                          sepcolor = "white",        # Color of the separation lines (white)
+                          colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
+                          rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
+                          
+                          margins = c(5, 5),  # Margins for the plot
+                          dendrogram = "both" # Show dendrograms on both axes
+        )
+        
+        
       })
       
       
