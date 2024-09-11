@@ -14,6 +14,11 @@ library(MsCoreUtils)
 library(jsonlite)
 library(BEclear)
 library(sva) #BiocManager::install("sva")
+library(gridExtra)
+library(ggplot2)
+library(gplots) 
+
+
 source("DataInput.R")
 source("ExpDesign.R")
 source("PreProcessing.R")
