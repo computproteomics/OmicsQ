@@ -149,6 +149,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             shinyjs::show("summarize")  # Show the 'Summarize to id features' selector if duplicates are present
           } else {
             shinyjs::hide("summarize")  # Hide the 'Summarize to id features' selector if no duplicates
+            shinyjs::hide("h_summarize") 
           }
           
           # Update pickerInput with new column names and set max-options dynamically
@@ -313,7 +314,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         pexp_design(tedes)
         
         # Disable batch detection when filling with empty columns
-        #shinyjs::disable("batch_detection_button")
+        shinyjs::disable("batch_detection_button")
         
         # Update the processed tables
         id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
@@ -570,10 +571,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             # Show progress bar for batch correction
             withProgress(message = 'Performing batch correction', value = 0, {
               # Perform batch effect correction
-              # Use the updated uncorrected table which reflects any changes made in data treatment before batch correction
+              
               tdata <- processed_table()
-              
-              
+              features_before <- nrow(tdata)
               # Ensure enough data is available for batch effect detection
               if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
                 sendSweetAlert(session,
@@ -590,6 +590,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               tdata <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
               # Filter NA
               tdata <- tdata[complete.cases(tdata), ]
+              features_nonNA_before <- nrow(tdata)
+              samples_before <- ncol(tdata)
               
               # Increment progress to 40%
               incProgress(0.4, detail = "Processing data and removing constant columns")
@@ -643,6 +645,32 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 return()
               }
               
+              
+              
+              
+              # Get number of features affected by batch effect BEFORE CORRECTION
+              # Create a samples data frame required for BEclear
+              sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
+              samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels)
+              # Use BEclear to calculate batch effects
+              batch_effect_results <- BEclear::calcBatchEffects(
+                                                                data = tdata, 
+                                                                samples = samples,
+                                                                adjusted = TRUE, 
+                                                                method = "fdr"
+                                                                )
+              # Extract median differences and p-values from the results
+              summary <- calcSummary(medians = batch_effect_results$med, 
+                                     pvalues = batch_effect_results$pval,
+                                     pvaluesTreshold = 0.05)
+              # Determine the number of features with significant batch effects (p < 0.05)
+              N_affected_ft_before <-  ifelse(is.null(summary), 0, nrow(summary)) 
+              
+              
+              
+              
+              
+              
               # Check which method to use for batch correction
               method <- input$batch_correction_method
               
@@ -681,11 +709,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               # Increment progress to 90%
               incProgress(0.9, detail = "Updating processed table with corrected data")
               
-              # Print dimensions after batch effect correction
-              print(paste("batch_effect_corrected dimensions:", nrow(batch_effect_corrected), ncol(batch_effect_corrected)))
               
-              # Separate ID column and Quant columns
-              id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = FALSE]
+              
+              # Get the ID colum (which is non-numeric column in processed_table)
+              id_column <- processed_table()[, !sapply(processed_table(), is.numeric), drop = FALSE]
+              # Get data after batch correction
               quant_columns_corrected <- batch_effect_corrected
               
               # Ensure the id_column matches the number of rows in quant_columns_corrected after subsetting
@@ -699,14 +727,92 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               # Print the updated dimensions of processed_table
               print(paste("Updated processed_table dimensions after batch correction:", nrow(processed_table()), ncol(processed_table())))
               
+              # Get number of features affected by batch effect AFTER CORRECTION
+              # Create a samples data frame required for BEclear
+              # Select only quantitative columns
+              tdata <- processed_table()
+              tdata <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+              features_after <- nrow(tdata)
+              tdata <- tdata[complete.cases(tdata), ]
+              features_nonNA_after <- nrow(tdata)
+              samples_after <- ncol(tdata)
+              sample_ids <- colnames(tdata)  # Assuming column names of tdata are the sample IDs
+              samples <- data.frame(sample_id = sample_ids, batch_id = batch_labels)
+              # Use BEclear to calculate batch effects
+              batch_effect_results <- BEclear::calcBatchEffects(
+                data = tdata, 
+                samples = samples,
+                adjusted = TRUE, 
+                method = "fdr"
+              )
+              # Extract median differences and p-values from the results
+              summary <- calcSummary(medians = batch_effect_results$med, 
+                                     pvalues = batch_effect_results$pval,
+                                     pvaluesTreshold = 0.05)
+              # Determine the number of features with significant batch effects (p < 0.05)
+              N_affected_ft_after <-  ifelse(is.null(summary), 0, nrow(summary)) 
+              
+              
               # Increment progress to 100%
               incProgress(1, detail = "Batch correction completed")
               
               # Show an alert after correction
+              # Prepare the message with detailed information using HTML <br/> for line breaks
+              message <- paste(
+                "<div style='text-align: left; width: 100%;'>",  # Set the width of the SweetAlert dialog to 100% of the screen
+                "Batch effects have been successfully corrected using <strong>", method, ".</strong><br/><br/>",
+                
+                "<table border='1' style='border-collapse: collapse; width: 100%;'>",  # Start of wider table with borders
+                "<tr>",
+                "<th style='width: 40%;'></th>",  # Adjust width of the first column
+                "<th style='width: 30%; text-align: center;'><strong>Before correction</strong></th>",
+                "<th style='width: 30%; text-align: center;'><strong>After correction</strong></th>",
+                "</tr>",
+                
+                "<tr>",
+                "<td>Number of batches</td>",  # Not bold
+                "<td style='text-align: center;'><strong>", uniqueN(batch_labels), "</strong></td>",  # Bold and centered
+                "<td style='text-align: center;'><strong>", uniqueN(batch_labels), "</strong></td>",  # Bold and centered
+                "</tr>",
+                
+                "<tr>",
+                "<td>Number of samples</td>",  # Not bold
+                "<td style='text-align: center;'><strong>", samples_before, "</strong></td>",  # Bold and centered
+                "<td style='text-align: center;'><strong>", samples_after, "</strong></td>",  # Bold and centered
+                "</tr>",
+                
+                "<tr>",
+                "<td>Total features</td>",  # Not bold
+                "<td style='text-align: center;'><strong>", features_before, "</strong></td>",  # Bold and centered
+                "<td style='text-align: center;'><strong>", features_after, "</strong></td>",  # Bold and centered
+                "</tr>",
+                
+                "<tr>",
+                "<td>Features without missing values</td>",  # Not bold
+                "<td style='text-align: center;'><strong>", features_nonNA_before, "</strong></td>",  # Bold and centered
+                "<td style='text-align: center;'><strong>", features_nonNA_after, "</strong></td>",  # Bold and centered
+                "</tr>",
+                
+                "<tr>",
+                "<td>Features affected by batch effects (p < 0.05)</td>",  # Not bold
+                "<td style='text-align: center;'><strong>", N_affected_ft_before, "</strong></td>",  # Bold and centered
+                "<td style='text-align: center;'><strong>", N_affected_ft_after, "</strong></td>",  # Bold and centered
+                "</tr>",
+                
+                "</table>",
+                "</div>"  # End of left-aligned div
+              )
+              
               sendSweetAlert(session,
                              title = "Batch Effect Correction",
-                             text = paste("Batch effects have been successfully corrected using", method, "."),
-                             type = "success")
+                             text = HTML(message),
+                             type = "success",
+                             html = TRUE  # Enable HTML rendering
+              )
+              
+              
+              
+              
               
               # Close the dropdown using JavaScript
               shinyjs::runjs("$('#batch_correction_method').selectpicker('toggle');")
