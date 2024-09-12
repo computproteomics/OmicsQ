@@ -148,8 +148,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
           if (sum(duplicated(id_column)) > 0) {
             shinyjs::show("summarize")  # Show the 'Summarize to id features' selector if duplicates are present
           } else {
-            shinyjs::hide("summarize")  # Hide the 'Summarize to id features' selector if no duplicates
-            shinyjs::hide("h_summarize") 
+            shinyjs::show("summarize")  # Hide the 'Summarize to id features' selector if no duplicates
+            shinyjs::show("h_summarize") 
           }
           
           # Update pickerInput with new column names and set max-options dynamically
@@ -364,24 +364,24 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
       ##########################################################################
       ##########################################################################
       # Data manipulation and adjustment
-      # Store the original data before any normalization
-      original_data <- reactiveVal(NULL)  # This will hold the original unmodified data
       
+      # Store the original data before any normalization
+      original_data_norm <- reactiveVal(NULL)  # This will hold the original unmodified data
       # Separate observer for normalization to avoid multiple reactivity loops
       observeEvent(input$normalization, {
         tdata <- processed_table() # Fetch current table
         if (is.null(tdata)) return() # Exit if tdata is NULL
         
         # Store the original data when normalization is applied for the first time
-        if (is.null(original_data())) {
-          original_data(tdata)  # Save the original data before normalization
+        if (is.null(original_data_norm())) {
+          original_data_norm(tdata)  # Save the original data before normalization
         }
         
         isolate({  # Isolate the update to avoid reactivity loop
           withProgress(message = "Applying Normalization...", value = 0, min = 0, max = 1, {
             # Step 2: Apply normalization method
             if (input$normalization == "none") {
-              tdata <- original_data()  # Restore the original data when "None" is selected
+              tdata <- original_data_norm()  # Restore the original data when "None" is selected
             } else if (input$normalization == "colMedians") {
               tdata[, -1] <- t(t(tdata[, -1]) - colMedians(as.matrix(tdata[, -1]), na.rm = TRUE))
             } else if (input$normalization == "colMeans") {
@@ -397,30 +397,50 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
         })
       })
       
+      
+      # Store the original data before any summarization
+      original_data_sum <- reactiveVal(NULL)  # This will hold the original unmodified data
       # Separate observer for summarization
       observeEvent(input$summarize, {
         tdata <- processed_table() # Fetch current table
         if (is.null(tdata)) return() # Exit if tdata is NULL
         
-        isolate({  # Isolate the update to avoid reactivity loop
+        # Store the original data when summarization is applied for the first time
+        if (is.null(original_data_sum())) {
+          original_data_sum(tdata)  # Save the original data before normalization
+        }
+        
+        isolate({
           withProgress(message = "Applying Summarization...", value = 0, min = 0, max = 1, {
+            id_column <- tdata[, 1] # Get the ID colum
+            quant_columns <- tdata[, sapply(tdata, is.numeric), drop = FALSE]  # Extract quantitative columns
+            tdata <- tdata[,-1]
+            tdata$id <- id_column
             # Step 3: Apply summarization method
-            if (input$summarize == "colSums") {
+            if (input$summarize == "none") {
+              tdata <- original_data_sum()  # Restore the original data when "None" is selected
+            } else if (input$summarize == "colSums") {
               tdata <- aggregate(. ~ id, data = tdata, FUN = sum, na.rm = TRUE)
             } else if (input$summarize == "colMeans") {
               tdata <- aggregate(. ~ id, data = tdata, FUN = mean, na.rm = TRUE)
             } else if (input$summarize == "colMedians") {
               tdata <- aggregate(. ~ id, data = tdata, FUN = median, na.rm = TRUE)
             } else if (input$summarize == "medianPolish") {
-              tdata <- MsCoreUtils::aggregate_by_vector(tdata, tdata$id, FUN = medianPolish, na.rm = TRUE)
+              tdata <- (MsCoreUtils::aggregate_by_vector(as.matrix(quant_columns), tdata$id, FUN = medianPolish, na.rm = TRUE))
+              id_column <- rownames(tdata)
+              tdata <- as.data.frame(tdata)
+              tdata$id <- id_column
             }
             
+            
             # After summarization, update the reactive processed_table
-            processed_table(tdata) # Update processed_table reactively only once after summarization
+            processed_table(tdata) 
+            
             incProgress(1, detail = "Summarization complete")
           })
         })
       })
+      
       
       # Observer for filtering based on maximum number of missing values
       observe({
