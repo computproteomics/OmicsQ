@@ -9,3 +9,4 @@
 - Correct ComplexBrowser input as not working
 - Add option to remove first rows in Excel input
 - Add columns again that have been removed
+- Add version number when returning analysis with VSClust, PolySTEST, ...

@@ -56,7 +56,7 @@ expDesignUI <- function(id, prefix="") {
                                 options = list(
                                   `live-search` = TRUE,
                                   `actions-box` = TRUE)),
-                    sliderInput(ns("batch_number"), "Set to this batch number", min=1, max=1, value=1, step=1),
+                    sliderInput(ns("batch_number"), "Set to this batch number", min=1, max=2, value=2, step=1),
                     
                     downloadBttn(ns("downloadeTable"), label = "Download table"),
                     style = 'border-left: 1px solid' # Adding a left border to align with other sections
