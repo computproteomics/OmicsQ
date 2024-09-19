@@ -185,14 +185,13 @@ dataInputServer <- function(id, parent, log_operations) {
 
       ### Read example file and push through
       observeEvent(input$run_example, ({
-        tdata <- read.csv("Myo_Res.csv")
+        tdata <- read.csv("Myo.csv")
         class(tdata[, 1]) <- "id"
         for (i in 2:19) class(tdata[, i]) <- "quant"
         indata(tdata)
         shinyjs::show(id = "in_c3")
         shinyjs::enable(id="proceed_to_expdesign")
         js$run_button(button = session$ns("proceed_to_expdesign"), number = 1)
-        tdata2 <- read.csv("Myo.csv", row.names = 1)
         # result_table(cbind(tdata, tdata))
         print("example file read")
         tlog <- log_operations()

@@ -4,7 +4,7 @@ $(document).ready(function() {
     window.addEventListener("message", displayMessage, false);
     function displayMessage(evt) { 
         console.log(evt.data);
-        Shiny.setInputValue("app_log", evt.data);
+        //Shiny.setInputValue("sendRetrieve-app_log", evt.data);
     };
 
     // Manipulate buttons for example file
@@ -28,13 +28,14 @@ $(document).ready(function() {
 
         function updateResponse(evt) {
             response = evt.data;
-            if (evt.data.expr_matrix == null) {
+            if (response.expr_matrix == null) {
                 if (response.localeCompare(tool + " data received") != 0) {
                     clearInterval(ninterv);
+                    Shiny.setInputValue("sendRetrieve-app_log" , tool + " received data");
                 }
             } else {
-                console.log("PolysTest: got data back");
-                Shiny.setInputValue("polystest_results", evt.data);
+                console.log(tool + ": got data back");
+                Shiny.setInputValue("sendRetrieve-" + tool + "_results", response);
             }
         }
 
