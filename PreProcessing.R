@@ -351,7 +351,10 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             log_transformation <- function(tdata, logtrafo) {
                 print("Log transformation...")
                 if (!logtrafo) {
-                    tdata[, -1] <- log2(tdata[, -1])
+                    ttt <- as.matrix(tdata[, -1])
+                    ttt <- log2(ttt)
+                    ttt[!is.finite(ttt)] <- NA
+                    tdata[, -1] <- ttt
                 }
                 processed_table(tdata)
             }
@@ -657,8 +660,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     }
                     
                     # Identify "id" and "quant" columns
-                    id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
-                    quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+                    id_column <- tdata[,1]
+                    quant_columns <- tdata[, -1, drop = FALSE]
                     
                     
                     # Ensure there is still enough data after filtering quantitative columns
@@ -750,8 +753,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # Convert the processed_table to the format before batch correction
                 # Identify "id" and "quant" columns
-                id_column <- tdata[, which(sapply(tdata, function(col) all(is.character(col) | is.factor(col)))), drop = FALSE]
-                quant_columns <- tdata[, which(sapply(tdata, is.numeric)), drop = FALSE]
+                id_column <- tdata[, 1]
+                quant_columns <- tdata[,-1, drop = FALSE]
                 
                 
                 # Ensure there is still enough data after filtering quantitative columns
