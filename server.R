@@ -26,15 +26,42 @@ server <- function(input, output, session) {
   
   ###### General info about app ######
   observeEvent(input$h_about,{
-    showModal(modalDialog(
-      title = span(h3(strong("OmicsQ: Quantitative analysis of Omics data"),
-                      p("This app aims to facilitate the processing of quantitative data from Omics type experiments. 
-It is furthermore an entrypoint for using Apps like PolySTest for statistical testing, VSClust for clustering and
-ComplexBrowser for the investigation of the behavior of protein complexes."),br(), 
-                  p(strong("More info: "), a("https://computproteomics.bmb.sdu.dk")), 
-                p(strong("Source code:"), a("https://bitbucket.org/veitveit/omicsq")),
-                      style = 'font-size:16px;color:#6cbabf;')),
-    ))
+      showModal(modalDialog(
+          title = span(
+              h3(strong("OmicsQ: Quantitative analysis of Omics data")),
+              p(
+                  strong("Features: "),
+                  "This web application facilitates the processing of quantitative data from Omics type experiments. 
+      It is furthermore an entrypoint for using the following tools:",
+                  br(),
+                  a("PolySTest", href = "https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/", style = 'color:#6cbabf;'),
+                  span(" for statistical testing"),
+                  br(),
+                  a("VSClust", href = "https://computproteomics.bmb.sdu.dk/app_direct/VSClust/", style = 'color:#6cbabf;'),
+                  span(" for clustering, and"),
+                  br(),
+                  a("ComplexBrowser", href = "https://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/", style = 'color:#6cbabf;'),
+                  span(" for exploration of the behavior of protein complexes."),
+                  br(),
+                  style = 'font-size:16px; color:#6c2a3f;'
+              ),
+              p(
+                  strong("Source code:"),
+                  a("https://github.com/computproteomics/OmicsQ", href = "https://github.com/computproteomics/OmicsQ", style = 'color:#6cbabf;'),
+                  style = 'font-size:16px; color:#6c2a3f;'
+              ),
+              p(
+                  strong("What does the app do?"),
+                  style = 'font-size:16px; color:#6c2a3f;'
+              ),
+              tags$img(height = "1000px", src = "OmicsQWorkflow.svg"),
+              br(),
+              style = 'font-size:16px; color:#6c2a3f;'
+          ),
+          size = "xl",
+          easyClose = TRUE
+      ))
+      
     
   })
   
