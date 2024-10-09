@@ -45,7 +45,7 @@ BiocManager::install(c("shiny", "shinyBS", "shinyWidgets", "shinycssloaders",
                    "shinythemes", "shinyjs", "DT", "data.table", "readxl", 
                    "stringdist", "limma", "matrixStats", "MsCoreUtils", 
                    "jsonlite", "BEclear", "sva", "gridExtra", "ggplot2", 
-                   "gplots"))
+                   "gplots","viridis"))
 ```
 
 4. Clone the OmicsQ repository: Download the latest version of OmicsQ from GitHub, each in bash:

@@ -239,7 +239,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                           styleEqual(unique(show_table[
                             ,
                             "Group"
-                          ]), rainbow(length(unique(show_table[, "Group"])), alpha = 0.7))
+                          ]), viridis(length(unique(show_table[, "Group"])), alpha = 0.7))
             )
         }
       })

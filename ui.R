@@ -13,10 +13,11 @@ library(matrixStats)
 library(MsCoreUtils)
 library(jsonlite)
 library(BEclear)
-library(sva) #BiocManager::install("sva")
+library(sva)
 library(gridExtra)
 library(ggplot2)
 library(gplots) 
+library(viridis)
 
 
 source("DataInput.R")
@@ -49,7 +50,17 @@ ui <- navbarPage(
   
   extendShinyjs(script="CallShiny.js", functions=c("retrieve_results","send_message","run_button")),
   
-  tags$head(tags$script(src="CallShiny.js")),
+  tags$head(tags$script(src="CallShiny.js"),
+            tags$style(HTML("
+      body {
+    background-color: #e1bee799; /* Replace with your chosen color code */
+            background-image: url('Background.png');
+        background-size: 100%;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+      }
+    "))),
   
   # Define tabs
   tabPanel("Reading data", value = "read", # reading file and experimental design (add/delete replicates), 

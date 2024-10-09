@@ -120,7 +120,21 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ## Show the processed table in a DataTable
             output$rtable <- DT::renderDT({
                 # Display the processed_table or result_table if available
-                datatable(data.frame(result_table(), other_cols()))  # Show result_table if it exists
+                if (!is.null(result_table())) {
+                DT::datatable(data.frame(result_table(), other_cols())) %>%
+                    formatStyle(
+                        grep("^PolySTest", colnames(data.frame(result_table()))),
+                        backgroundColor = 'lightblue'
+                    ) %>%
+                    formatStyle(
+                        grep("^VSClust", colnames(data.frame(result_table()))),
+                        backgroundColor = 'lightgreen'
+                    ) %>% 
+                    formatStyle(
+                        colnames(data.frame(other_cols())),
+                        backgroundColor = 'lightcoral'
+                    )
+                }
             })
             
             ##### Download Table Logic
@@ -193,6 +207,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                     colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
                     if (!any(colnames(result_table()) == "isClusterMember")) { # check whether VSClust was already run 
+                        colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
                         result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                         log_VSClust("Added VSClust results to table")    
                     } else {
@@ -258,6 +273,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     colnames(tdata) <- names(input$PolySTest_results[[1]])  # Assign column names
                     
                     if (!any(grep("PolySTest", colnames(result_table())))) { # check whether PolySTest was already run 
+                        colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
                         result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                         log_PolySTest("Added PolySTest results to table")    
                     } else {

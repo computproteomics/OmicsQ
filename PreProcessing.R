@@ -73,7 +73,7 @@ preProcessingUI <- function(id, prefix="") {
             ),
             hidden(column(4, id = ns("pr_c3"),
                           h4("Summary:"),
-                          htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;"),
+                          htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;padding:10px;"),
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
