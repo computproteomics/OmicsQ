@@ -9,7 +9,7 @@
    version="1.1"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    sodipodi:docname="OmicsQWorkflow.svg"
-   inkscape:export-filename="/home/veit/Poster/OmicsQ/OmicsQHupo2022.png"
+   inkscape:export-filename="OmicsQWorkflow.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xml:space="preserve"
@@ -28,8 +28,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.24368299"
-     inkscape:cx="-648.38338"
-     inkscape:cy="769.4423"
+     inkscape:cx="691.47215"
+     inkscape:cy="773.54599"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1931,7 +1931,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-1535.8,2020.9983)"><g
+     transform="translate(-1535.8,2020.9983)"><rect
+       style="fill:#ffffff;fill-rule:evenodd;stroke:#a40000;stroke-width:2;stroke-miterlimit:10;fill-opacity:1"
+       id="rect3883"
+       width="2080.572"
+       height="2675.6074"
+       x="1207.5046"
+       y="-2156.4202" /><g
        transform="matrix(0.40455383,0,0,-0.40455386,1019.6899,-164.97341)"
        id="g4390-6" /><g
        id="g12"
