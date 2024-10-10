@@ -79,7 +79,7 @@ preProcessingUI <- function(id, prefix="") {
                           actionButton(ns("proceed_to_apps"), "Proceed"),
                           style = 'border-left: 1px solid'    
             ))),        
-            
+            hr(),
             hidden(fluidRow(id = ns("pr_plots"),
                             column(6, 
                                    plotOutput(ns("pca_combined"), height = "400px")), # Combined PCA Plot

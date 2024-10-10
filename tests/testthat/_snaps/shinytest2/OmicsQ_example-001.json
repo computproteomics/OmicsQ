@@ -7624,7 +7624,7 @@
           ],
           "autoWidth": false,
           "orderClasses": false,
-          "rowCallback": "function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[1]; $(row).css({'background-color':value == 1 ? \"#FF0000B3\" : value == 2 ? \"#FFFF00B3\" : value == 3 ? \"#00FF00B3\" : value == 4 ? \"#00FFFFB3\" : value == 5 ? \"#0000FFB3\" : value == 6 ? \"#FF00FFB3\" : null});\n}",
+          "rowCallback": "function(row, data, displayNum, displayIndex, dataIndex) {\nvar value=data[1]; $(row).css({'background-color':value == 1 ? \"#440154B3\" : value == 2 ? \"#414487B3\" : value == 3 ? \"#2A788EB3\" : value == 4 ? \"#22A884B3\" : value == 5 ? \"#7AD151B3\" : value == 6 ? \"#FDE725B3\" : null});\n}",
           "ajax": {
             "type": "POST",
             "data": "function(d) {\nd.search.caseInsensitive = true;\nd.search.smart = true;\nd.escape = true;\nvar encodeAmp = function(x) { x.value = x.value.replace(/&/g, \"%26\"); }\nencodeAmp(d.search);\n$.each(d.columns, function(i, v) {encodeAmp(v.search);});\n}"
@@ -7896,6 +7896,7 @@
           ],
           "autoWidth": false,
           "orderClasses": false,
+          "rowCallback": "function(row, data, displayNum, displayIndex, dataIndex) {\n}",
           "ajax": {
             "type": "POST",
             "data": "function(d) {\nd.search.caseInsensitive = true;\nd.search.smart = true;\nd.escape = true;\nvar encodeAmp = function(x) { x.value = x.value.replace(/&/g, \"%26\"); }\nencodeAmp(d.search);\n$.each(d.columns, function(i, v) {encodeAmp(v.search);});\n}"
@@ -7911,6 +7912,7 @@
         }
       },
       "evals": [
+        "options.rowCallback",
         "options.ajax.data"
       ],
       "jsHooks": [

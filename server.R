@@ -1,7 +1,10 @@
+app_version <- readLines("VERSION")
+
+
 #### Overall server for OmicsQ ###########
 server <- function(input, output, session) {
   ## main data sets
-  log_operations <- reactiveVal(list())
+  log_operations <- reactiveVal(list(omicsQ_version = app_version))
   
   ##### READING DATA
   dataInput <- dataInputServer(id="dataInput", parent=session, log_operations)
@@ -29,7 +32,7 @@ server <- function(input, output, session) {
       showModal(modalDialog(
           title = span(
               h3(strong("OmicsQ: Quantitative analysis of Omics data")),
-              p(
+              p(  strong("Version: "), app_version,br(),
                   strong("Features: "),
                   "This web application facilitates the processing of quantitative data from Omics type experiments. 
       It is furthermore an entrypoint for using the following tools:",

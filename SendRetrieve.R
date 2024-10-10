@@ -207,12 +207,13 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                     colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
                     if (!any(colnames(result_table()) == "isClusterMember")) { # check whether VSClust was already run 
-                        colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
-                        result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                         log_VSClust("Added VSClust results to table")    
                     } else {
-                        log_VSClust("VSClust results already retrieved")
+                        log_VSClust("VSClust: overwriting already retrieved results")
+                        result_table(result_table()[, !grepl("^VSClust", colnames(result_table()))])
                     }
+                    colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
+                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                     # Update the log with processed results
                     
                 }
@@ -272,13 +273,15 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                     colnames(tdata) <- names(input$PolySTest_results[[1]])  # Assign column names
                     
-                    if (!any(grep("PolySTest", colnames(result_table())))) { # check whether PolySTest was already run 
-                        colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
-                        result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                    if (!any(grep("^PolySTest", colnames(result_table())))) { # check whether PolySTest was already run 
                         log_PolySTest("Added PolySTest results to table")    
                     } else {
-                        log_PolySTest("PolySTest results already retrieved")
+                        log_PolySTest("PolySTest: overwriting already retrieved results")
+                        result_table(result_table()[, !grepl("^PolySTest", colnames(result_table()))])
                     }
+                    colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
+                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                    
                 }
             }))
             
