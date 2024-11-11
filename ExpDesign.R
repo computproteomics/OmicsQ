@@ -230,10 +230,17 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
       # Table for editing design
       output$etable <- DT::renderDT({
         if (!is.null(exp_design())) {
+            isolate({
           print("edtable")
           show_table <- t(exp_design())
           show_table[is.na(show_table)] <- 1
-          datatable(show_table, editable = T) %>%
+          print(input$etable_rows_current)
+          if (!is.null(input$etable_rows_current)) {
+            rows <- length(input$etable_rows_current)
+          } else {
+              rows <- 10
+          }
+          datatable(show_table, editable = T, options = list(pageLength = rows)) %>%
             formatStyle("Group",
                         target = "row", backgroundColor =
                           styleEqual(unique(show_table[
@@ -241,6 +248,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                             "Group"
                           ]), viridis(length(unique(show_table[, "Group"])), alpha = 0.7))
             )
+            })
         }
       })
       
