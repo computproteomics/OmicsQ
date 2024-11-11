@@ -22,4 +22,5 @@ RUN mkdir /srv/shiny-server/www
 COPY www/* /srv/shiny-server/www/
 COPY *R  /srv/shiny-server/
 COPY *csv  /srv/shiny-server/
+COPY VERSION /srv/shiny-server/
 #COPY *pdf  /srv/shiny-server/

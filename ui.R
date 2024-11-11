@@ -33,7 +33,7 @@ ui <- navbarPage(
   id="mainpage",
   title = tags$span(
       tags$img(src = "Logo_OmicsQ.svg", height = "20px", style = "vertical-align:middle;"),
-      ": a toolkit for quantitative Omics analysis"),
+      "     OmicsQ: a toolkit for quantitative Omics analysis"),
   header = list(div(
     actionBttn("h_log",
                label="Summary of operations",    

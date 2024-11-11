@@ -279,16 +279,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     tt <- tedes[, tedes[1, ] == cond, drop = F]
                     
                     for (i in seq_len(max_reps - reps[cond])) {
-                        # Get the number of rows in tedes
-                        n_rows <- nrow(tedes)
-                        
                         # Create a new column that matches the number of rows in tedes
-                        new_col <- c(rep(cond, n_rows - 1), max(tt[2, ]) + i)
+                        new_col <- c(cond, max(tt[2, ]) + i, 1)
                         
                         # Name the new column as new_oldname_numbering
                         oldname <- colnames(tt)[1]  # Assuming the first column is the old name
                         new_col_name <- paste0("new_", oldname, "_", i)  # Add numbering for each new column
-                        
+
                         # Add the new column to tedes
                         tedes <- cbind(tedes, new_col)
                         
@@ -297,6 +294,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         
                         # Add an NA column to tdata (the actual data)
                         tdata[new_col_name] <- NA
+                        tdata[, new_col_name] <- as.numeric(tdata[, new_col_name])
+                        class(tdata[, new_col_name]) <- "quant"
                         
                         # Track the added column name for the summary
                         added_columns <- c(added_columns, new_col_name)
@@ -319,8 +318,10 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 # Update the processed tables
                 id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
                 quant_columns <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+                quant_columns <- quant_columns[, colnames(pexp_design())]
                 
                 # Update the processed table
+                print(head(quant_columns))
                 processed_table(cbind(id_column, quant_columns))  # Make sure new columns are added here
                 
             }
@@ -376,7 +377,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     tlog <- log_operations()
                     tlog[["normalization"]] <- method
                     log_operations(tlog)
-                    
                     processed_table(tdata)
                 }
             }
@@ -612,8 +612,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     remove_cols(tdata, input$remove_reps, exp_design())
                     
-                    if (input$add_na_columns)
+                    if (input$add_na_columns) {
                         add_na_columns(processed_table(), pexp_design())
+                    }
                     
                     check_balance(pexp_design())
                     
@@ -635,6 +636,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     processed_table(cbind(id_column, quant_columns))
                     
                     batch_correction(processed_table(), pexp_design(), batch_info(), input$batch_correction_method)
+                    
+                    print(colnames(processed_table()))
+                    print(pexp_design())
                     
                 })
                 
