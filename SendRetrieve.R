@@ -215,7 +215,9 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
                     result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                     # Update the log with processed results
-                    
+                    tlog <- log_operations()
+                    tlog[["VSClust version"]] <- input$VSClust_results$version
+                    log_operations(tlog)
                 }
             }))
             
@@ -281,6 +283,10 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                     colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
                     result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                    # Update the log with processed results
+                    tlog <- log_operations()
+                    tlog[["PolySTest version"]] <- input$PolySTest_results$version
+                    log_operations(tlog)
                     
                 }
             }))

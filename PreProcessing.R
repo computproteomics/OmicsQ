@@ -81,10 +81,12 @@ preProcessingUI <- function(id, prefix="") {
             ))),        
             hr(),
             hidden(fluidRow(id = ns("pr_plots"),
-                            column(6, 
-                                   plotOutput(ns("pca_combined"), height = "400px")), # Combined PCA Plot
-                            column(6, 
-                                   plotOutput(ns("corrplot"), height = "400px") # Keep existing correlation plot
+                            column(5.5, 
+                                   plotOutput(ns("pca_combined"), height = "400px"),
+                                   style = "padding: 10px; margin: 10px;"), # Combined PCA Plot
+                            column(5.5, 
+                                   plotOutput(ns("corrplot"), height = "400px"),
+                                   style = "padding: 10px; margin: 10px;"# Keep existing correlation plot
                             )
             ))
             
