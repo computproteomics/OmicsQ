@@ -1,0 +1,342 @@
+---
+title: "OmicsQ — Step 1: Data Import"
+format: html
+---
+
+
+# Step 1: Data Import
+
+Welcome to the **Data Import** step of the OmicsQ app! In this part of the application, you will upload your data files and make any quick, simple adjustments to ensure they’re ready for further analysis. Below are the features you’ll see on your screen and how to use them:
+
+---
+
+## 1. File Input
+
+**Where to find it:** The left-most panel titled “File input”.
+
+1. **Upload your file**  
+   - Click **Browse** (or **Choose File**) to select a file from your computer.  
+   - Supported file types typically include Excel (**.xls** or **.xlsx**) and text-based formats such as CSV or TSV.  
+
+2. **Run example file**  
+   - Click **Run example file** to load a ready-to-use test dataset.  
+   - This is useful if you want to explore the interface or confirm it’s working properly before using your own data.
+
+3. **Feedback and issue reporting**  
+   - Links are available here to the OmicsQ software repository for raising issues, or to contact the main developer for additional support.
+
+---
+
+## 2. File-Specific Settings
+
+**Where to find it:** Next to the “File input” panel, labeled “File specific settings”.
+
+Once you upload a file, OmicsQ will automatically detect if it’s an Excel or a CSV/TSV file. Depending on the file type, different settings may appear:
+
+- **For Excel:** You may select the **sheet** if your Excel file has multiple worksheets.  
+- **For CSV/TSV or other text files:** You will see options to specify:
+  - **Delimiter** (e.g., commas, semicolons, tabs)  
+  - **Decimal separator** (e.g., period `.` or comma `,`)  
+  - **Skip lines at the beginning** to ignore extra header lines  
+  - **Indicate if the file has a header row**  
+
+If the automatic detection looks correct, you can keep the default settings. If not, simply adjust these fields to properly format your data.
+
+---
+
+## 3. Select and Adjust Your Columns
+
+**Where to find it:** The middle panel titled “Select and adjust.”
+
+After your file is read, you can **choose which columns are your ID columns** (e.g., gene identifiers, protein IDs) and which columns hold the **quantitative values** (e.g., abundance measurements).
+
+1. **Select ID column**  
+   - Use the dropdown to pick exactly one column that represents the unique or primary identifier of each row.  
+
+2. **Select quantitative columns**  
+   - Use the dropdown to select one or more columns that contain numeric data you’ll want to analyze.
+
+3. **Simple manipulations**  
+   - **Zeroes to missing values**: Convert all zeros in selected columns to “missing” values.  
+   - **Non-numeric to missing values**: Convert any unexpected strings (like “#DIV/0!”) into missing values.
+
+---
+
+## 4. Proceed to Experimental Design
+
+**Where to find it:** The panel on the right, titled “Proceed to experimental design.”
+
+Once you have at least one **quantitative** column selected, you can click the **Proceed** button to continue. If you have not selected any numeric columns, you will see a message prompting you to do so before you can move on.
+
+- **Proceed button**  
+  - This becomes **enabled** only after valid columns are selected.  
+  - Clicking **Proceed** will take you to the next step, where you define group labels, replicates, and other experimental information.
+
+---
+
+## 5. Data Preview
+
+At the bottom of the page, you’ll find a table showing the top portion of your uploaded file. This helps you confirm that the data has been loaded and recognized in the correct format. Columns that have been assigned a certain role (ID vs. quant) will be highlighted accordingly.
+
+---
+
+**Tip:** If anything seems off, return to the relevant panel to adjust the file settings or reassign columns. Once everything looks good, use the “Proceed” button to advance to the next step.
+
+**Next step:** Move on to **Step 2: Experimental Design**, where you’ll specify how your samples are grouped and replicate structures are defined.
+
+
+# Step 2: Experimental Design
+
+After importing your data, you’ll move to the **Experimental Design** tab. Here, you can automatically group and label samples, define replicate numbers, and assign batch information before proceeding to downstream analysis.
+
+---
+
+## 1. Automatic Selection of Experimental Groups
+
+**Where to find it:** On the left side under “Automatic selection of experimental groups.”
+
+1. **Threshold & string distance**  
+   - The slider lets you set a **threshold** that controls how similar or different column names must be to be grouped automatically.  
+   - The “String distance type” dropdown offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).  
+2. **Automatic grouping**  
+   - As you adjust the threshold or change the distance type, the app attempts to cluster your sample names and assign them to different groups automatically.
+
+***(Placeholder for Screenshot 1: “Main panel for experimental design”)***
+
+---
+
+## 2. Assign Sample Types & Replicate Numbers
+
+**Where to find it:** The middle panel labeled “Assign Sample Types and Batch Number.”
+
+1. **Select columns for sample type**  
+   - Use the dropdown to highlight which samples should be considered the same “type” or condition.  
+   - Adjust the slider to assign them a specific sample-type number (e.g., 1, 2, 3, …).  
+2. **Replicate assignment**  
+   - Once samples share the same type, their replicate numbers are automatically updated in the table.  
+   - If needed, you can refine replicate numbers directly in the table at the bottom of the page.
+
+***(Placeholder for Screenshot 2: “Editing group assignment and replicates”)***
+
+---
+
+## 3. Setting Up Batch Numbers
+
+1. **Select columns for batch assignment**  
+   - Pick any samples that were measured or processed in the same batch.  
+2. **Specify batch number**  
+   - Use the slider to assign a batch ID (e.g., 1, 2, 3, …).  
+   - This helps keep track of potential batch effects in subsequent analyses.
+
+***(Placeholder for Screenshot 3: “Assigning sample type and batch number”)***
+
+---
+
+## 4. Proceed to Data Pre-Processing
+
+**Where to find it:** The right-most panel titled “Proceed to data pre-processing.”
+
+1. **Proceed button**  
+   - Once you’ve finished assigning groups, replicates, and batch numbers, click **Proceed**.  
+   - You’ll be taken to the next step in OmicsQ, where you can review and process your data further.
+
+2. **Download table**  
+   - You can also download the updated experimental design table as a CSV for your records or offline editing.
+
+***(Placeholder for Screenshot 4: “Proceed to data processing panel”)***
+
+---
+
+## 5. Experimental Design Table
+
+At the bottom of the page, you’ll see a table summarizing your current group assignments, replicate numbers, and batch info:
+
+- **Editing cells**: Double-click a cell to change its value (e.g., alter group labels or replicate numbers).  
+- **Color-coding**: Some columns are color-coded based on assigned groups.  
+
+Use this table to confirm that your sample setup is correct. If everything looks good, hit **Proceed** to continue!
+
+***(Placeholder for Screenshot 5: “Experimental design table”)***
+
+---
+
+## Tips & Reminders
+
+- Adjust the **string distance threshold** carefully to get meaningful groups.  
+- You can always **manually override** group or replicate information in the table below.  
+- Remember to **assign batch numbers** if your samples were run in separate experimental batches.  
+
+Once satisfied, click **Proceed** to move on to **Step 3: Data Pre-Processing**.
+
+
+# Step 3: Data Pre-Processing
+
+In **Step 3**, you can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through **PCA** and **correlation** plots. This allows you to try different settings and see their effects in real time.
+
+---
+
+## 1. Add or Delete Data Columns
+
+**Where to find it:** The left panel under **“Add or delete data columns.”**
+
+1. **Pick the samples to remove**  
+   - Use the dropdown to select sample columns you no longer want in the analysis.  
+   - If you wish to remove multiple columns, note the limit that at least **two** columns must remain.  
+
+2. **Fill with empty columns**  
+   - If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add “NA” columns to make all groups have the same number of replicates.  
+   - This helps maintain a more balanced design, but will introduce blank values.
+
+3. **Current state**  
+   - A quick summary is shown, indicating whether your design is balanced or unbalanced.  
+   - The message will also appear if extra columns are created.
+
+***(Placeholder for Screenshot 1: “Add/Delete Columns Panel”)***
+
+---
+
+## 2. Data Manipulation & Adjustment
+
+**Where to find it:** Middle panel labeled **“Data manipulation and adjustment.”**
+
+1. **Log-transformation**  
+   - Check if data is already log-transformed. If not, OmicsQ will log2-transform the data.  
+2. **Max NA per feature**  
+   - Allows you to set a maximum threshold for missing values across samples. Any feature (row) exceeding that threshold is removed.  
+3. **Normalization**  
+   - Choose from **none**, **median**, **mean**, or **cyclic LOESS** normalization.  
+   - Compare how each method affects your data by checking the plots at the bottom of the page.  
+4. **Summarize to ID features**  
+   - If your **ID** column (e.g., gene/protein IDs) has duplicates, you can aggregate them by **sum**, **mean**, **median**, etc.  
+   - This reduces multiple rows with the same ID to a single representative row.
+
+5. **Batch Correction**  
+   - If you assigned batches in the previous step, you can select a correction method, such as **limma** or **Combat**, to adjust for batch effects.  
+   - When there is only one batch or fewer than two replicates per batch, this option is disabled.
+
+***(Placeholder for Screenshot 2: “Data Manipulation Options Panel”)***
+
+---
+
+## 3. Summary & Proceed
+
+**Where to find it:** Right panel titled **“Summary.”**
+
+1. **Summary box**  
+   - Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.  
+   - Indicates if columns have been added or removed in the process.  
+2. **Proceed to interaction with apps**  
+   - Once you are satisfied with the data adjustments, click **Proceed** to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.
+
+***(Placeholder for Screenshot 3: “Summary Panel and Proceed Button”)***
+
+---
+
+## 4. Visual Feedback
+
+Beneath the summary panels, you’ll find **two plots**—a **PCA** plot and a **correlation matrix**—that let you see the effect of your chosen data transformations:
+
+1. **PCA Plot**  
+   - Shows the separation of samples by the first two principal components.  
+   - Adjust your log-transformation, normalization, or batch correction settings, and watch how sample clustering changes.
+
+2. **Correlation Plot**  
+   - Displays a heatmap of pairwise sample correlations, highlighting how similar or different they are after processing.  
+   - Helps identify potential outliers or technical artifacts that might need addressing.
+
+***(Placeholder for Screenshot 4: “PCA and Correlation Plots”)***
+
+---
+
+## Tips
+
+- Experiment with different **normalization** or **batch correction** methods, then observe changes in the **PCA** and **correlation** plots.  
+- Use **max NA** filtering to remove features with extensive missing values, which can simplify downstream analyses.  
+- If your design is unbalanced, explore removing columns from the largest groups or adding NA columns to the smallest groups to maintain parity.
+
+**Next step:** Click **Proceed** to continue to the next module of OmicsQ.
+
+
+
+# Step 4: Interacting with Additional Apps
+
+After you have completed data pre-processing, OmicsQ allows you to send your processed dataset to additional apps for deeper analysis. These tools can be used for statistical testing, clustering, and exploring protein complexes. Below is an overview of each app and how to access them within OmicsQ.
+
+---
+
+## 1. Sending Data to External Apps
+
+**Where to find it:** A set of panels labeled **“Statistical testing,” “Clustering,” and “Investigate protein complex behavior.”**
+
+1. **PolySTest**  
+   - Designed for statistical testing of multi-omics or proteomics data.  
+   - Once clicked, your processed data is uploaded, and a new window or tab opens where you can run various statistical tests.  
+   - Use **“Retrieve results”** to import any outcomes back into OmicsQ.  
+
+2. **VSClust**  
+   - A clustering tool that groups features (e.g., proteins, peptides, or genes) based on abundance profiles.  
+   - Similar to PolySTest, you click **“Send”** to push data to VSClust and **“Retrieve results”** to pull them back.  
+   - Helps you identify co-expression or co-regulation patterns in your data.
+
+3. **ComplexBrowser**  
+   - Focuses on exploring protein complexes and how their subunits behave under different experimental conditions.  
+   - Clicking **“Send to ComplexBrowser”** uploads the data, and you can investigate complex membership, stoichiometry changes, or differential expression of subunits.  
+   - **“Retrieve”** is optional if the app provides data back to OmicsQ.
+
+***(Placeholder for Screenshot 1: “Apps Integration Panel”)***
+
+---
+
+## 2. Paired vs. Unpaired Design
+
+1. **Paired toggle**  
+   - If your design is **paired** (e.g., matched samples before/after treatment), switch this on to ensure apps handle the data appropriately.  
+   - For **unpaired** designs (most standard experimental setups), leave it off.
+
+2. **URL fields**  
+   - By default, the apps point to public servers (e.g., `computproteomics.bmb.sdu.dk`).  
+   - You can change these URLs to local or private servers if necessary.
+
+***(Placeholder for Screenshot 2: “Paired Toggle and URL Inputs”)***
+
+---
+
+## 3. Working with Results
+
+1. **Connection status**  
+   - After sending data, the interface indicates a “connection” or “upload” status.  
+   - When an app finishes processing, click **“Retrieve results”** to pull them back into OmicsQ.  
+2. **Result columns**  
+   - Results from each app are usually added to the current table with columns labeled “PolySTest_…,” “VSClust_…,” or “ComplexBrowser_….”  
+   - You can download the updated table at any point by clicking **“Download table.”**
+
+***(Placeholder for Screenshot 3: “Retrieving and Viewing App Results”)***
+
+---
+
+## 4. About the External Apps
+
+- **PolySTest**  
+  - A statistical toolkit for integrated, multi-condition testing in proteomics/omics experiments.  
+  - Useful for identifying differentially expressed features across multiple groups or timepoints.
+
+- **VSClust**  
+  - Clusters features with similar expression/abundance profiles.  
+  - Helps reveal co-regulated sets of molecules (e.g., proteins, genes) and highlight potential biological modules.
+
+- **ComplexBrowser**  
+  - Allows inspection of known protein complexes, exploring how their subunits behave across conditions or treatments.  
+  - Facilitates a better understanding of complex stoichiometry or stability changes under different experimental scenarios.
+
+For more information, visit their respective public websites or documentation pages. If you encounter connectivity issues, ensure your **browser** and **network settings** allow opening new windows/tabs and sending data to these external URLs.
+
+***(Placeholder for Screenshot 4: “Examples of Each App’s Interface”)***
+
+---
+
+## Tips
+
+- **Privacy & Security**: If you work with sensitive data, consider hosting these apps on a **secure internal server** and update the URL fields in OmicsQ accordingly.  
+- **Data Size**: Uploading very large datasets might require additional time or could fail if your internet connection is unstable or if the server imposes size limits.
+
+**Next Step:** After analyzing or clustering your data in these apps, revisit your results in OmicsQ to combine insights or proceed with downstream workflows.

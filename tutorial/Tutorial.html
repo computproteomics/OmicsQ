@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>OmicsQ — Step 1: Data Import</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="Tutorial_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Tutorial_files/libs/quarto-html/quarto.js"></script>
+<script src="Tutorial_files/libs/quarto-html/popper.min.js"></script>
+<script src="Tutorial_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Tutorial_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Tutorial_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Tutorial_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Tutorial_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Tutorial_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Tutorial_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">OmicsQ — Step 1: Data Import</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="step-1-data-import" class="level1">
+<h1>Step 1: Data Import</h1>
+<p>Welcome to the <strong>Data Import</strong> step of the OmicsQ app! In this part of the application, you will upload your data files and make any quick, simple adjustments to ensure they’re ready for further analysis. Below are the features you’ll see on your screen and how to use them:</p>
+<hr>
+<section id="file-input" class="level2">
+<h2 class="anchored" data-anchor-id="file-input">1. File Input</h2>
+<p><strong>Where to find it:</strong> The left-most panel titled “File input”.</p>
+<ol type="1">
+<li><strong>Upload your file</strong>
+<ul>
+<li>Click <strong>Browse</strong> (or <strong>Choose File</strong>) to select a file from your computer.<br>
+</li>
+<li>Supported file types typically include Excel (<strong>.xls</strong> or <strong>.xlsx</strong>) and text-based formats such as CSV or TSV.</li>
+</ul></li>
+<li><strong>Run example file</strong>
+<ul>
+<li>Click <strong>Run example file</strong> to load a ready-to-use test dataset.<br>
+</li>
+<li>This is useful if you want to explore the interface or confirm it’s working properly before using your own data.</li>
+</ul></li>
+<li><strong>Feedback and issue reporting</strong>
+<ul>
+<li>Links are available here to the OmicsQ software repository for raising issues, or to contact the main developer for additional support.</li>
+</ul></li>
+</ol>
+<hr>
+</section>
+<section id="file-specific-settings" class="level2">
+<h2 class="anchored" data-anchor-id="file-specific-settings">2. File-Specific Settings</h2>
+<p><strong>Where to find it:</strong> Next to the “File input” panel, labeled “File specific settings”.</p>
+<p>Once you upload a file, OmicsQ will automatically detect if it’s an Excel or a CSV/TSV file. Depending on the file type, different settings may appear:</p>
+<ul>
+<li><strong>For Excel:</strong> You may select the <strong>sheet</strong> if your Excel file has multiple worksheets.<br>
+</li>
+<li><strong>For CSV/TSV or other text files:</strong> You will see options to specify:
+<ul>
+<li><strong>Delimiter</strong> (e.g., commas, semicolons, tabs)<br>
+</li>
+<li><strong>Decimal separator</strong> (e.g., period <code>.</code> or comma <code>,</code>)<br>
+</li>
+<li><strong>Skip lines at the beginning</strong> to ignore extra header lines<br>
+</li>
+<li><strong>Indicate if the file has a header row</strong></li>
+</ul></li>
+</ul>
+<p>If the automatic detection looks correct, you can keep the default settings. If not, simply adjust these fields to properly format your data.</p>
+<hr>
+</section>
+<section id="select-and-adjust-your-columns" class="level2">
+<h2 class="anchored" data-anchor-id="select-and-adjust-your-columns">3. Select and Adjust Your Columns</h2>
+<p><strong>Where to find it:</strong> The middle panel titled “Select and adjust.”</p>
+<p>After your file is read, you can <strong>choose which columns are your ID columns</strong> (e.g., gene identifiers, protein IDs) and which columns hold the <strong>quantitative values</strong> (e.g., abundance measurements).</p>
+<ol type="1">
+<li><strong>Select ID column</strong>
+<ul>
+<li>Use the dropdown to pick exactly one column that represents the unique or primary identifier of each row.</li>
+</ul></li>
+<li><strong>Select quantitative columns</strong>
+<ul>
+<li>Use the dropdown to select one or more columns that contain numeric data you’ll want to analyze.</li>
+</ul></li>
+<li><strong>Simple manipulations</strong>
+<ul>
+<li><strong>Zeroes to missing values</strong>: Convert all zeros in selected columns to “missing” values.<br>
+</li>
+<li><strong>Non-numeric to missing values</strong>: Convert any unexpected strings (like “#DIV/0!”) into missing values.</li>
+</ul></li>
+</ol>
+<hr>
+</section>
+<section id="proceed-to-experimental-design" class="level2">
+<h2 class="anchored" data-anchor-id="proceed-to-experimental-design">4. Proceed to Experimental Design</h2>
+<p><strong>Where to find it:</strong> The panel on the right, titled “Proceed to experimental design.”</p>
+<p>Once you have at least one <strong>quantitative</strong> column selected, you can click the <strong>Proceed</strong> button to continue. If you have not selected any numeric columns, you will see a message prompting you to do so before you can move on.</p>
+<ul>
+<li><strong>Proceed button</strong>
+<ul>
+<li>This becomes <strong>enabled</strong> only after valid columns are selected.<br>
+</li>
+<li>Clicking <strong>Proceed</strong> will take you to the next step, where you define group labels, replicates, and other experimental information.</li>
+</ul></li>
+</ul>
+<hr>
+</section>
+<section id="data-preview" class="level2">
+<h2 class="anchored" data-anchor-id="data-preview">5. Data Preview</h2>
+<p>At the bottom of the page, you’ll find a table showing the top portion of your uploaded file. This helps you confirm that the data has been loaded and recognized in the correct format. Columns that have been assigned a certain role (ID vs.&nbsp;quant) will be highlighted accordingly.</p>
+<hr>
+<p><strong>Tip:</strong> If anything seems off, return to the relevant panel to adjust the file settings or reassign columns. Once everything looks good, use the “Proceed” button to advance to the next step.</p>
+<p><strong>Next step:</strong> Move on to <strong>Step 2: Experimental Design</strong>, where you’ll specify how your samples are grouped and replicate structures are defined.</p>
+</section>
+</section>
+<section id="step-2-experimental-design" class="level1">
+<h1>Step 2: Experimental Design</h1>
+<p>After importing your data, you’ll move to the <strong>Experimental Design</strong> tab. Here, you can automatically group and label samples, define replicate numbers, and assign batch information before proceeding to downstream analysis.</p>
+<hr>
+<section id="automatic-selection-of-experimental-groups" class="level2">
+<h2 class="anchored" data-anchor-id="automatic-selection-of-experimental-groups">1. Automatic Selection of Experimental Groups</h2>
+<p><strong>Where to find it:</strong> On the left side under “Automatic selection of experimental groups.”</p>
+<ol type="1">
+<li><strong>Threshold &amp; string distance</strong>
+<ul>
+<li>The slider lets you set a <strong>threshold</strong> that controls how similar or different column names must be to be grouped automatically.<br>
+</li>
+<li>The “String distance type” dropdown offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).<br>
+</li>
+</ul></li>
+<li><strong>Automatic grouping</strong>
+<ul>
+<li>As you adjust the threshold or change the distance type, the app attempts to cluster your sample names and assign them to different groups automatically.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 1: “Main panel for experimental design”)</em></strong></p>
+<hr>
+</section>
+<section id="assign-sample-types-replicate-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="assign-sample-types-replicate-numbers">2. Assign Sample Types &amp; Replicate Numbers</h2>
+<p><strong>Where to find it:</strong> The middle panel labeled “Assign Sample Types and Batch Number.”</p>
+<ol type="1">
+<li><strong>Select columns for sample type</strong>
+<ul>
+<li>Use the dropdown to highlight which samples should be considered the same “type” or condition.<br>
+</li>
+<li>Adjust the slider to assign them a specific sample-type number (e.g., 1, 2, 3, …).<br>
+</li>
+</ul></li>
+<li><strong>Replicate assignment</strong>
+<ul>
+<li>Once samples share the same type, their replicate numbers are automatically updated in the table.<br>
+</li>
+<li>If needed, you can refine replicate numbers directly in the table at the bottom of the page.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 2: “Editing group assignment and replicates”)</em></strong></p>
+<hr>
+</section>
+<section id="setting-up-batch-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="setting-up-batch-numbers">3. Setting Up Batch Numbers</h2>
+<ol type="1">
+<li><strong>Select columns for batch assignment</strong>
+<ul>
+<li>Pick any samples that were measured or processed in the same batch.<br>
+</li>
+</ul></li>
+<li><strong>Specify batch number</strong>
+<ul>
+<li>Use the slider to assign a batch ID (e.g., 1, 2, 3, …).<br>
+</li>
+<li>This helps keep track of potential batch effects in subsequent analyses.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 3: “Assigning sample type and batch number”)</em></strong></p>
+<hr>
+</section>
+<section id="proceed-to-data-pre-processing" class="level2">
+<h2 class="anchored" data-anchor-id="proceed-to-data-pre-processing">4. Proceed to Data Pre-Processing</h2>
+<p><strong>Where to find it:</strong> The right-most panel titled “Proceed to data pre-processing.”</p>
+<ol type="1">
+<li><strong>Proceed button</strong>
+<ul>
+<li>Once you’ve finished assigning groups, replicates, and batch numbers, click <strong>Proceed</strong>.<br>
+</li>
+<li>You’ll be taken to the next step in OmicsQ, where you can review and process your data further.</li>
+</ul></li>
+<li><strong>Download table</strong>
+<ul>
+<li>You can also download the updated experimental design table as a CSV for your records or offline editing.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 4: “Proceed to data processing panel”)</em></strong></p>
+<hr>
+</section>
+<section id="experimental-design-table" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-design-table">5. Experimental Design Table</h2>
+<p>At the bottom of the page, you’ll see a table summarizing your current group assignments, replicate numbers, and batch info:</p>
+<ul>
+<li><strong>Editing cells</strong>: Double-click a cell to change its value (e.g., alter group labels or replicate numbers).<br>
+</li>
+<li><strong>Color-coding</strong>: Some columns are color-coded based on assigned groups.</li>
+</ul>
+<p>Use this table to confirm that your sample setup is correct. If everything looks good, hit <strong>Proceed</strong> to continue!</p>
+<p><strong><em>(Placeholder for Screenshot 5: “Experimental design table”)</em></strong></p>
+<hr>
+</section>
+<section id="tips-reminders" class="level2">
+<h2 class="anchored" data-anchor-id="tips-reminders">Tips &amp; Reminders</h2>
+<ul>
+<li>Adjust the <strong>string distance threshold</strong> carefully to get meaningful groups.<br>
+</li>
+<li>You can always <strong>manually override</strong> group or replicate information in the table below.<br>
+</li>
+<li>Remember to <strong>assign batch numbers</strong> if your samples were run in separate experimental batches.</li>
+</ul>
+<p>Once satisfied, click <strong>Proceed</strong> to move on to <strong>Step 3: Data Pre-Processing</strong>.</p>
+</section>
+</section>
+<section id="step-3-data-pre-processing" class="level1">
+<h1>Step 3: Data Pre-Processing</h1>
+<p>In <strong>Step 3</strong>, you can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through <strong>PCA</strong> and <strong>correlation</strong> plots. This allows you to try different settings and see their effects in real time.</p>
+<hr>
+<section id="add-or-delete-data-columns" class="level2">
+<h2 class="anchored" data-anchor-id="add-or-delete-data-columns">1. Add or Delete Data Columns</h2>
+<p><strong>Where to find it:</strong> The left panel under <strong>“Add or delete data columns.”</strong></p>
+<ol type="1">
+<li><strong>Pick the samples to remove</strong>
+<ul>
+<li>Use the dropdown to select sample columns you no longer want in the analysis.<br>
+</li>
+<li>If you wish to remove multiple columns, note the limit that at least <strong>two</strong> columns must remain.</li>
+</ul></li>
+<li><strong>Fill with empty columns</strong>
+<ul>
+<li>If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add “NA” columns to make all groups have the same number of replicates.<br>
+</li>
+<li>This helps maintain a more balanced design, but will introduce blank values.</li>
+</ul></li>
+<li><strong>Current state</strong>
+<ul>
+<li>A quick summary is shown, indicating whether your design is balanced or unbalanced.<br>
+</li>
+<li>The message will also appear if extra columns are created.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 1: “Add/Delete Columns Panel”)</em></strong></p>
+<hr>
+</section>
+<section id="data-manipulation-adjustment" class="level2">
+<h2 class="anchored" data-anchor-id="data-manipulation-adjustment">2. Data Manipulation &amp; Adjustment</h2>
+<p><strong>Where to find it:</strong> Middle panel labeled <strong>“Data manipulation and adjustment.”</strong></p>
+<ol type="1">
+<li><strong>Log-transformation</strong>
+<ul>
+<li>Check if data is already log-transformed. If not, OmicsQ will log2-transform the data.<br>
+</li>
+</ul></li>
+<li><strong>Max NA per feature</strong>
+<ul>
+<li>Allows you to set a maximum threshold for missing values across samples. Any feature (row) exceeding that threshold is removed.<br>
+</li>
+</ul></li>
+<li><strong>Normalization</strong>
+<ul>
+<li>Choose from <strong>none</strong>, <strong>median</strong>, <strong>mean</strong>, or <strong>cyclic LOESS</strong> normalization.<br>
+</li>
+<li>Compare how each method affects your data by checking the plots at the bottom of the page.<br>
+</li>
+</ul></li>
+<li><strong>Summarize to ID features</strong>
+<ul>
+<li>If your <strong>ID</strong> column (e.g., gene/protein IDs) has duplicates, you can aggregate them by <strong>sum</strong>, <strong>mean</strong>, <strong>median</strong>, etc.<br>
+</li>
+<li>This reduces multiple rows with the same ID to a single representative row.</li>
+</ul></li>
+<li><strong>Batch Correction</strong>
+<ul>
+<li>If you assigned batches in the previous step, you can select a correction method, such as <strong>limma</strong> or <strong>Combat</strong>, to adjust for batch effects.<br>
+</li>
+<li>When there is only one batch or fewer than two replicates per batch, this option is disabled.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 2: “Data Manipulation Options Panel”)</em></strong></p>
+<hr>
+</section>
+<section id="summary-proceed" class="level2">
+<h2 class="anchored" data-anchor-id="summary-proceed">3. Summary &amp; Proceed</h2>
+<p><strong>Where to find it:</strong> Right panel titled <strong>“Summary.”</strong></p>
+<ol type="1">
+<li><strong>Summary box</strong>
+<ul>
+<li>Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.<br>
+</li>
+<li>Indicates if columns have been added or removed in the process.<br>
+</li>
+</ul></li>
+<li><strong>Proceed to interaction with apps</strong>
+<ul>
+<li>Once you are satisfied with the data adjustments, click <strong>Proceed</strong> to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 3: “Summary Panel and Proceed Button”)</em></strong></p>
+<hr>
+</section>
+<section id="visual-feedback" class="level2">
+<h2 class="anchored" data-anchor-id="visual-feedback">4. Visual Feedback</h2>
+<p>Beneath the summary panels, you’ll find <strong>two plots</strong>—a <strong>PCA</strong> plot and a <strong>correlation matrix</strong>—that let you see the effect of your chosen data transformations:</p>
+<ol type="1">
+<li><strong>PCA Plot</strong>
+<ul>
+<li>Shows the separation of samples by the first two principal components.<br>
+</li>
+<li>Adjust your log-transformation, normalization, or batch correction settings, and watch how sample clustering changes.</li>
+</ul></li>
+<li><strong>Correlation Plot</strong>
+<ul>
+<li>Displays a heatmap of pairwise sample correlations, highlighting how similar or different they are after processing.<br>
+</li>
+<li>Helps identify potential outliers or technical artifacts that might need addressing.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 4: “PCA and Correlation Plots”)</em></strong></p>
+<hr>
+</section>
+<section id="tips" class="level2">
+<h2 class="anchored" data-anchor-id="tips">Tips</h2>
+<ul>
+<li>Experiment with different <strong>normalization</strong> or <strong>batch correction</strong> methods, then observe changes in the <strong>PCA</strong> and <strong>correlation</strong> plots.<br>
+</li>
+<li>Use <strong>max NA</strong> filtering to remove features with extensive missing values, which can simplify downstream analyses.<br>
+</li>
+<li>If your design is unbalanced, explore removing columns from the largest groups or adding NA columns to the smallest groups to maintain parity.</li>
+</ul>
+<p><strong>Next step:</strong> Click <strong>Proceed</strong> to continue to the next module of OmicsQ.</p>
+</section>
+</section>
+<section id="step-4-interacting-with-additional-apps" class="level1">
+<h1>Step 4: Interacting with Additional Apps</h1>
+<p>After you have completed data pre-processing, OmicsQ allows you to send your processed dataset to additional apps for deeper analysis. These tools can be used for statistical testing, clustering, and exploring protein complexes. Below is an overview of each app and how to access them within OmicsQ.</p>
+<hr>
+<section id="sending-data-to-external-apps" class="level2">
+<h2 class="anchored" data-anchor-id="sending-data-to-external-apps">1. Sending Data to External Apps</h2>
+<p><strong>Where to find it:</strong> A set of panels labeled <strong>“Statistical testing,” “Clustering,” and “Investigate protein complex behavior.”</strong></p>
+<ol type="1">
+<li><strong>PolySTest</strong>
+<ul>
+<li>Designed for statistical testing of multi-omics or proteomics data.<br>
+</li>
+<li>Once clicked, your processed data is uploaded, and a new window or tab opens where you can run various statistical tests.<br>
+</li>
+<li>Use <strong>“Retrieve results”</strong> to import any outcomes back into OmicsQ.</li>
+</ul></li>
+<li><strong>VSClust</strong>
+<ul>
+<li>A clustering tool that groups features (e.g., proteins, peptides, or genes) based on abundance profiles.<br>
+</li>
+<li>Similar to PolySTest, you click <strong>“Send”</strong> to push data to VSClust and <strong>“Retrieve results”</strong> to pull them back.<br>
+</li>
+<li>Helps you identify co-expression or co-regulation patterns in your data.</li>
+</ul></li>
+<li><strong>ComplexBrowser</strong>
+<ul>
+<li>Focuses on exploring protein complexes and how their subunits behave under different experimental conditions.<br>
+</li>
+<li>Clicking <strong>“Send to ComplexBrowser”</strong> uploads the data, and you can investigate complex membership, stoichiometry changes, or differential expression of subunits.<br>
+</li>
+<li><strong>“Retrieve”</strong> is optional if the app provides data back to OmicsQ.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 1: “Apps Integration Panel”)</em></strong></p>
+<hr>
+</section>
+<section id="paired-vs.-unpaired-design" class="level2">
+<h2 class="anchored" data-anchor-id="paired-vs.-unpaired-design">2. Paired vs.&nbsp;Unpaired Design</h2>
+<ol type="1">
+<li><strong>Paired toggle</strong>
+<ul>
+<li>If your design is <strong>paired</strong> (e.g., matched samples before/after treatment), switch this on to ensure apps handle the data appropriately.<br>
+</li>
+<li>For <strong>unpaired</strong> designs (most standard experimental setups), leave it off.</li>
+</ul></li>
+<li><strong>URL fields</strong>
+<ul>
+<li>By default, the apps point to public servers (e.g., <code>computproteomics.bmb.sdu.dk</code>).<br>
+</li>
+<li>You can change these URLs to local or private servers if necessary.</li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 2: “Paired Toggle and URL Inputs”)</em></strong></p>
+<hr>
+</section>
+<section id="working-with-results" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-results">3. Working with Results</h2>
+<ol type="1">
+<li><strong>Connection status</strong>
+<ul>
+<li>After sending data, the interface indicates a “connection” or “upload” status.<br>
+</li>
+<li>When an app finishes processing, click <strong>“Retrieve results”</strong> to pull them back into OmicsQ.<br>
+</li>
+</ul></li>
+<li><strong>Result columns</strong>
+<ul>
+<li>Results from each app are usually added to the current table with columns labeled “PolySTest_…,” “VSClust_…,” or “ComplexBrowser_….”<br>
+</li>
+<li>You can download the updated table at any point by clicking <strong>“Download table.”</strong></li>
+</ul></li>
+</ol>
+<p><strong><em>(Placeholder for Screenshot 3: “Retrieving and Viewing App Results”)</em></strong></p>
+<hr>
+</section>
+<section id="about-the-external-apps" class="level2">
+<h2 class="anchored" data-anchor-id="about-the-external-apps">4. About the External Apps</h2>
+<ul>
+<li><strong>PolySTest</strong>
+<ul>
+<li>A statistical toolkit for integrated, multi-condition testing in proteomics/omics experiments.<br>
+</li>
+<li>Useful for identifying differentially expressed features across multiple groups or timepoints.</li>
+</ul></li>
+<li><strong>VSClust</strong>
+<ul>
+<li>Clusters features with similar expression/abundance profiles.<br>
+</li>
+<li>Helps reveal co-regulated sets of molecules (e.g., proteins, genes) and highlight potential biological modules.</li>
+</ul></li>
+<li><strong>ComplexBrowser</strong>
+<ul>
+<li>Allows inspection of known protein complexes, exploring how their subunits behave across conditions or treatments.<br>
+</li>
+<li>Facilitates a better understanding of complex stoichiometry or stability changes under different experimental scenarios.</li>
+</ul></li>
+</ul>
+<p>For more information, visit their respective public websites or documentation pages. If you encounter connectivity issues, ensure your <strong>browser</strong> and <strong>network settings</strong> allow opening new windows/tabs and sending data to these external URLs.</p>
+<p><strong><em>(Placeholder for Screenshot 4: “Examples of Each App’s Interface”)</em></strong></p>
+<hr>
+</section>
+<section id="tips-1" class="level2">
+<h2 class="anchored" data-anchor-id="tips-1">Tips</h2>
+<ul>
+<li><strong>Privacy &amp; Security</strong>: If you work with sensitive data, consider hosting these apps on a <strong>secure internal server</strong> and update the URL fields in OmicsQ accordingly.<br>
+</li>
+<li><strong>Data Size</strong>: Uploading very large datasets might require additional time or could fail if your internet connection is unstable or if the server imposes size limits.</li>
+</ul>
+<p><strong>Next Step:</strong> After analyzing or clustering your data in these apps, revisit your results in OmicsQ to combine insights or proceed with downstream workflows.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

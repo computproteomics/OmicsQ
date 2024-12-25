@@ -66,9 +66,7 @@ preProcessingUI <- function(id, prefix="") {
                                                style = "pill", 
                                                color = "royal", size = "xs")
                           )),
-                          
-                          
-                          style = 'border-left: 1px solid' 
+                          style = 'border-left: 1px solid; margin-bottom: 20px;'  # Add bottom margin to separate from next section
                           
             ),
             hidden(column(4, id = ns("pr_c3"),
@@ -77,16 +75,15 @@ preProcessingUI <- function(id, prefix="") {
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          style = 'border-left: 1px solid'    
+                          style = 'border-left: 1px solid; margin-bottom: 20px;'    
             ))),        
             hr(),
             hidden(fluidRow(id = ns("pr_plots"),
-                            column(5.5, 
-                                   plotOutput(ns("pca_combined"), height = "400px"),
-                                   style = "padding: 10px; margin: 10px;"), # Combined PCA Plot
-                            column(5.5, 
-                                   plotOutput(ns("corrplot"), height = "400px"),
-                                   style = "padding: 10px; margin: 10px;"# Keep existing correlation plot
+                            column(6, 
+                                   plotOutput(ns("pca_combined"), height = "500px")
+                                   ),
+                            column(6, 
+                                   plotOutput(ns("corrplot"), height = "500px")
                             )
             ))
             

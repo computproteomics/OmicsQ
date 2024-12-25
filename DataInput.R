@@ -187,7 +187,7 @@ dataInputServer <- function(id, parent, log_operations) {
 
       ### Read example file and push through
       observeEvent(input$run_example, ({
-        tdata <- read.csv("Myo.csv")
+        tdata <- read.csv("data/Myo.csv")
         class(tdata[, 1]) <- "id"
         for (i in 2:19) class(tdata[, i]) <- "quant"
         indata(tdata)
