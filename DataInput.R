@@ -60,10 +60,6 @@ dataInputUI <- function(id, prefix="") {
       hidden(column(3,id=ns("in_c3"),
                     h4("Proceed to experimental design"),
                     fluidRow(column(10,textOutput(ns("txt_proceed_expdesign"),
-                    ),column(2, actionBttn(ns("h_proceed_expdesign"),
-                                           icon=icon("info-circle"),
-                                           style="pill",
-                                           color = "royal", size = "xs")
                     )),
                     disabled(actionButton(ns("proceed_to_expdesign"), "Proceed")),
                     style = 'border-left: 1px solid'
@@ -138,6 +134,15 @@ dataInputServer <- function(id, parent, log_operations) {
                                 sep = currdel, skip = currskip,
                                 header = currheader, dec = currdec, fill = TRUE
             )))
+            # convert integer to numeric
+            tdata <- lapply(tdata, function(x) {
+                # If the column is either 32-bit or 64-bit integer, convert to double:
+                if (bit64::is.integer64(x)) {
+                    as.numeric(x)
+                } else {
+                    x
+                }
+            })
             shinyjs::show(id = "in_c1")
             output$file_options <- renderUI({
               tagList(selectInput(session$ns("in_delimiter"), label = "delimiter", choices = c(
@@ -220,9 +225,7 @@ dataInputServer <- function(id, parent, log_operations) {
           header.names <- c("Columns", colnames(show_table))
           header.classes <- c("Type", sapply(show_table, class))
           header.counts <- c("Duplicated values", sapply(show_table, function(x) {
-            sum(duplicated(x,
-                           incomparables = NA
-            ))
+            sum(duplicated(x[!is.na(x)]))
           }))
           # The container parameter allows us to design the header of the
           # table using CSS

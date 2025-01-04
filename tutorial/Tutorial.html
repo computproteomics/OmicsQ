@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Veit Schwämmle">
+<meta name="dcterms.date" content="2024-12-31">
 
-<title>OmicsQ — Step 1: Data Import</title>
+<title>OmicsQ — Description and Tutorial</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -33,6 +35,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="Tutorial_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="Tutorial_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="Tutorial_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="Tutorial_files/libs/quarto-contrib/fontawesome6-1.2.0/all.min.css" rel="stylesheet">
+<link href="Tutorial_files/libs/quarto-contrib/fontawesome6-1.2.0/latex-fontsize.css" rel="stylesheet">
 
 
 </head>
@@ -45,14 +49,26 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">OmicsQ — Step 1: Data Import</h1>
+<h1 class="title">OmicsQ — Description and Tutorial</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Veit Schwämmle </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 31, 2024</p>
+    </div>
+  </div>
   
     
   </div>
@@ -62,37 +78,81 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<p><img src="Logo_OmicsQ.svg" class="img-fluid"></p>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>OmicsQ is a modular Shiny application that streamlines the workflow of <strong>quantitative omics data analysis</strong> <em>without the need to impute missing values</em>. This tutorial will guide you through all the major steps — from importing your data, annotating your experimental design, and applying pre-processing methods, to sending your finalized dataset to dedicated external apps for <strong>statistical testing</strong>, <strong>clustering</strong>, or <strong>complex behavior analysis</strong>.</p>
+<p><strong>Online documentation</strong>: Further information about the different operations of the user interface are available through the information (<i class="fa-solid fa-info-circle" aria-label="info-circle"></i>) buttons.</p>
+<p><strong>Recording carried operations</strong>: All data processing steps are available through <strong>Summary of operations</strong>. This ensures reproducibility of the results.</p>
+<p>Here is a brief overview of what each section of the tutorial covers, each of them represented by a different tab in OmicsQ:</p>
+<ol type="1">
+<li><strong>Data Import</strong> <i class="fa-solid fa-file-upload" aria-label="file-upload"></i>
+<ul>
+<li>Upload and verify your files (e.g., Excel or CSV/TSV).<br>
+</li>
+<li>Adjust file-specific settings such as delimiters, decimal separators, etc.</li>
+</ul></li>
+<li><strong>Experimental Design <i class="fa-solid fa-project-diagram" aria-label="project-diagram"></i></strong>
+<ul>
+<li>Automatically or manually assign sample groups, replicates, and batch labels.<br>
+</li>
+<li>Ensure your design is correct.</li>
+</ul></li>
+<li><strong>Data Pre-Processing</strong> <i class="fa-solid fa-wrench" aria-label="wrench"></i>
+<ul>
+<li>Apply transformations (e.g., logarithmic), normalization, and summarization.<br>
+</li>
+<li>Remove features or samples with too many missing values</li>
+<li>Check and correct for batch effects.</li>
+</ul></li>
+<li><strong>External App Integration</strong> <i class="fa-solid fa-share-alt" aria-label="share-alt"></i>
+<ul>
+<li>Send processed data to specialized tools, such as <strong>PolySTest</strong> for statistical analysis, <strong>VSClust</strong> for clustering, or <strong>ComplexBrowser</strong> to explore protein complexes.<br>
+</li>
+<li>Retrieve and incorporate results back into OmicsQ for having a single file with all information.</li>
+</ul></li>
+</ol>
+<p>By the end of this tutorial, you will have a fully processed dataset aligned with your experimental design and enriched with external app results—all managed within a single Shiny application. Whether you are working with <strong>proteomics</strong>, <strong>transcriptomics</strong>, or other omics data, OmicsQ’s flexible modules offer a <strong>step-by-step</strong> approach.</p>
+<section id="literature" class="level3">
+<h3 class="anchored" data-anchor-id="literature">Literature</h3>
+<p>TODO</p>
+</section>
+<section id="training-materials" class="level3">
+<h3 class="anchored" data-anchor-id="training-materials">Training Materials</h3>
+<p>TODO</p>
+</section>
+</section>
 <section id="step-1-data-import" class="level1">
 <h1>Step 1: Data Import</h1>
-<p>Welcome to the <strong>Data Import</strong> step of the OmicsQ app! In this part of the application, you will upload your data files and make any quick, simple adjustments to ensure they’re ready for further analysis. Below are the features you’ll see on your screen and how to use them:</p>
-<hr>
+<p>In this part of the application, you will upload your data files containing the quantifications of biomolecules across different samples and make any quick, simple adjustments to ensure they’re ready for further analysis. Below are the features you see on your screen and how to use them:</p>
 <section id="file-input" class="level2">
 <h2 class="anchored" data-anchor-id="file-input">1. File Input</h2>
-<p><strong>Where to find it:</strong> The left-most panel titled “File input”.</p>
 <ol type="1">
-<li><strong>Upload your file</strong>
+<li><strong>Upload your file</strong> <i class="fa-solid fa-arrow-up" aria-label="arrow-up"></i>
 <ul>
-<li>Click <strong>Browse</strong> (or <strong>Choose File</strong>) to select a file from your computer.<br>
+<li>Click <strong>Browse</strong> to select a file from your computer. Alternatively, you can use the example file.<br>
 </li>
 <li>Supported file types typically include Excel (<strong>.xls</strong> or <strong>.xlsx</strong>) and text-based formats such as CSV or TSV.</li>
 </ul></li>
-<li><strong>Run example file</strong>
+<li><strong>Run example file</strong> <i class="fa-solid fa-play-circle" aria-label="play-circle"></i>
 <ul>
 <li>Click <strong>Run example file</strong> to load a ready-to-use test dataset.<br>
 </li>
 <li>This is useful if you want to explore the interface or confirm it’s working properly before using your own data.</li>
 </ul></li>
-<li><strong>Feedback and issue reporting</strong>
+<li><strong>Feedback and issue reporting</strong> <i class="fa-solid fa-comment-dots" aria-label="comment-dots"></i>
 <ul>
-<li>Links are available here to the OmicsQ software repository for raising issues, or to contact the main developer for additional support.</li>
+<li>Links are available here to the OmicsQ software repository for raising issues, or to contact the main developer for additional support. There is more information via the <strong>?About</strong> button on the upper right.</li>
 </ul></li>
 </ol>
-<hr>
+<section id="tutorial" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Download the example file containing protein abundances of an cell differentiation experiment from the GitHub repository <a href="https://github.com/computproteomics/OmicsQ/blob/main/data/Myo.csv">here</a>. You can use the <strong>download raw file</strong> button for direct download. The upload the file into OmicsQ.</p>
+</section>
 </section>
 <section id="file-specific-settings" class="level2">
 <h2 class="anchored" data-anchor-id="file-specific-settings">2. File-Specific Settings</h2>
-<p><strong>Where to find it:</strong> Next to the “File input” panel, labeled “File specific settings”.</p>
-<p>Once you upload a file, OmicsQ will automatically detect if it’s an Excel or a CSV/TSV file. Depending on the file type, different settings may appear:</p>
+<p>Once you upload a file, OmicsQ will automatically detect if it’s an Excel or a CSV/TSV file and determine the layout. Depending on the file type, different settings appear:</p>
 <ul>
 <li><strong>For Excel:</strong> You may select the <strong>sheet</strong> if your Excel file has multiple worksheets.<br>
 </li>
@@ -108,131 +168,119 @@ ul.task-list li input[type="checkbox"] {
 </ul></li>
 </ul>
 <p>If the automatic detection looks correct, you can keep the default settings. If not, simply adjust these fields to properly format your data.</p>
-<hr>
+<section id="tutorial-1" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-1"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>The file should have read correctly. However, there are many duplicated values which could be of concern.</p>
+<p>We usually do not expect getting duplicated values when the instruments provide sufficient precision in its measurements. However, in this case the values have been rounded quite stringently previously leading to the duplications.</p>
+<p>Missing values are not considered when counting duplications.</p>
+</section>
 </section>
 <section id="select-and-adjust-your-columns" class="level2">
 <h2 class="anchored" data-anchor-id="select-and-adjust-your-columns">3. Select and Adjust Your Columns</h2>
-<p><strong>Where to find it:</strong> The middle panel titled “Select and adjust.”</p>
 <p>After your file is read, you can <strong>choose which columns are your ID columns</strong> (e.g., gene identifiers, protein IDs) and which columns hold the <strong>quantitative values</strong> (e.g., abundance measurements).</p>
-<ol type="1">
-<li><strong>Select ID column</strong>
 <ul>
-<li>Use the dropdown to pick exactly one column that represents the unique or primary identifier of each row.</li>
-</ul></li>
-<li><strong>Select quantitative columns</strong>
-<ul>
-<li>Use the dropdown to select one or more columns that contain numeric data you’ll want to analyze.</li>
-</ul></li>
-<li><strong>Simple manipulations</strong>
+<li><strong>Select ID column</strong>: Use the dropdown to pick exactly one column that represents the unique or primary identifier of each row.<br>
+</li>
+<li><strong>Select quantitative columns</strong>: Use the dropdown to select one or more columns that contain numeric data you’ll want to analyze.</li>
+<li><strong>Simple manipulations</strong>:
 <ul>
 <li><strong>Zeroes to missing values</strong>: Convert all zeros in selected columns to “missing” values.<br>
 </li>
 <li><strong>Non-numeric to missing values</strong>: Convert any unexpected strings (like “#DIV/0!”) into missing values.</li>
 </ul></li>
-</ol>
+</ul>
+<section id="tutorial-2" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-2"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Now you need to select which columns will be used for identifying the molecules (here proteins given by protein accession numbers) and which columns provide the quantifications.</p>
+<p>The <strong>id</strong> column has already chosen correctly as indicated by a “Type” <strong>id</strong> above the column.</p>
+<p>Now press the button below <strong>Select quantitative columns</strong>. You can use the <strong>select all</strong> options and then click on <strong>ProteinId</strong> to get all columns but the one for the identifications. Then click anywhere in the app. Now all quantitative columns should be been marked as <strong>quant</strong>.</p>
 <hr>
+</section>
 </section>
 <section id="proceed-to-experimental-design" class="level2">
 <h2 class="anchored" data-anchor-id="proceed-to-experimental-design">4. Proceed to Experimental Design</h2>
-<p><strong>Where to find it:</strong> The panel on the right, titled “Proceed to experimental design.”</p>
 <p>Once you have at least one <strong>quantitative</strong> column selected, you can click the <strong>Proceed</strong> button to continue. If you have not selected any numeric columns, you will see a message prompting you to do so before you can move on.</p>
 <ul>
-<li><strong>Proceed button</strong>
-<ul>
-<li>This becomes <strong>enabled</strong> only after valid columns are selected.<br>
-</li>
-<li>Clicking <strong>Proceed</strong> will take you to the next step, where you define group labels, replicates, and other experimental information.</li>
-</ul></li>
+<li><strong>Proceed button</strong>: This becomes <strong>enabled</strong> only after valid columns are selected.</li>
 </ul>
-<hr>
+<section id="tutorial-3" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-3"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Click <strong>Proceed</strong> to take you to the next step, where you define group labels, replicates, and other experimental information.</p>
+</section>
 </section>
 <section id="data-preview" class="level2">
 <h2 class="anchored" data-anchor-id="data-preview">5. Data Preview</h2>
 <p>At the bottom of the page, you’ll find a table showing the top portion of your uploaded file. This helps you confirm that the data has been loaded and recognized in the correct format. Columns that have been assigned a certain role (ID vs.&nbsp;quant) will be highlighted accordingly.</p>
+<p><img src="Screenshot_FileInput.png" class="img-fluid"></p>
 <hr>
 <p><strong>Tip:</strong> If anything seems off, return to the relevant panel to adjust the file settings or reassign columns. Once everything looks good, use the “Proceed” button to advance to the next step.</p>
-<p><strong>Next step:</strong> Move on to <strong>Step 2: Experimental Design</strong>, where you’ll specify how your samples are grouped and replicate structures are defined.</p>
+<hr>
 </section>
 </section>
 <section id="step-2-experimental-design" class="level1">
 <h1>Step 2: Experimental Design</h1>
-<p>After importing your data, you’ll move to the <strong>Experimental Design</strong> tab. Here, you can automatically group and label samples, define replicate numbers, and assign batch information before proceeding to downstream analysis.</p>
+<p>After importing your data, you move to the <strong>Experimental Design</strong> tab. Here, you can automatically group and label samples, define replicate numbers, and assign batch information before proceeding to downstream analysis.</p>
 <hr>
 <section id="automatic-selection-of-experimental-groups" class="level2">
 <h2 class="anchored" data-anchor-id="automatic-selection-of-experimental-groups">1. Automatic Selection of Experimental Groups</h2>
-<p><strong>Where to find it:</strong> On the left side under “Automatic selection of experimental groups.”</p>
-<ol type="1">
-<li><strong>Threshold &amp; string distance</strong>
+<ul>
+<li><strong>Threshold &amp; string distance</strong>:
 <ul>
 <li>The slider lets you set a <strong>threshold</strong> that controls how similar or different column names must be to be grouped automatically.<br>
 </li>
 <li>The “String distance type” dropdown offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).<br>
 </li>
 </ul></li>
-<li><strong>Automatic grouping</strong>
-<ul>
-<li>As you adjust the threshold or change the distance type, the app attempts to cluster your sample names and assign them to different groups automatically.</li>
-</ul></li>
-</ol>
+<li><strong>Automatic grouping</strong>: As you adjust the threshold or change the distance type, the app attempts to cluster your sample names and assign them to different groups automatically.</li>
+</ul>
 <p><strong><em>(Placeholder for Screenshot 1: “Main panel for experimental design”)</em></strong></p>
-<hr>
+<section id="tutorial-4" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-4"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Play with the rules of the string distance to see how the sample grouping changes. Remember to place it into a similar position as before at the end.</p>
+</section>
 </section>
 <section id="assign-sample-types-replicate-numbers" class="level2">
 <h2 class="anchored" data-anchor-id="assign-sample-types-replicate-numbers">2. Assign Sample Types &amp; Replicate Numbers</h2>
-<p><strong>Where to find it:</strong> The middle panel labeled “Assign Sample Types and Batch Number.”</p>
-<ol type="1">
-<li><strong>Select columns for sample type</strong>
 <ul>
-<li>Use the dropdown to highlight which samples should be considered the same “type” or condition.<br>
-</li>
+<li><strong>Select columns for sample type</strong>:
+<ul>
 <li>Adjust the slider to assign them a specific sample-type number (e.g., 1, 2, 3, …).<br>
 </li>
+<li>Use the dropdown to select which samples should be considered the same “type” or condition. -</li>
 </ul></li>
-<li><strong>Replicate assignment</strong>
+<li><strong>Replicate assignment</strong>:
 <ul>
 <li>Once samples share the same type, their replicate numbers are automatically updated in the table.<br>
 </li>
 <li>If needed, you can refine replicate numbers directly in the table at the bottom of the page.</li>
 </ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 2: “Editing group assignment and replicates”)</em></strong></p>
-<hr>
+</ul>
+<p><img src="ScreenshotExpDesign.png" class="img-fluid"></p>
 </section>
-<section id="setting-up-batch-numbers" class="level2">
-<h2 class="anchored" data-anchor-id="setting-up-batch-numbers">3. Setting Up Batch Numbers</h2>
-<ol type="1">
-<li><strong>Select columns for batch assignment</strong>
+<section id="annotating-batches" class="level2">
+<h2 class="anchored" data-anchor-id="annotating-batches">3. Annotating Batches</h2>
+<p>This helps keep track of potential batch effects in subsequent analyses.</p>
 <ul>
-<li>Pick any samples that were measured or processed in the same batch.<br>
+<li><strong>Specify batch number</strong>: Use the slider to assign a batch ID (e.g., 1, 2, 3, …).<br>
 </li>
-</ul></li>
-<li><strong>Specify batch number</strong>
-<ul>
-<li>Use the slider to assign a batch ID (e.g., 1, 2, 3, …).<br>
-</li>
-<li>This helps keep track of potential batch effects in subsequent analyses.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 3: “Assigning sample type and batch number”)</em></strong></p>
-<hr>
+<li><strong>Select columns for batch assignment</strong>: Pick any samples for the specific batch ID that were measured or processed in the same batch.</li>
+</ul>
+<section id="tutorial-5" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-5"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Although there are no batches in this experiment, assign a batch number of <em>two</em> to the second half of the samples (C4_1 to C6_3).</p>
+</section>
 </section>
 <section id="proceed-to-data-pre-processing" class="level2">
 <h2 class="anchored" data-anchor-id="proceed-to-data-pre-processing">4. Proceed to Data Pre-Processing</h2>
 <p><strong>Where to find it:</strong> The right-most panel titled “Proceed to data pre-processing.”</p>
-<ol type="1">
-<li><strong>Proceed button</strong>
 <ul>
-<li>Once you’ve finished assigning groups, replicates, and batch numbers, click <strong>Proceed</strong>.<br>
-</li>
-<li>You’ll be taken to the next step in OmicsQ, where you can review and process your data further.</li>
-</ul></li>
-<li><strong>Download table</strong>
-<ul>
-<li>You can also download the updated experimental design table as a CSV for your records or offline editing.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 4: “Proceed to data processing panel”)</em></strong></p>
-<hr>
+<li><p><strong>Proceed button</strong>: Once you’ve finished assigning groups, replicates, and batch numbers, click <strong>Proceed</strong> and you will be taken to the next step in OmicsQ, where you can review and process your data further.</p></li>
+<li><p><strong>Download table</strong>: You can also download the updated experimental design table as a CSV for your records or offline editing.</p></li>
+</ul>
+<section id="tutorial-6" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-6"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Press the button to <strong>proceed</strong> to the next tab.</p>
+</section>
 </section>
 <section id="experimental-design-table" class="level2">
 <h2 class="anchored" data-anchor-id="experimental-design-table">5. Experimental Design Table</h2>
@@ -242,130 +290,80 @@ ul.task-list li input[type="checkbox"] {
 </li>
 <li><strong>Color-coding</strong>: Some columns are color-coded based on assigned groups.</li>
 </ul>
-<p>Use this table to confirm that your sample setup is correct. If everything looks good, hit <strong>Proceed</strong> to continue!</p>
-<p><strong><em>(Placeholder for Screenshot 5: “Experimental design table”)</em></strong></p>
 <hr>
 </section>
 <section id="tips-reminders" class="level2">
-<h2 class="anchored" data-anchor-id="tips-reminders">Tips &amp; Reminders</h2>
+<h2 class="anchored" data-anchor-id="tips-reminders"><i class="fa-solid fa-lightbulb" aria-label="lightbulb"></i> Tips &amp; Reminders</h2>
 <ul>
-<li>Adjust the <strong>string distance threshold</strong> carefully to get meaningful groups.<br>
+<li>Adjust the <strong>string distance threshold</strong> and the <strong>string distance type</strong> carefully to get meaningful groups.<br>
 </li>
 <li>You can always <strong>manually override</strong> group or replicate information in the table below.<br>
 </li>
-<li>Remember to <strong>assign batch numbers</strong> if your samples were run in separate experimental batches.</li>
+<li>Remember to <strong>assign batch numbers</strong> if your samples were run in separate experimental batches, even when you initially do not intend to correct for batch effects.</li>
 </ul>
-<p>Once satisfied, click <strong>Proceed</strong> to move on to <strong>Step 3: Data Pre-Processing</strong>.</p>
 </section>
 </section>
 <section id="step-3-data-pre-processing" class="level1">
 <h1>Step 3: Data Pre-Processing</h1>
 <p>In <strong>Step 3</strong>, you can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through <strong>PCA</strong> and <strong>correlation</strong> plots. This allows you to try different settings and see their effects in real time.</p>
-<hr>
 <section id="add-or-delete-data-columns" class="level2">
 <h2 class="anchored" data-anchor-id="add-or-delete-data-columns">1. Add or Delete Data Columns</h2>
 <p><strong>Where to find it:</strong> The left panel under <strong>“Add or delete data columns.”</strong></p>
-<ol type="1">
-<li><strong>Pick the samples to remove</strong>
 <ul>
-<li>Use the dropdown to select sample columns you no longer want in the analysis.<br>
+<li><strong>Pick the samples to remove</strong>: Use the dropdown to select sample columns you no longer want in the analysis.<br>
 </li>
-<li>If you wish to remove multiple columns, note the limit that at least <strong>two</strong> columns must remain.</li>
-</ul></li>
-<li><strong>Fill with empty columns</strong>
-<ul>
-<li>If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add “NA” columns to make all groups have the same number of replicates.<br>
-</li>
-<li>This helps maintain a more balanced design, but will introduce blank values.</li>
-</ul></li>
-<li><strong>Current state</strong>
-<ul>
-<li>A quick summary is shown, indicating whether your design is balanced or unbalanced.<br>
-</li>
-<li>The message will also appear if extra columns are created.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 1: “Add/Delete Columns Panel”)</em></strong></p>
-<hr>
+<li><strong>Fill with empty columns</strong>: If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add columns with only missing values to make all groups have the same number of replicates. This helps maintain a more balanced design, but will introduce blank values.</li>
+<li><strong>Current state</strong>: A quick summary is shown, indicating whether your design is balanced or unbalanced.</li>
+</ul>
 </section>
 <section id="data-manipulation-adjustment" class="level2">
 <h2 class="anchored" data-anchor-id="data-manipulation-adjustment">2. Data Manipulation &amp; Adjustment</h2>
 <p><strong>Where to find it:</strong> Middle panel labeled <strong>“Data manipulation and adjustment.”</strong></p>
-<ol type="1">
-<li><strong>Log-transformation</strong>
 <ul>
-<li>Check if data is already log-transformed. If not, OmicsQ will log2-transform the data.<br>
+<li><strong>Log-transformation</strong>: Check if data is already log-transformed. If not, OmicsQ will log2-transform the data. OmicsQ initially estimates whether the data was transformed. Always check to confirm whether the estimation was correct.<br>
 </li>
-</ul></li>
-<li><strong>Max NA per feature</strong>
-<ul>
-<li>Allows you to set a maximum threshold for missing values across samples. Any feature (row) exceeding that threshold is removed.<br>
-</li>
-</ul></li>
-<li><strong>Normalization</strong>
+<li><strong>Max NA per feature</strong>: Allows you to set a maximum threshold for missing values across samples. Any feature (row) exceeding that threshold is removed. This removes features with only spurious measurements.</li>
+<li><strong>Normalization</strong>:
 <ul>
 <li>Choose from <strong>none</strong>, <strong>median</strong>, <strong>mean</strong>, or <strong>cyclic LOESS</strong> normalization.<br>
 </li>
 <li>Compare how each method affects your data by checking the plots at the bottom of the page.<br>
 </li>
 </ul></li>
-<li><strong>Summarize to ID features</strong>
-<ul>
-<li>If your <strong>ID</strong> column (e.g., gene/protein IDs) has duplicates, you can aggregate them by <strong>sum</strong>, <strong>mean</strong>, <strong>median</strong>, etc.<br>
-</li>
-<li>This reduces multiple rows with the same ID to a single representative row.</li>
-</ul></li>
-<li><strong>Batch Correction</strong>
-<ul>
-<li>If you assigned batches in the previous step, you can select a correction method, such as <strong>limma</strong> or <strong>Combat</strong>, to adjust for batch effects.<br>
-</li>
-<li>When there is only one batch or fewer than two replicates per batch, this option is disabled.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 2: “Data Manipulation Options Panel”)</em></strong></p>
-<hr>
+<li><strong>Summarize to ID features</strong>: If your <strong>ID</strong> column (e.g., gene/protein IDs) has duplicates, you can aggregate them by <strong>sum</strong>, <strong>mean</strong>, <strong>median</strong>, etc. This reduces multiple rows with the same ID to a single representative row.</li>
+<li><strong>Batch Correction</strong>: If you assigned batches in the previous step, you can select a correction method, such as <strong>limma</strong> or <strong>Combat</strong>, to adjust for batch effect. When there is only one batch or fewer than two replicates per batch, this option is disabled.</li>
+</ul>
 </section>
 <section id="summary-proceed" class="level2">
 <h2 class="anchored" data-anchor-id="summary-proceed">3. Summary &amp; Proceed</h2>
-<p><strong>Where to find it:</strong> Right panel titled <strong>“Summary.”</strong></p>
-<ol type="1">
-<li><strong>Summary box</strong>
 <ul>
-<li>Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.<br>
+<li><strong>Summary box</strong>: Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.<br>
 </li>
-<li>Indicates if columns have been added or removed in the process.<br>
-</li>
-</ul></li>
-<li><strong>Proceed to interaction with apps</strong>
-<ul>
-<li>Once you are satisfied with the data adjustments, click <strong>Proceed</strong> to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 3: “Summary Panel and Proceed Button”)</em></strong></p>
-<hr>
+<li><strong>Proceed to interaction with apps</strong>: Once you are satisfied with the data adjustments, click <strong>Proceed</strong> to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.</li>
+</ul>
 </section>
 <section id="visual-feedback" class="level2">
 <h2 class="anchored" data-anchor-id="visual-feedback">4. Visual Feedback</h2>
 <p>Beneath the summary panels, you’ll find <strong>two plots</strong>—a <strong>PCA</strong> plot and a <strong>correlation matrix</strong>—that let you see the effect of your chosen data transformations:</p>
-<ol type="1">
-<li><strong>PCA Plot</strong>
 <ul>
-<li>Shows the separation of samples by the first two principal components.<br>
-</li>
-<li>Adjust your log-transformation, normalization, or batch correction settings, and watch how sample clustering changes.</li>
-</ul></li>
-<li><strong>Correlation Plot</strong>
-<ul>
-<li>Displays a heatmap of pairwise sample correlations, highlighting how similar or different they are after processing.<br>
-</li>
-<li>Helps identify potential outliers or technical artifacts that might need addressing.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 4: “PCA and Correlation Plots”)</em></strong></p>
+<li><p><strong>PCA Plot</strong>: Shows the separation of samples by the first two principal components.</p></li>
+<li><p><strong>Correlation Plot</strong>: Displays a heatmap of pairwise sample correlations, highlighting how similar or different they are after processing. This helps identifying potential outliers or technical artifacts that might need addressing.</p></li>
+</ul>
+<p><img src="Screenshot_PreProcessing.png" class="img-fluid"></p>
+<hr>
+<section id="tutorial-7" class="level3">
+<h3 class="anchored" data-anchor-id="tutorial-7"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h3>
+<p>Try different normalization methods and observe the changes in the two plots.</p>
+<p>Check whether OmicsQ suggests batch effects. Also try different batch correction methods.</p>
+<p>Despite several features apparently be affected by batch effects, their number is rather low and we thus <em>will omit batch correction</em>. Actually, these changes are mostly due to sample differences (late differentiation state versus early), and thus show that it can be misleading when using batches that contain sample types that are different for the different batches.</p>
+<p>The correlations between the samples are very high. Therefore, click on the button <strong>Show entire range in correlation plot</strong> to get a more distinguishable picture.</p>
+<p>Click <strong>Proceed</strong> to continue</p>
+<p>to the next module of OmicsQ.</p>
 <hr>
 </section>
+</section>
 <section id="tips" class="level2">
-<h2 class="anchored" data-anchor-id="tips">Tips</h2>
+<h2 class="anchored" data-anchor-id="tips"><i class="fa-solid fa-lightbulb" aria-label="lightbulb"></i> Tips</h2>
 <ul>
 <li>Experiment with different <strong>normalization</strong> or <strong>batch correction</strong> methods, then observe changes in the <strong>PCA</strong> and <strong>correlation</strong> plots.<br>
 </li>
@@ -373,7 +371,6 @@ ul.task-list li input[type="checkbox"] {
 </li>
 <li>If your design is unbalanced, explore removing columns from the largest groups or adding NA columns to the smallest groups to maintain parity.</li>
 </ul>
-<p><strong>Next step:</strong> Click <strong>Proceed</strong> to continue to the next module of OmicsQ.</p>
 </section>
 </section>
 <section id="step-4-interacting-with-additional-apps" class="level1">
@@ -382,25 +379,22 @@ ul.task-list li input[type="checkbox"] {
 <hr>
 <section id="sending-data-to-external-apps" class="level2">
 <h2 class="anchored" data-anchor-id="sending-data-to-external-apps">1. Sending Data to External Apps</h2>
-<p><strong>Where to find it:</strong> A set of panels labeled <strong>“Statistical testing,” “Clustering,” and “Investigate protein complex behavior.”</strong></p>
-<ol type="1">
-<li><strong>PolySTest</strong>
+<p>Here, you can send the data to specific web applications. Parameter such as experimental design are automatically configured.</p>
 <ul>
-<li>Designed for statistical testing of multi-omics or proteomics data.<br>
-</li>
-<li>Once clicked, your processed data is uploaded, and a new window or tab opens where you can run various statistical tests.<br>
-</li>
+<li><strong>PolySTest</strong>:
+<ul>
+<li>Designed for statistical testing of multi-omics or proteomics data with missing values</li>
+<li>Once clicked, your processed data is uploaded, and a new window or tab opens where you can run various statistical tests.</li>
 <li>Use <strong>“Retrieve results”</strong> to import any outcomes back into OmicsQ.</li>
 </ul></li>
-<li><strong>VSClust</strong>
+<li><strong>VSClust</strong>:
 <ul>
-<li>A clustering tool that groups features (e.g., proteins, peptides, or genes) based on abundance profiles.<br>
-</li>
+<li>A clustering tool that groups features (e.g., proteins, peptides, or genes) based on abundance profiles and their variances, and does not require value imputation.</li>
 <li>Similar to PolySTest, you click <strong>“Send”</strong> to push data to VSClust and <strong>“Retrieve results”</strong> to pull them back.<br>
 </li>
 <li>Helps you identify co-expression or co-regulation patterns in your data.</li>
 </ul></li>
-<li><strong>ComplexBrowser</strong>
+<li><strong>ComplexBrowser</strong>:
 <ul>
 <li>Focuses on exploring protein complexes and how their subunits behave under different experimental conditions.<br>
 </li>
@@ -408,48 +402,23 @@ ul.task-list li input[type="checkbox"] {
 </li>
 <li><strong>“Retrieve”</strong> is optional if the app provides data back to OmicsQ.</li>
 </ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 1: “Apps Integration Panel”)</em></strong></p>
-<hr>
+</ul>
 </section>
 <section id="paired-vs.-unpaired-design" class="level2">
 <h2 class="anchored" data-anchor-id="paired-vs.-unpaired-design">2. Paired vs.&nbsp;Unpaired Design</h2>
-<ol type="1">
-<li><strong>Paired toggle</strong>
 <ul>
-<li>If your design is <strong>paired</strong> (e.g., matched samples before/after treatment), switch this on to ensure apps handle the data appropriately.<br>
-</li>
-<li>For <strong>unpaired</strong> designs (most standard experimental setups), leave it off.</li>
-</ul></li>
-<li><strong>URL fields</strong>
-<ul>
-<li>By default, the apps point to public servers (e.g., <code>computproteomics.bmb.sdu.dk</code>).<br>
-</li>
-<li>You can change these URLs to local or private servers if necessary.</li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 2: “Paired Toggle and URL Inputs”)</em></strong></p>
-<hr>
+<li><p><strong>Paired toggle</strong>: If your design is <strong>paired</strong> (e.g., matched samples before/after treatment), switch this on to ensure apps handle the data appropriately.</p></li>
+<li><p><strong>URL fields</strong>: By default, the apps point to public servers (e.g., <code>computproteomics.bmb.sdu.dk</code>). You can change these URLs to local or private servers if necessary. All apps can be run as isolated docker containers.</p></li>
+</ul>
 </section>
 <section id="working-with-results" class="level2">
 <h2 class="anchored" data-anchor-id="working-with-results">3. Working with Results</h2>
-<ol type="1">
-<li><strong>Connection status</strong>
 <ul>
-<li>After sending data, the interface indicates a “connection” or “upload” status.<br>
+<li><strong>Connection status</strong>: When an app finishes processing, click <strong>“Retrieve results”</strong> to pull them back into OmicsQ.<br>
 </li>
-<li>When an app finishes processing, click <strong>“Retrieve results”</strong> to pull them back into OmicsQ.<br>
-</li>
-</ul></li>
-<li><strong>Result columns</strong>
-<ul>
-<li>Results from each app are usually added to the current table with columns labeled “PolySTest_…,” “VSClust_…,” or “ComplexBrowser_….”<br>
-</li>
-<li>You can download the updated table at any point by clicking <strong>“Download table.”</strong></li>
-</ul></li>
-</ol>
-<p><strong><em>(Placeholder for Screenshot 3: “Retrieving and Viewing App Results”)</em></strong></p>
-<hr>
+<li><strong>Result columns</strong>: Results from each app are usually added to the current table with columns labeled “PolySTest_…,” or “VSClust_…,”. You can download the updated table at any point by clicking <strong>“Download table.”</strong></li>
+</ul>
+<p><img src="Screenshot_Apps.png" class="img-fluid"></p>
 </section>
 <section id="about-the-external-apps" class="level2">
 <h2 class="anchored" data-anchor-id="about-the-external-apps">4. About the External Apps</h2>
@@ -458,14 +427,29 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li>A statistical toolkit for integrated, multi-condition testing in proteomics/omics experiments.<br>
 </li>
+<li>Contains <em>Miss Test</em> for inclusion of missing data in the testing without any assumptions about the missingness.</li>
 <li>Useful for identifying differentially expressed features across multiple groups or timepoints.</li>
 </ul></li>
+</ul>
+<p><strong>Tutorial:</strong> <a href="https://www.bioconductor.org/packages/release/bioc/vignettes/PolySTest/inst/doc/StatisticalTest.html">Link</a> to R package vignette (the tutorial contains the same steps as carried out in the web application).<br>
+<a href="https://github.com/computproteomics/PolySTest/"><strong>Source Code</strong></a><br>
+<strong>Publication:</strong> [PubMed link]https://pubmed.ncbi.nlm.nih.gov/32424025/)<br>
+<a href="https://bioconductor.org/packages/release/bioc/html/PolySTest.html"><strong>R Package:</strong></a></p>
+<p><img src="PolySTest.png" class="img-fluid"></p>
+<ul>
 <li><strong>VSClust</strong>
 <ul>
-<li>Clusters features with similar expression/abundance profiles.<br>
-</li>
+<li>Clusters features with similar expression/abundance profiles considering their individual variances.</li>
+<li>Can be applied on data with missing values</li>
 <li>Helps reveal co-regulated sets of molecules (e.g., proteins, genes) and highlight potential biological modules.</li>
 </ul></li>
+</ul>
+<p><strong>Tutorial:</strong> <a href="https://pubmed.ncbi.nlm.nih.gov/33950508/">PubMed link</a><br>
+<strong>Publication:</strong> <a href="https://pubmed.ncbi.nlm.nih.gov/29635359/">PubMed link</a><br>
+<a href="https://github.com/computproteomics/vsclust"><strong>Source Code</strong></a><br>
+<a href="https://bioconductor.org/packages/release/bioc/html/vsclust.html"><strong>R Package:</strong></a></p>
+<p><img src="VSClust.png" class="img-fluid"></p>
+<ul>
 <li><strong>ComplexBrowser</strong>
 <ul>
 <li>Allows inspection of known protein complexes, exploring how their subunits behave across conditions or treatments.<br>
@@ -473,12 +457,15 @@ ul.task-list li input[type="checkbox"] {
 <li>Facilitates a better understanding of complex stoichiometry or stability changes under different experimental scenarios.</li>
 </ul></li>
 </ul>
-<p>For more information, visit their respective public websites or documentation pages. If you encounter connectivity issues, ensure your <strong>browser</strong> and <strong>network settings</strong> allow opening new windows/tabs and sending data to these external URLs.</p>
-<p><strong><em>(Placeholder for Screenshot 4: “Examples of Each App’s Interface”)</em></strong></p>
+<p><strong>Tutorial:</strong> <a href="https://bitbucket.org/michalakw/complexbrowser/raw/ebefd0c8b99370e67aa7ee52b956f57523d7921a/Manual.pdf">Online tutorial</a><br>
+<strong>Publication:</strong> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6823858/">PubMed link</a><br>
+<a href="https://bitbucket.org/michalakw/complexbrowser"><strong>Source Code</strong></a></p>
+<p><img src="ComplexBrowser.png" class="img-fluid"></p>
+<p>If you encounter connectivity issues, ensure your <strong>browser</strong> and <strong>network settings</strong> allow opening new windows/tabs and sending data to these external URLs. Then try again.</p>
 <hr>
 </section>
 <section id="tips-1" class="level2">
-<h2 class="anchored" data-anchor-id="tips-1">Tips</h2>
+<h2 class="anchored" data-anchor-id="tips-1"><i class="fa-solid fa-lightbulb" aria-label="lightbulb"></i> Tips</h2>
 <ul>
 <li><strong>Privacy &amp; Security</strong>: If you work with sensitive data, consider hosting these apps on a <strong>secure internal server</strong> and update the URL fields in OmicsQ accordingly.<br>
 </li>

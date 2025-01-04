@@ -79,6 +79,11 @@ preProcessingUI <- function(id, prefix="") {
             ))),        
             hr(),
             hidden(fluidRow(id = ns("pr_plots"),
+                            div(
+                                style = "text-align: right;",
+                                checkboxInput(ns("scale_corrplot"), 
+                                              "Show entire range in correlation plot", 
+                                              value = TRUE)),
                             column(6, 
                                    plotOutput(ns("pca_combined"), height = "500px")
                                    ),
@@ -694,7 +699,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         round(sum(is.na(quant_columns)) / length(as.matrix(quant_columns)), 3), 
                         ", with the number of missing values ranging from ", min(colSums(is.na(quant_columns))), 
                         " to ", max(colSums(is.na(quant_columns))), " per sample.
-          <br/><b>Range:</b> The dynamic range is from ",
+          <br/><b>Range:</b> The dynamic range (on log-scale) is from ",
                         round(min(quant_columns, na.rm = TRUE), 2), " to ", round(max(quant_columns, na.rm = TRUE), 2), 
                         ".<br/><b>Summarization:</b> The ID column contains ", 
                         ifelse(sum(duplicated(id_column)) > 0, "non-unique IDs, and thus needs summarization.", "unique IDs, so summarization is not required."), 
@@ -866,13 +871,19 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 # Compute correlation matrix
                 correlation_matrix <- cor(quant_columns, use = "pairwise.complete.obs")
                 
+                # Scale the correlation range
+                corr_range <- seq(-1, 1, 0.01)
+                if (!input$scale_corrplot) {
+                    corr_range <- 201
+                }
+                
                 # Plot the correlation matrix with customized color scale and legend position
                 gplots::heatmap.2(correlation_matrix,
                                   main = "Pairwise correlations between samples",
                                   symm = TRUE,        # Symmetrical plot
                                   scale = "none",     # No scaling
                                   col = gplots::redblue,  # Blue to red color scale
-                                  breaks = seq(-1, 1, 0.01),  # Breaks from -1 to 1 for colors
+                                  breaks = corr_range,  # Breaks from -1 to 1 for colors
                                   trace = "none",     # No trace lines
                                   cex.main = 1.5,     # Size of the main title
                                   

@@ -44,12 +44,12 @@ sendRetrieveUI <- function(id, prefix="") {
         ),
         # Download button for processed table
         br(),
-        fluidRow(hidden(column(width = 4, id = ns("download_apps"), )), downloadBttn(ns("downloadTable"), label = "Download table")),
-        br(),
         hidden(textInput(ns("app_log"), "app_log", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
-        br(),
+        hr(),
+        actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB"),br(),br(),
+        downloadBttn(ns("downloadTable"), label = "Download table"), 
         # Display the processed table
         fluidRow(
             DTOutput(ns('rtable'))  # Display processed table in a DataTable
@@ -109,6 +109,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                         class(tout[,i]) <- "numeric"
                     }
                 }
+                
                 processed_table(tout)
                 other_cols(preProcessing$other_cols())
                 pexp_design(preProcessing$pexp_design())  # Update experimental design reactively
@@ -117,25 +118,144 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 )
             })
             
-            ## Show the processed table in a DataTable
+            ## Show the processed table in a DataTable with advanced filter & sorting
             output$rtable <- DT::renderDT({
-                # Display the processed_table or result_table if available
+                # If result_table is not NULL, bind your additional columns
                 if (!is.null(result_table())) {
-                DT::datatable(data.frame(result_table(), other_cols())) %>%
-                    formatStyle(
-                        grep("^PolySTest", colnames(data.frame(result_table()))),
-                        backgroundColor = 'lightblue'
+                    
+                    # Combine main and additional columns
+                    full_data <- data.frame(result_table(), other_cols())
+                    
+                    # Create the DataTable
+                    DT::datatable(
+                        data = full_data,
+                        rownames = FALSE,
+                        
+                        # Place a filter row at the top (or "bottom")
+                        filter = "top",  
+                        
+                        # Use DT extensions for extra features like exporting or column reordering
+                        extensions = c("Buttons", "ColReorder"), 
+                        
+                        # A few common table options
+                        options = list(
+                            # Let users change how many rows to display
+                            pageLength = 10,
+                            lengthMenu = c(5, 10, 20, 50, 100),  
+                            
+                            # Use the “Bfrtip” layout:
+                            # B = Buttons, f = filter, r = processing info, t = table, i = info, p = pagination
+                            dom = "frtip",
+                            
+                            # Define which buttons you want (e.g. copy, CSV, Excel, PDF, Print)
+                            buttons = c("copy", "csv", "excel", "pdf", "print"),
+                            
+                            # Allow column reordering
+                            colReorder = TRUE,
+                            
+                            # Horizontal scrolling if needed
+                            scrollX = TRUE
+                        )
                     ) %>%
-                    formatStyle(
-                        grep("^VSClust", colnames(data.frame(result_table()))),
-                        backgroundColor = 'lightgreen'
-                    ) %>% 
-                    formatStyle(
-                        colnames(data.frame(other_cols())),
-                        backgroundColor = 'lightcoral'
-                    )
+                        # Example of conditional formatting:
+                        formatStyle(
+                            grep("^PolySTest", colnames(full_data)),
+                            backgroundColor = 'lightblue'
+                        ) %>%
+                        formatStyle(
+                            grep("^VSClust", colnames(full_data)),
+                            backgroundColor = 'lightgreen'
+                        ) %>% 
+                        formatStyle(
+                            colnames(data.frame(other_cols())),
+                            backgroundColor = 'lightcoral'
+                        )
                 }
             })
+            
+            # log filters
+            observeEvent(input$rtable_search, {
+                # Whenever the global search changes
+                req(input$rtable_search)  # Ensure it's not NULL
+                tlog <- log_operations()
+                tlog[["datatable_global_search"]] <- input$rtable_search
+                log_operations(tlog)
+            })
+            
+            observeEvent(input$rtable_search_columns, {
+                print("search columns")
+                # Whenever the column-specific filters change
+                req(input$rtable_search_columns)  # Ensure it's not NULL
+                tlog <- log_operations()
+                # This will be a character vector corresponding to each column’s filter box
+                # e.g. c("value for 1st col filter", "value for 2nd col", ...)
+                tlog[["datatable_column_filters"]] <- input$rtable_search_columns
+                log_operations(tlog)
+            })
+            
+            
+            # send selected id features in rtable to stringdb
+            observeEvent(input$send_stringdb, {
+                print("Sending features to STRINGDB")
+                cat("Sending features to STRINGDB\n")
+                selected_rows <- input$rtable_rows_all
+                if (length(selected_rows) == 0) {
+                    sendSweetAlert(session,
+                                   title = "Submission to StringDB",
+                                   text = paste("No features"),
+                                   type = "error")
+                    return(NULL)
+                } else if (length(selected_rows) > 1000) {
+                    sendSweetAlert(session,
+                                   title = "Submission to StringDB",
+                                   text = paste("Too many features selected. Please select less than 1000 features"),
+                                   type = "error")
+                    return(NULL)
+                }
+                
+                # Extract the feature IDs from the first column, for example
+                feature_ids <- result_table()[selected_rows, 1]
+                
+                # Encode them as newline (%0D%0A) separated
+                id_block <- paste(feature_ids, collapse = "%0d")
+                
+                # Build the query. Typically you also want to specify species, etc.
+                # Adjust as needed (e.g., species_text, limit, etc.)
+                stringdb_url <- paste0(
+                    "https://string-db.org/cgi/network?",
+                    "identifiers=", id_block,
+#                    "&species_text=Homo+sapiens",
+                    "&show_query_node_labels=1"
+                )
+                
+                # Open the URL in the user's browser
+                js$send_message(
+                    url = stringdb_url,  # Send to VSClust URL
+                    dat = NULL, tool = "STRINGDB"
+                )
+            })
+            
+            
+            
+            # ## Show the processed table in a DataTable
+            # output$rtable <- DT::renderDT({
+            #     # Display the processed_table or result_table if available
+            #     if (!is.null(result_table())) {
+            #     DT::datatable(data.frame(result_table(), other_cols())) %>%
+            #         formatStyle(
+            #             grep("^PolySTest", colnames(data.frame(result_table()))),
+            #             backgroundColor = 'lightblue'
+            #         ) %>%
+            #         formatStyle(
+            #             grep("^VSClust", colnames(data.frame(result_table()))),
+            #             backgroundColor = 'lightgreen'
+            #         ) %>% 
+            #         formatStyle(
+            #             colnames(data.frame(other_cols())),
+            #             backgroundColor = 'lightcoral'
+            #         )
+            #     }
+            # })
             
             ##### Download Table Logic
             output$downloadTable <- downloadHandler(
@@ -205,6 +325,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     for (n in names(input$VSClust_results[[1]])) {
                         tdata <- cbind(tdata, as.numeric(input$VSClust_results[[1]][[n]]))
                     }
+                    tdata <- data.frame(tdata)
                     colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
                     if (!any(colnames(result_table()) == "isClusterMember")) { # check whether VSClust was already run 
                         log_VSClust("Added VSClust results to table")    
@@ -213,7 +334,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                         result_table(result_table()[, !grepl("^VSClust", colnames(result_table()))])
                     }
                     colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
-                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                    tdata[,"VSClust_isClusterMember"] <- as.logical(tdata[,"VSClust_isClusterMember"])  # Convert to logical
+                    result_table(data.frame(result_table(), tdata))  # Combine results with processed tablec
                     # Update the log with processed results
                     tlog <- log_operations()
                     tlog[["VSClust version"]] <- input$VSClust_results$version
@@ -266,6 +388,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Handle results from PolySTest and merge them into result_table
             observeEvent(input$PolySTest_results, isolate({
+                enable("send_stringdb")
                 print("Adding PolySTest results")
                 if (is.list(input$PolySTest_results)) {
                     tdata <- NULL
