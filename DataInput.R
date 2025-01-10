@@ -350,16 +350,20 @@ dataInputServer <- function(id, parent, log_operations) {
           get_cols <- make.names(input$sel_qcols)
           if (!is.null(get_cols)) {
             print("removing chars")
-            tclasses <- sapply(indata(), class)
+            #tclasses <- sapply(indata(), class)
             tdata <- data.frame(indata())
             for (col in get_cols) {
               tdata[, col] <- as.numeric(tdata[, col])
-              class(tdata[, col]) <- tclasses[col]
+              class(tdata[, col]) <- "quant"
             }
             tlog <- log_operations()
             tlog[["preprocess_remove_char"]] <- TRUE
             log_operations(tlog)
             indata(tdata)
+            if (sum(sapply(tdata, class) == "quant") > 0) {
+                enable("proceed_to_expdesign")
+            }
+                
           }
         })
       })
@@ -441,7 +445,9 @@ dataInputServer <- function(id, parent, log_operations) {
               with software like Excel can lead to values like
               '#DIV/0!'. This buttons converts any non-numeric value
               into a missing values. Only purely numeric <i>quant</i> columns
-              are accepted to continue the analysis.</p>"),
+              are accepted to continue the analysis.<br/>
+              <i>This applies only to the selected 'quant' columns.</i>
+                                                                     </p>"),
                                                          type = "info", html = T
       ))
 

@@ -381,7 +381,9 @@ Go back to OmicsQ and press the button **Retrieve results from VSClust**. This s
 
 We now want to take the proteins that were increasing during the cell differentiation process. This should be the second or the third cluster showing a continuous increase. Select cluster number 2 in the column "VSClust_clusters" and select "true" in "VSClust_isClusterMember". You can additionally filter for proteins that are differentially regulated between two (or more) conditions. Then press **Send (filtered) features to StringDB**. This will open a new tab on StringDB. There, select "Homo sapiens" and press **Continue** twice.
 
-You will end with a quite large protein-protein interaction network. Below, you find the enriched pathways in the **Analyze** part. The most dominant terms should be RNA processing and metabolism.
+You will end with a quite large protein-protein interaction network. Below, you find the enriched pathways in the **Analyze** part. The most dominant terms should be RNA processing and metabolism. You can repeat this procedure for different clusters and different comparisons from the statistical tests. 
+
+We now repeat this analysis looking for the proteins that are mostly regulated between satellite cells and differentiated muscle cells. Reset all filters, and set the following: TODO
 
 ---
 

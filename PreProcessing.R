@@ -336,10 +336,10 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 print("Filtering NAs...")
                 if (!is.null(max_na)) {
                     to_delete <- rowSums(is.na(tdata[, -1])) <= max_na
-                    tdata <- tdata[to_delete, ]
+                    tdata <- tdata[to_delete, , drop=F]
                     oc <- other_cols()
                     if (!is.null(oc)) {
-                        oc <- oc[to_delete, ]
+                        oc <- oc[to_delete, ,drop=F]
                     }
                     other_cols(oc)
                     tlog <- log_operations()
@@ -356,7 +356,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             log_transformation <- function(tdata, logtrafo) {
                 print("Log transformation...")
                 if (!logtrafo) {
-                    ttt <- as.matrix(tdata[, -1])
+                    ttt <- as.matrix(tdata[, -1, drop=F])
                     ttt <- log2(ttt)
                     ttt[!is.finite(ttt)] <- NA
                     tdata[, -1] <- ttt
