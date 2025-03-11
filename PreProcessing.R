@@ -79,11 +79,12 @@ preProcessingUI <- function(id, prefix="") {
             ))),        
             hr(),
             hidden(fluidRow(id = ns("pr_plots"),
-                            div(
+                            column(8),
+                            column(4,
                                 style = "text-align: right;",
                                 checkboxInput(ns("scale_corrplot"), 
                                               "Show entire range in correlation plot", 
-                                              value = TRUE)),
+                                              value = TRUE), style="text-align: right;"),
                             column(6, 
                                    plotOutput(ns("pca_combined"), height = "500px")
                                    ),
