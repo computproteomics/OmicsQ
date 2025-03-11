@@ -33,6 +33,7 @@ server <- function(input, output, session) {
           title = span(
               h3(strong("OmicsQ: Quantitative analysis of Omics data")),
               p(  strong("Version: "), app_version,br(),
+                  a("Tutorial", href="tutorial/Tutorial.html", style = 'color:#6cbabf;'),br(),
                   strong("Features: "),
                   "This web application facilitates the processing of quantitative data from Omics type experiments. 
       It is furthermore an entrypoint for using the following tools:",

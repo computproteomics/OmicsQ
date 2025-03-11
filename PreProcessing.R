@@ -81,16 +81,20 @@ preProcessingUI <- function(id, prefix="") {
             hidden(fluidRow(id = ns("pr_plots"),
                             column(8),
                             column(4,
-                                style = "text-align: right;",
-                                checkboxInput(ns("scale_corrplot"), 
-                                              "Show entire range in correlation plot", 
-                                              value = TRUE), style="text-align: right;"),
+                                   style = "text-align: right;",
+                                   checkboxInput(ns("scale_corrplot"), 
+                                                 "Show entire range in correlation plot", 
+                                                 value = TRUE), style="text-align: right;"),
                             column(6, 
                                    plotOutput(ns("pca_combined"), height = "500px")
-                                   ),
+                            ),
                             column(6, 
                                    plotOutput(ns("corrplot"), height = "500px")
-                            )
+                            ),
+                            column(6,
+                                   downloadBttn(ns("download_pca"), label = "Download figure (pdf)")),
+                            column(6,
+                                   downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)"))
             ))
             
         )
@@ -290,7 +294,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         # Name the new column as new_oldname_numbering
                         oldname <- colnames(tt)[1]  # Assuming the first column is the old name
                         new_col_name <- paste0("new_", oldname, "_", i)  # Add numbering for each new column
-
+                        
                         # Add the new column to tedes
                         tedes <- cbind(tedes, new_col)
                         
@@ -422,7 +426,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     if (!is.null(o_cols))
                         other_cols(o_cols[as.character(tdata[, 1]), ])
-
+                    
                     # Update processed table after adjustments
                     processed_table(tdata)
                 }
@@ -823,7 +827,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # Use ggplot2 for combined PCA plot
                 library(ggplot2)
-                ggplot(pca_df, aes(x = PC1, y = PC2, color = Group, shape = Batch)) +
+                p <- ggplot(pca_df, aes(x = PC1, y = PC2, color = Group, shape = Batch)) +
                     geom_point(size = 3) +
                     labs(title = paste0("PCA Plot"),
                          x = "PC1", y = "PC2") +
@@ -831,6 +835,17 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     theme(legend.position = "right",
                           plot.title = element_text(size = 16, face = "bold", hjust = 0.5)  # Set title font size to 14
                     )
+                print(p)
+                output$download_pca <- downloadHandler(
+                    filename = function() {
+                        paste("OmicsQ_pca_plot_", Sys.Date(), ".pdf", sep = "")
+                    },
+                    content = function(file) {
+                        pdf(file)
+                        print(p)
+                        dev.off()
+                    }
+                )
             })
             
             
@@ -896,6 +911,34 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                   
                                   margins = c(5, 5),  # Margins for the plot
                                   dendrogram = "both" # Show dendrograms on both axes
+                )
+                output$download_corrplot <- downloadHandler(
+                    filename = function() {
+                        paste("OmicsQ_correlation_plot_", Sys.Date(), ".pdf", sep = "")
+                    },
+                    content = function(file) {
+                        pdf(file)
+                        # Plot the correlation matrix with customized color scale and legend position
+                        gplots::heatmap.2(correlation_matrix,
+                                          main = "Pairwise correlations between samples",
+                                          symm = TRUE,        # Symmetrical plot
+                                          scale = "none",     # No scaling
+                                          col = gplots::redblue,  # Blue to red color scale
+                                          breaks = corr_range,  # Breaks from -1 to 1 for colors
+                                          trace = "none",     # No trace lines
+                                          cex.main = 1.5,     # Size of the main title
+                                          
+                                          # Add cell borders
+                                          sepwidth = c(0.01, 0.01),  # Width of the separation between cells
+                                          sepcolor = "white",        # Color of the separation lines (white)
+                                          colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
+                                          rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
+                                          
+                                          margins = c(5, 5),  # Margins for the plot
+                                          dendrogram = "both" # Show dendrograms on both axes
+                        )
+                        dev.off()
+                    }
                 )
                 
                 
