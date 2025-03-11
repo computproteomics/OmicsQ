@@ -26,18 +26,24 @@ server <- function(input, output, session) {
     ))
     
   })
+
+  ###### Logging all operations ######
+  observeEvent(input$h_tutorial,{
+      # Open tutorial in new tab
+      runjs("window.open('tutorial/Tutorial.html', '_blank')")
+  })
   
+  
+    
   ###### General info about app ######
   observeEvent(input$h_about,{
       showModal(modalDialog(
           title = span(
-              h3(strong("OmicsQ: Quantitative analysis of Omics data")),
-              p(  strong("Version: "), app_version,br(),
-                  a("Tutorial", href="tutorial/Tutorial.html", style = 'color:#6cbabf;'),br(),
-                  strong("Features: "),
-                  "This web application facilitates the processing of quantitative data from Omics type experiments. 
-      It is furthermore an entrypoint for using the following tools:",
-                  br(),
+              h3(strong("OmicsQ: Quantitative analysis of Omics data")),br(),
+              p(               strong("Features: "),
+              span("This web application facilitates the processing of quantitative data from Omics type experiments. 
+      It is furthermore an entrypoint for using the following tools:"),
+              br(),
                   a("PolySTest", href = "https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/", style = 'color:#6cbabf;'),
                   span(" for statistical testing"),
                   br(),
@@ -47,6 +53,7 @@ server <- function(input, output, session) {
                   a("ComplexBrowser", href = "https://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/", style = 'color:#6cbabf;'),
                   span(" for exploration of the behavior of protein complexes."),
                   br(),
+              strong("Version: "), app_version,br(),
                   style = 'font-size:16px; color:#6c2a3f;'
               ),
               p(

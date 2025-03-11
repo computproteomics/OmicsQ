@@ -21,6 +21,7 @@ RUN mkdir /srv/shiny-server
 RUN mkdir /srv/shiny-server/www
 RUN mkdir /srv/shiny-server/data
 COPY www/* /srv/shiny-server/www/
+COPY www/tutorial/ /srv/shiny-server/www/tutorial
 COPY *R  /srv/shiny-server/
 COPY data/*csv  /srv/shiny-server/data/
 COPY VERSION /srv/shiny-server/
