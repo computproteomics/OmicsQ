@@ -48,8 +48,13 @@ sendRetrieveUI <- function(id, prefix="") {
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
         hr(),
-        actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB"),br(),br(),
-        downloadBttn(ns("downloadTable"), label = "Download table"), 
+        fluidRow(
+            column(4, 
+        actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
+        column(4,
+               actionButton(ns("reset_table"), "Deselect all features")),
+        column(4, 
+               downloadBttn(ns("downloadTable"), label = "Download table"))),br(),br(), 
         # Display the processed table
         fluidRow(
             DTOutput(ns('rtable'))  # Display processed table in a DataTable
@@ -198,7 +203,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             observeEvent(input$send_stringdb, {
                 print("Sending features to STRINGDB")
                 cat("Sending features to STRINGDB\n")
-                selected_rows <- input$rtable_rows_all
+                selected_rows <- input$rtable_rows_selected
                 if (length(selected_rows) == 0) {
                     sendSweetAlert(session,
                                    title = "Submission to StringDB",
@@ -234,6 +239,14 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     dat = NULL, tool = "STRINGDB"
                 )
             })
+            
+            dproxy <- dataTableProxy("rtable")
+            
+            observeEvent(input$reset_table, {
+                # Deselect all features in table
+                selectRows(dproxy, NULL)
+            }
+            )
             
             
             

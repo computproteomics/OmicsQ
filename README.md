@@ -99,7 +99,7 @@ OmicsQ is released under the MIT License. See the LICENSE file for details.
 
 If you use OmicsQ in your research, please cite our work:
 
-Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. TODO.
+Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. In preparation.
 
 ## Contributing
 
