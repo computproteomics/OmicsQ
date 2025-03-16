@@ -355,7 +355,7 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <h4 class="anchored" data-anchor-id="tutorial-7"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h4>
 <p>Try different normalization methods and observe the changes in the two plots.</p>
 <p>Check whether OmicsQ suggests batch effects. Also try different batch correction methods.</p>
-<p>Despite several features apparently be affected by batch effects, their number is rather low and we thus <em>will omit batch correction</em>. Actually, these changes are mostly due to sample differences (late differentiation state versus early), and thus show that it can be misleading when using batches that contain sample types that are different for the different batches.</p>
+<p>Despite several features apparently being affected by batch effects, their number is rather low and we thus <em>will omit batch correction</em>. Actually, these changes are mostly due to sample differences (late differentiation state versus early), and thus show that it can be misleading when using batches that contain sample types that are different for the different batches.</p>
 <p>The correlations between the samples are very high. Therefore, click on the button <em>Show entire range in correlation plot</em> to get a more distinguishable picture.</p>
 <p>Click <strong>Proceed</strong> to continue to the next module of OmicsQ.</p>
 <hr>
@@ -364,7 +364,7 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <section id="tips" class="level3">
 <h3 class="anchored" data-anchor-id="tips"><i class="fa-solid fa-lightbulb" aria-label="lightbulb"></i> Tips</h3>
 <ul>
-<li>Experiment with different <em>normalizations</em> and <em>batch correction</em> methods, then observe changes in the <em>PCA</em> and <em>correlation</em> plots.<br>
+<li>Experiment with different <em>normalization</em> and <em>batch correction</em> methods, then observe changes in the <em>PCA</em> and <em>correlation</em> plots.<br>
 </li>
 <li>Use <em>max NA</em> filtering to remove features with extensive missing values, which can simplify downstream analyses.<br>
 </li>
@@ -378,11 +378,11 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <p>After you have completed data pre-processing, OmicsQ allows you to send your processed dataset to additional apps for deeper analysis. These tools can be used for statistical testing, clustering, and exploring protein complexes. Below is an overview of each app and how to access them within OmicsQ.</p>
 <section id="sending-data-to-external-apps" class="level3">
 <h3 class="anchored" data-anchor-id="sending-data-to-external-apps">1. Sending Data to External Apps</h3>
-<p>Here, you can send the data to specific web applications. Parameter such as experimental design are automatically configured.</p>
+<p>Here, you can send the data to specific web applications. Parameters such as experimental design are automatically configured.</p>
 <ul>
 <li><strong>PolySTest</strong>:
 <ul>
-<li>Designed for statistical testing of multi-omics or proteomics data with missing values</li>
+<li>Designed for statistical testing of multi-omics or proteomics data with missing values.</li>
 <li>Once clicked, your processed data is uploaded, and a new window or tab opens where you can run various statistical tests.</li>
 <li>Use <em>Retrieve results</em> to import any outcomes back into OmicsQ.</li>
 </ul></li>
@@ -405,13 +405,13 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <h3 class="anchored" data-anchor-id="paired-vs.-unpaired-design">2. Paired vs.&nbsp;Unpaired Design</h3>
 <ul>
 <li><p><em>Paired toggle</em>: If your design is <em>paired</em> (e.g., matched samples before/after treatment), switch this on to ensure apps handle the data appropriately.</p></li>
-<li><p><em>URL fields</em>: By default, the apps point to public servers (i.e., <code>computproteomics.bmb.sdu.dk</code>). You can change these URLs to local or private servers if necessary. All apps can be run in isolated docker containers.</p></li>
+<li><p><em>URL fields</em>: By default, the apps point to our public server <code>computproteomics.bmb.sdu.dk</code>. You can change these URLs to local or private servers if necessary. All apps can be run in isolated Docker containers.</p></li>
 </ul>
 </section>
 <section id="working-with-results" class="level3">
 <h3 class="anchored" data-anchor-id="working-with-results">3. Working with Results</h3>
 <ul>
-<li><em>Connection status</em>: When an app finishes processing, click <em>Retrieve result</em> to pull them back into Omics and see whether this worked.</li>
+<li><em>Connection status</em>: When an app finishes processing, click <em>Retrieve results</em> to pull them back into OmicsQ and see whether this worked.</li>
 <li><em>Result columns</em>: Results from each app are usually added to the current table with columns labeled <code>PolySTest_…,</code> or <code>VSClust_…,</code>. You can download the updated table at any point by clicking <em>Download table.</em></li>
 </ul>
 <p><img src="Screenshot_Apps.png" class="img-fluid"></p>
@@ -436,7 +436,7 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <h4 class="anchored" data-anchor-id="vsclust">VSClust</h4>
 <ul>
 <li>Clusters features with similar expression/abundance profiles considering their individual variances.</li>
-<li>Can be applied on data with missing values</li>
+<li>Can be applied to data with missing values without imputation.</li>
 <li>Helps reveal co-regulated sets of molecules (e.g., proteins, genes) and highlight potential biological modules.</li>
 </ul>
 <p><strong>Tutorial:</strong> <a href="https://pubmed.ncbi.nlm.nih.gov/33950508/">PubMed link</a><br>
@@ -485,9 +485,9 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <p><em>Note</em>: This part is meant for proteomics data only.</p>
 <p>Press the button <em>Send to ComplexBrowser</em> to open the application. Again, the data and all parameters should automatically be set. You should see several visualizations which can be used to further investigate data properties. We will dismiss this part and move on to the analysis of protein complexes.</p>
 <p>Click on the tab <em>Complex analysis</em> in the upper left. Select <em>Complex Portal</em> in <em>select database for analysis</em> and click on <em>Run analysis</em> to start calculating protein complex quantifications.</p>
-<p>You get a large table with details about the different protein complexes in the data set and their quantitative behavior. Click twice on the column name <code>NQS</code>, standing for the number of quantfied complex subunits found in the data sets. This will sort the table by the number of subunits, and provide parts of the Splicesome on the top.</p>
+<p>You get a large table with details about the different protein complexes in the data set and their quantitative behavior. Click twice on the column name <code>NQS</code>, standing for the number of quantified complex subunits found in the data sets. This will sort the table by the number of subunits, and provide parts of the Spliceosome on the top.</p>
 <p>When selecting a complex, you will get details about its behavior in the different samples. Type “MCM” into the search field of <code>ComplexName</code> and select the <em>MCM complex</em>. You will see that a) the complex quite drastically decreases in its abundance during the differentiation process and b) that its subunits are equally affected exhibiting very similar quantitative changes.</p>
-<p>We will now check whether the proteins of this complex also co-regulate that strongly in human cells in general. Therefore, press the button <em>Submit proteins to CoExpresso</em> in the lower left panel <em>Protein complex visualization</em>. This will open yet another application, CoExpresso, which will show you the co-expression of the proteins in the MCM complex in different tissues and cell types. You will see that the complex subunits of the MCM complex are usually high co-regulated in human cells, shown through high correlations and significant p-values. This indicates that the MCM complex is a stable complex in human cells.</p>
+<p>We will now check whether the proteins of this complex also co-regulate that strongly in human cells in general. Therefore, press the button <em>Submit proteins to CoExpresso</em> in the lower left panel <em>Protein complex visualization</em>. This will open yet another application, CoExpresso, which will show you the co-expression of the proteins in the MCM complex in different tissues and cell types. You will see that the complex subunits of the MCM complex are usually highly co-regulated in human cells, shown through high correlations and significant p-values. This indicates that the MCM complex is a stable complex in human cells.</p>
 <p>You can use ComplexBrowser to investigate other complexes in the same way. We recommend prioritizing the complexes that are most affected by the differentiation process, and thus show highest fold-changes and lowest FDR values for <code>C6/C1</code>.</p>
 <hr>
 </section>
