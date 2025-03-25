@@ -19,6 +19,8 @@ library(gridExtra)
 library(ggplot2)
 library(gplots) 
 library(viridis)
+library(UniProt.ws)
+
 
 
 source("DataInput.R")
