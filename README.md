@@ -2,13 +2,16 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-OmicsQ is a Shiny-based web application designed for preprocessing and quantitative analysis of Omics data. The app facilitates the preparation of data for subsequent analysis using specialized tools such as [PolySTest](https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/) for statistical testing and [VSClust](https://computproteomics.bmb.sdu.dk/app_direct/VSClust/) for clustering analysis. OmicsQ streamlines the workflow from data preprocessing to submission for further analysis, making it an essential entry point for Omics studies.
+OmicsQ is a Shiny-based web application designed for preprocessing and quantitative analysis of Omics data. 
+It streamlines the preparation of data for subsequent analysis using specialized tools such as 
+[PolySTest](https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/) for statistical testing and
+[VSClust](https://computproteomics.bmb.sdu.dk/app_direct/VSClust/) for clustering analysis. 
 
-You can run OmicsQ via your browser on our server: [OmicsQ](https://computproteomics.bmb.sdu.dk/app_direct/OmicsQ/)
+Run OmicsQ via your browser on our server: [OmicsQ](https://computproteomics.bmb.sdu.dk/app_direct/OmicsQ/)
 
-Find more about our research: [ComputProteomics Group Page](https://computproteomics.bmb.sdu.dk/)
+Visit [ComputProteomics Group Page](https://computproteomics.bmb.sdu.dk/) for more information on related research and tools.
 
-## Features
+## Key features
 
 **Interactivity**: Easily browse the data and selectively analyze and visualize according to your needs.   
  
@@ -16,7 +19,7 @@ Find more about our research: [ComputProteomics Group Page](https://computproteo
 with a simple interface for easy navigation.  
 **Flexibility**: Easily upload multiple file formats (text, Excel) and use the automated assignment of sample groups and 
 batches.  
-**Data Pre-processing**: TODO   
+**Data Pre-processing**: Batch correction, normalization, filtering, and missing value filtering with visual feedback.
 **Web Service Integration**: Submit processed data directly to the following 
 tools:  
 [PolySTest](https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/) for statistical testing with proper treatment of missing data  
@@ -27,7 +30,7 @@ tools:
 
 ## Installation
 
-OmicsQ can be run locally or using a Docker container for a seamless setup.
+OmicsQ can be run locally or via a Docker container for a seamless setup without installation.
 
 ### Option 1: Running Locally
 
@@ -77,15 +80,13 @@ docker pull veitveit/omicsq:latest
 docker run --rm -p 3838:3838 computproteomics/omicsq:latest
 ```
 
-4 Access the app: Open a web browser and go to http://localhost:3838 to access OmicsQ.
+4 Access the app: Open a web browser and go to http://localhost:3838 to start using OmicsQ.
 
-## Usage
+## Documentation and tutorial
 
-1. Data Upload: Upload your quantitative Omics dataset in the supported formats (CSV, TSV, or Excel).
-2. Experimental Design: Assign sample groups and batches to the uploaded data using our versatile string matching tool.
-3. Data Preprocessing: Perform normalization, filtering, missing value filtering and batch correction  
-4. Perform advanced methods: Send the preprocessed data directly to the apps PolySTest, VSClust and ComplexBrowser. All in your Browser.
-5. Download Results: Export the processed data or analysis results for further offline analysis.
+For detailed instructions on how to use OmicsQ, please refer to the 
+[User Manual](https://computproteomics.bmb.sdu.dk/app_direct/OmicsQ/tutorial/Tutorial.html). 
+There, you can also find a tutorial on how to use the app for your data analysis.
 
 ## Workflow
 
@@ -99,7 +100,7 @@ OmicsQ is released under the MIT License. See the LICENSE file for details.
 
 If you use OmicsQ in your research, please cite our work:
 
-Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. TODO.
+Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. In preparation.
 
 ## Contributing
 
