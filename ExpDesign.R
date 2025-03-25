@@ -211,6 +211,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
             observeEvent(input$ed_sel_samples, {
                 isolate({
                     ted <- exp_design()
+                    ted[is.na(ted)] <- 0
                     
                     if (!is.null(ted) && length(input$ed_sel_samples) > 0) {
                         print("Updating sample types")
