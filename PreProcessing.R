@@ -736,6 +736,78 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     print("processed_table has been updated before proceeding.")
                 }
                 
+                # add Uniprot IDs
+                map_gene_to_main_uniprot <- function(ids, species_taxid = 9606) {
+                    detect_key_type <- function(ids) {
+                        if (all(grepl("^ENSG[0-9]+", ids))) {
+                            return("Ensembl")
+                        } else if (all(grepl("^[0-9]+$", ids))) {
+                            return("GeneID")
+                        } else if (all(grepl("^[A-NR-Z][0-9][A-Z0-9]{3}[0-9]$", ids))) {
+                            # Simple UniProtKB pattern (e.g., P12345, Q8NBP7)
+                            return("UniProtKB")            
+                        } else {
+                            return("Gene_Name")
+                        }
+                    }
+                    
+                    keytype <- detect_key_type(ids)
+                    message("Detected key type: ", keytype)
+                    
+                    available_keytypes <- keytypes(up)
+                    
+                    if (!(keytype %in% available_keytypes)) {
+                        message("Detected key type", keytype, "is not available in UniProt.ws.\nAvailable key types include:\n",
+                                paste(available_keytypes, collapse = ", "))
+                        return(NULL)
+                    }    
+                    
+                    
+                    # Exit early if input is UniProt accessions
+                    if (keytype == "UniProtKB") {
+                        message("Input appears to be UniProtKB accessions. No mapping performed.")
+                        return(NULL)
+                    }
+                    
+                    # Create UniProt.ws object with species restriction
+                    up <- UniProt.ws(taxId = species_taxid)
+                    
+                    # Columns we want (filter down later)
+                    cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
+                    cols <- intersect(cols, columns(up))
+                    
+                    # Fetch mappings
+                    res <- tryCatch({
+                        select(up, keys = ids, keytype = keytype, columns = cols)
+                    }, error = function(e) {
+                        warning("Mapping failed: ", conditionMessage(e))
+                        return(data.frame())
+                    })
+                    
+                    # Deduplicate: keep one UniProt per gene (based on keytype)
+                    res_unique <- res[!duplicated(res$From), ]
+                    
+                    # Report unmapped
+                    mapped <- unique(res_unique$From)
+                    unmapped <- setdiff(ids, mapped)
+                    
+                    list(
+                        mapping = res_unique,
+                        unmapped = unmapped,
+                        keytype = keytype
+                    )
+                }
+                
+                id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = FALSE]
+                uniprots <- map_gene_to_main_uniprot(id_column[,1])$mapped
+                new_table <- NULL
+                if (!is.null(uniprots)) {
+                    new_table <- processed_table()
+                    new_table$Uniprot[id_column %in% uniprots$From] <- uniprots$UniProtKB
+                }
+                processed_table(new_table)
+                
+                
                 # Proceed to the next tab
                 updateTabsetPanel(parent, "mainpage", selected = "apps")
                 next_tab("ready")
