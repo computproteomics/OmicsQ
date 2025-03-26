@@ -50,11 +50,11 @@ sendRetrieveUI <- function(id, prefix="") {
         hr(),
         fluidRow(
             column(4, 
-        actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
-        column(4,
-               actionButton(ns("reset_table"), "Deselect all features")),
-        column(4, 
-               downloadBttn(ns("downloadTable"), label = "Download table"))),br(),br(), 
+                   actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
+            column(4,
+                   actionButton(ns("reset_table"), "Deselect all features")),
+            column(4, 
+                   downloadBttn(ns("downloadTable"), label = "Download table"))),br(),br(), 
         # Display the processed table
         fluidRow(
             DTOutput(ns('rtable'))  # Display processed table in a DataTable
@@ -130,6 +130,11 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     
                     # Combine main and additional columns
                     full_data <- data.frame(result_table(), other_cols())
+                    
+                    # add uniprot column if available
+                    if (!is.null(other_cols()$Uniprot)) {
+                        full_data <- data.frame(Uniprot = other_cols()$Uniprot, full_data)
+                    }
                     
                     # Create the DataTable
                     DT::datatable(
@@ -229,7 +234,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 stringdb_url <- paste0(
                     "https://string-db.org/cgi/network?",
                     "identifiers=", id_block,
-#                    "&species_text=Homo+sapiens",
+                    #                    "&species_text=Homo+sapiens",
                     "&show_query_node_labels=1"
                 )
                 
@@ -434,6 +439,12 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 print("Sending data to ComplexBrowser")
                 # Extract processed data and prepare it for ComplexBrowser
                 outdat <- processed_table()
+                if (!is.null(other_cols()$Uniprot)) {
+                    outdat[,1] <- other_cols()$Uniprot
+                    outdat <- outdat[!is.na(outdat[,1]),]
+                    # remove duplicated uniprot accessions
+                    outdat <- outdat[!duplicated(outdat[,1]),]
+                }
                 final_exp_design <- pexp_design()  # Get experimental design
                 NumCond <- length(unique(final_exp_design[1, ]))  # Number of conditions
                 NumReps <- table(final_exp_design[1, ])[1]  # Number of replicates per condition
