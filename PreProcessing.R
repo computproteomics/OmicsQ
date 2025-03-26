@@ -882,6 +882,10 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     need(nrow(quant_columns) > 20, "Not enough samples for PCA calculation")
                 )
                 
+                # Filter for non-zero sds
+                row_sd <- apply(quant_columns, 1, sd, na.rm = TRUE)
+                quant_columns <- quant_columns[row_sd > 0, ]
+                
                 # Perform PCA
                 pca <- prcomp(t(quant_columns), scale = TRUE, retx = TRUE)
                 loadings <- pca$x
