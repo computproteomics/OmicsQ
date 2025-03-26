@@ -157,7 +157,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     quant_columns <- processed_table()[, -1]
                     
                     # Check if there are duplicate IDs and hide/show the summarize input accordingly
-                    print(id_column)
+                    #print(id_column)
                     if (sum(duplicated(id_column)) > 0) {
                         shinyjs::show("summarize")  # Show the 'Summarize to id features' selector if duplicates are present
                     } else {
@@ -330,7 +330,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 quant_columns <- quant_columns[, colnames(pexp_design())]
                 
                 # Update the processed table
-                print(head(quant_columns))
+                #print(head(quant_columns))
                 processed_table(cbind(id_column, quant_columns))  # Make sure new columns are added here
                 
             }
@@ -646,8 +646,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     batch_correction(processed_table(), pexp_design(), batch_info(), input$batch_correction_method)
                     
-                    print(colnames(processed_table()))
-                    print(pexp_design())
+                    #print(colnames(processed_table()))
+                    #print(pexp_design())
                     
                 })
                 
@@ -737,7 +737,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 }
                 
                 # add Uniprot IDs
-                map_gene_to_main_uniprot <- function(ids, species_taxid = 9606) {
+                map_gene_to_main_uniprot <- function(ids) {
                     detect_key_type <- function(ids) {
                         if (all(grepl("^ENSG[0-9]+", ids))) {
                             return("Ensembl")
@@ -754,6 +754,16 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     keytype <- detect_key_type(ids)
                     message("Detected key type: ", keytype)
                     
+                    # Create UniProt.ws object with species restriction
+                    # try connecting and return NULL if it fails
+                    up <- NULL
+                    tryCatch({
+                        up <- UniProt.ws()
+                    }, error = function(e) {
+                        warning("Failed to connect to UniProt.ws: ", conditionMessage(e))
+                        return(NULL)
+                    })
+                    
                     available_keytypes <- keytypes(up)
                     
                     if (!(keytype %in% available_keytypes)) {
@@ -769,8 +779,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         return(NULL)
                     }
                     
-                    # Create UniProt.ws object with species restriction
-                    up <- UniProt.ws(taxId = species_taxid)
                     
                     # Columns we want (filter down later)
                     cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
@@ -797,16 +805,24 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         keytype = keytype
                     )
                 }
-                
-                id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = FALSE]
-                uniprots <- map_gene_to_main_uniprot(id_column[,1])$mapped
-                new_table <- NULL
-                if (!is.null(uniprots)) {
-                    new_table <- processed_table()
-                    new_table$Uniprot[id_column %in% uniprots$From] <- uniprots$UniProtKB
-                }
-                processed_table(new_table)
-                
+                # progressbar
+                withProgress(message = 'Mapping identifiers to UniProt', value = 0, {
+                    
+                    
+                    id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = TRUE]
+                    uniprots <- map_gene_to_main_uniprot(id_column)$mapping
+                    uniprots <- as.data.frame(uniprots)
+                    new_table <- other_cols()
+                    if (!is.null(uniprots) && nrow(uniprots) > 0) {
+                        # Safe mapping: build a named vector for lookup
+                        uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
+                        # Assign UniProt values using lookup by id_column
+                        matched_uniprots <- uniprot_lookup[as.character(id_column)]  # names(id_column) will match names(uniprot_lookup)
+                        new_table <- cbind(Uniprot = NA, new_table)
+                        new_table$Uniprot <- matched_uniprots
+                    }
+                    other_cols(new_table)
+                })
                 
                 # Proceed to the next tab
                 updateTabsetPanel(parent, "mainpage", selected = "apps")
