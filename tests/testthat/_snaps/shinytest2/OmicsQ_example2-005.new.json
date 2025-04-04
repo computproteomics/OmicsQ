@@ -3523,7 +3523,7 @@
     "dataInput-ptable_rows_selected": null,
     "dataInput-ptable_search": "",
     "dataInput-ptable_state": [
-      "1728480992403",
+      "1743004875474",
       "0",
       "10",
       "",
@@ -3636,8 +3636,8 @@
     "dataInput-run_example": 1,
     "dataInput-sel_icol": null,
     "dataInput-sel_qcols": null,
-    "expDesign-batch_number": 3,
-    "expDesign-dist_thresh": 0.133,
+    "expDesign-batch_number": 2,
+    "expDesign-dist_thresh": 0.171,
     "expDesign-dist_type": "jw",
     "expDesign-downloadeTable_bttn": 0,
     "expDesign-ed_number": 1,
@@ -3645,7 +3645,9 @@
       "C1_1",
       "C1_2",
       "C1_3",
-      "C2_1"
+      "C2_1",
+      "C2_2",
+      "C2_3"
     ],
     "expDesign-ed_sel_batches_open": false,
     "expDesign-ed_sel_samples": null,
@@ -3691,7 +3693,7 @@
     "expDesign-etable_rows_selected": null,
     "expDesign-etable_search": "",
     "expDesign-etable_state": [
-      "1728481026974",
+      "1743004916285",
       "0",
       "10",
       "",
@@ -3730,8 +3732,8 @@
     "h_log": 1,
     "h_tutorial": 0,
     "mainpage": "apps",
-    "preProcessing-add_na_columns": true,
-    "preProcessing-batch_correction_method": "Combat",
+    "preProcessing-add_na_columns": false,
+    "preProcessing-batch_correction_method": "None",
     "preProcessing-download_corrplot_bttn": 0,
     "preProcessing-download_pca_bttn": 0,
     "preProcessing-h_balancing": 0,
@@ -3741,11 +3743,10 @@
     "preProcessing-h_normalization": 0,
     "preProcessing-h_summarize": 0,
     "preProcessing-logtrafo": false,
-    "preProcessing-max_na": 9,
-    "preProcessing-normalization": "cyclicloess",
+    "preProcessing-max_na": 10,
+    "preProcessing-normalization": "colMedians",
     "preProcessing-proceed_to_apps": 1,
     "preProcessing-remove_reps": null,
-    "preProcessing-remove_reps_open": false,
     "preProcessing-scale_corrplot": true,
     "preProcessing-summarize": "none",
     "sendRetrieve-PolySTest_results": "",
@@ -7295,215 +7296,131 @@
       "",
       ""
     ],
-    "sendRetrieve-rtable_state": {
-      "start": 0,
-      "length": 10,
-      "order": [
-
-      ],
-      "search": {
-        "search": "",
-        "smart": true,
-        "regex": false,
-        "caseInsensitive": true
-      },
-      "columns": [
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        },
-        {
-          "visible": true,
-          "search": {
-            "search": "",
-            "smart": true,
-            "regex": false,
-            "caseInsensitive": true
-          }
-        }
-      ],
-      "ColReorder": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18
-      ]
-    },
+    "sendRetrieve-rtable_state": [
+      "1743004984798",
+      "0",
+      "10",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "TRUE",
+      "",
+      "TRUE",
+      "FALSE",
+      "TRUE",
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18"
+    ],
     "sendRetrieve-send_ComplexBrowser": 0,
-    "sendRetrieve-send_PolySTest": 1,
+    "sendRetrieve-send_PolySTest": 0,
     "sendRetrieve-send_VSClust": 0,
     "sendRetrieve-send_stringdb": 0,
     "sendRetrieve-url_ComplexBrowser": "http://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/",
@@ -7823,9 +7740,9 @@
         }
       ]
     },
-    "outbc6dd91b3dfbe8d1": "$omicsQ_version\n[1] \"1.0.2\"\n\n$file_name\n[1] \"Example file\"\n\n$file_type\n[1] \"csv\"\n\n$file_options\ndelimiter   decimal      skip    header \n   \"auto\"       \".\"       \"0\"    \"TRUE\" \n\n$file_idcol\n[1] \"ProteinID\"\n\n$file_qcols\n [1] \"C1_1\" \"C1_2\" \"C1_3\" \"C2_1\" \"C2_2\" \"C2_3\" \"C3_1\" \"C3_2\" \"C3_3\" \"C4_1\"\n[11] \"C4_2\" \"C4_3\" \"C5_1\" \"C5_2\" \"C5_3\" \"C6_1\" \"C6_2\" \"C6_3\"\n\n$preprocess_take_log2\n[1] TRUE\n\n$max_na\n[1] 9\n\n$normalization\n[1] \"cyclicloess\"\n\n$batch_correction\n[1] \"Combat\"",
+    "out9edc70cc28f43bc0": "$omicsQ_version\n[1] \"1.0.2\"\n\n$file_name\n[1] \"Example file\"\n\n$file_type\n[1] \"csv\"\n\n$file_options\ndelimiter   decimal      skip    header \n   \"auto\"       \".\"       \"0\"    \"TRUE\" \n\n$file_idcol\n[1] \"ProteinID\"\n\n$file_qcols\n [1] \"C1_1\" \"C1_2\" \"C1_3\" \"C2_1\" \"C2_2\" \"C2_3\" \"C3_1\" \"C3_2\" \"C3_3\" \"C4_1\"\n[11] \"C4_2\" \"C4_3\" \"C5_1\" \"C5_2\" \"C5_3\" \"C6_1\" \"C6_2\" \"C6_3\"\n\n$preprocess_take_log2\n[1] TRUE\n\n$max_na\n[1] 10\n\n$normalization\n[1] \"colMedians\"",
     "preProcessing-corrplot": {
-      "src": "[image data hash: 60a78e7dabcbf1556d2199ba865c870d]",
+      "src": "[image data hash: 34f5c6ed176edbee1f0457edbbf98620]",
       "width": 747,
       "height": 500,
       "alt": "Plot object",
@@ -7860,7 +7777,7 @@
       }
     },
     "preProcessing-pca_combined": {
-      "src": "[image data hash: 3030de532b83a35fbbc4d7dab4ede6db]",
+      "src": "[image data hash: 1473f2a941d6875a3645fa561b9149db]",
       "width": 747,
       "height": 500,
       "alt": "Plot object",
@@ -7894,16 +7811,16 @@
         }
       }
     },
-    "preProcessing-ptable_summary": "<p><b>Before Filling:<\/b>\n          <br/><b>Size:<\/b> The current data table contains  18  samples and  3493  features.\n          <br/><b>Missingness: <\/b>The proportion of missing values is  0.009 , with the number of missing values ranging from  12  to  51  per sample.\n          <br/><b>Range:<\/b> The dynamic range (on log-scale) is from  19.01  to  36.98 .<br/><b>Summarization:<\/b> The ID column contains  unique IDs, so summarization is not required. <br/><br/><b>Batch Effect:<\/b>  No significant batch effects detected. <br/>Used batch effect correction method:  Combat . <br/><br/><b>After Filling:<\/b>  No columns added <\/p>",
+    "preProcessing-ptable_summary": "<p><b>Before Filling:<\/b>\n          <br/><b>Size:<\/b> The current data table contains  18  samples and  3493  features.\n          <br/><b>Missingness: <\/b>The proportion of missing values is  0.009 , with the number of missing values ranging from  12  to  51  per sample.\n          <br/><b>Range:<\/b> The dynamic range (on log-scale) is from  -8.47  to  9.44 .<br/><b>Summarization:<\/b> The ID column contains  unique IDs, so summarization is not required. <br/><br/><b>Batch Effect:<\/b>  There are currently 256  features potentially affected by batch effects (p < 0.01). <br/>Used batch effect correction method:  None . <br/><br/><b>After Filling:<\/b>  No columns added <\/p>",
     "preProcessing-res_num_reps": "Experimental design is balanced.",
     "sendRetrieve-connection_ComplexBrowser": "",
-    "sendRetrieve-connection_PolySTest": "Opening PolySTest and data upload ...",
+    "sendRetrieve-connection_PolySTest": "",
     "sendRetrieve-connection_VSClust": "",
     "sendRetrieve-rtable": {
       "x": {
         "filter": "top",
         "vertical": false,
-        "filterHTML": "<tr>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.3846687880265\" data-max=\"36.9842344545549\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.6345608301539\" data-max=\"36.9792334975548\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.4214634492762\" data-max=\"36.934049073232\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"20.8301901428711\" data-max=\"36.6659075224175\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.2830452759802\" data-max=\"36.8374779375855\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"19.0075185455096\" data-max=\"36.9588945918823\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"20.1843872384382\" data-max=\"36.7133966626211\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"20.2283686878874\" data-max=\"36.792313898448\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"20.2210943715339\" data-max=\"36.7362697861579\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"20.4479811360017\" data-max=\"36.8221040736918\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.6867632787993\" data-max=\"36.7608370320732\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.5512955308216\" data-max=\"36.7758264588173\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.5335609518368\" data-max=\"36.9156307328902\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.1918471060282\" data-max=\"36.9326138152546\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.6098886071141\" data-max=\"36.8660859234837\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.1220201091828\" data-max=\"36.8857228859776\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.0566532969306\" data-max=\"36.9606094339231\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"21.0025340925692\" data-max=\"36.9758094895082\" data-scale=\"14\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>",
+        "filterHTML": "<tr>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.58066236328753\" data-max=\"9.44401561042813\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.28208783035557\" data-max=\"9.44086916761087\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.39896913065119\" data-max=\"9.38801728534514\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-8.47217773300913\" data-max=\"9.2095503567911\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-7.10756753578926\" data-max=\"9.39443221545958\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-7.57940748204788\" data-max=\"9.36610027823416\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.26052755022322\" data-max=\"9.13027832229033\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.26375248060527\" data-max=\"9.1772883898558\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.23587344802983\" data-max=\"9.11919419932138\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-7.33835364280047\" data-max=\"9.19206014048576\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-5.98991594713499\" data-max=\"9.09017514689927\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.09973874133095\" data-max=\"9.02836882204011\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.12431676405162\" data-max=\"9.32281618050537\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.4418973606927\" data-max=\"9.2921904846686\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.29856410182185\" data-max=\"9.15842936260449\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.61410884638067\" data-max=\"9.27563954724887\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.77147038635907\" data-max=\"9.35773817082789\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none;position: absolute;width: 200px;opacity: 1\">\n      <div data-min=\"-6.55854887715022\" data-max=\"9.3990149007069\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>",
         "extensions": [
           "Buttons",
           "ColReorder"

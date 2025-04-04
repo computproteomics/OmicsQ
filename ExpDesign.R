@@ -219,7 +219,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                         idx <- (ted[1, ] == input$ed_number)
                         idx <- idx[!is.na(idx)]
                         if (any(idx)) {
-                            ted[2, idx] <- 1:length(idx)
+                            ted[2, idx] <- 1:sum(idx)
                         }
                         exp_design(ted)
                     } else {
