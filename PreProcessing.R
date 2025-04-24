@@ -785,8 +785,36 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     cols <- intersect(cols, columns(up))
                     
                     # Fetch mappings
+                    # Helper function to perform chunked select() calls
+                    chunked_uniprot_select <- function(up, ids, keytype, cols, chunk_size = 20) {
+                        # Split IDs into chunks
+                        id_chunks <- split(ids, ceiling(seq_along(ids) / chunk_size))
+                        
+                        # For collecting results
+                        all_results <- vector("list", length(id_chunks))
+                        
+                        for (i in seq_along(id_chunks)) {
+                            chunk <- id_chunks[[i]]
+                            message(sprintf("Querying chunk %d of %d...", i, length(id_chunks)))
+                            incProgress(1 / length(id_chunks), detail = sprintf("Processing chunk %d of %d", i, length(id_chunks)))                            
+                            
+                            res <- tryCatch({
+                                select(up, keys = chunk, keytype = keytype, columns = cols)
+                            }, error = function(e) {
+                                warning(sprintf("Mapping failed for chunk %d: %s", i, conditionMessage(e)))
+                                return(data.frame())
+                            })
+                            
+                            all_results[[i]] <- res
+                        }
+                        
+                        # Combine all results into one data.frame
+                        do.call(rbind, all_results)
+                    }
+                    
                     res <- tryCatch({
-                        select(up, keys = ids, keytype = keytype, columns = cols)
+                        chunked_uniprot_select(up, ids = ids, keytype = keytype, cols = cols)
+                        #select(up, keys = ids, keytype = keytype, columns = cols)
                     }, error = function(e) {
                         warning("Mapping failed: ", conditionMessage(e))
                         return(data.frame())

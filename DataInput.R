@@ -430,7 +430,7 @@ dataInputServer <- function(id, parent, log_operations) {
               in the ID column (e.g. protein abundances or gene expressions).<br>
               ID and quant columns are marked in the table below according
               to your selection. You need to select them
-              sto proceed to the next analysis step.</p>"),
+              to proceed to the next analysis step.</p>"),
                                                       type = "info", html = T
       ))
 
