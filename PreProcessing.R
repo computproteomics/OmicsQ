@@ -134,6 +134,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     id_column <- initial_data[, grep("id", sapply(initial_data, class)), drop = FALSE]
                     # Substitute NA values in id column
                     id_column[is.na(id_column)] <- "No_ID_Given"
+                    id_column[id_column == ""] <- "No_ID_Given"
+                    print(sum(id_column == "NoID_Given"))
                     quant_columns <- initial_data[, grep("quant", sapply(initial_data, class)), drop = FALSE]
                     processed_table(cbind(id_column, quant_columns)) # Initialize processed_table
                     # Keep all other columns separate, only to merge when summarizing
@@ -432,8 +434,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         log_operations(tlog)
                     }
                     
-                    print(o_cols)
-                    print(tdata[,1])
                     if (!is.null(o_cols))
                         other_cols(o_cols[as.character(tdata[, 1]), ])
                     
@@ -845,7 +845,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     )
                 }
                 # progressbar
-                withProgress(message = 'Mapping identifiers to UniProt', value = 0, {
+                withProgress(message = 'Mapping identifiers to UniProt accession numbers via Uniprot API (this can take a while)', value = 0, {
                     
                     if(input$map2uniprot) {
                         id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = TRUE]
@@ -853,6 +853,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         uniprots <- as.data.frame(uniprots)
                         new_table <- other_cols()
                         if (!is.null(uniprots) && nrow(uniprots) > 0) {
+                            print(uniprots)
                             # Safe mapping: build a named vector for lookup
                             uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
                             # Assign UniProt values using lookup by id_column

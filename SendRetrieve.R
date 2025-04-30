@@ -132,8 +132,11 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     full_data <- data.frame(result_table(), other_cols())
                     
                     # add uniprot column if available
-                    if (!is.null(other_cols()$Uniprot)) {
-                        full_data <- data.frame(Uniprot = other_cols()$Uniprot, full_data)
+                    if (!is.null(other_cols())) {
+                        if(any(colnames(other_cols()) == "Uniprot" )) {
+                            print("Uniprot column found")
+                            full_data <- data.frame(Uniprot = other_cols()$Uniprot, full_data)
+                        }
                     }
                     
                     # Create the DataTable
@@ -353,7 +356,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                     colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
                     tdata[,"VSClust_isClusterMember"] <- as.logical(tdata[,"VSClust_isClusterMember"])  # Convert to logical
-                    result_table(data.frame(result_table(), tdata))  # Combine results with processed tablec
+                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                     # Update the log with processed results
                     tlog <- log_operations()
                     tlog[["VSClust version"]] <- input$VSClust_results$version
@@ -439,8 +442,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 print("Sending data to ComplexBrowser")
                 # Extract processed data and prepare it for ComplexBrowser
                 outdat <- processed_table()
-                if (!is.null(other_cols()$Uniprot)) {
-                    outdat[,1] <- other_cols()$Uniprot
+                if (any(colnames(other_cols()) == "Uniprot")) {
+                    outdat[,1] <- other_cols()[, "Uniprot"]
                     outdat <- outdat[!is.na(outdat[,1]),]
                     # remove duplicated uniprot accessions
                     outdat <- outdat[!duplicated(outdat[,1]),]
