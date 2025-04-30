@@ -127,21 +127,24 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             added_columns <- reactiveVal(c())
             
             init_data <- function() {
-                # Initialize processed_table with 'id' and 'quant' columns from process_table
-                initial_data <- process_table()
-                id_column <- initial_data[, grep("id", sapply(initial_data, class)), drop = FALSE]
-                quant_columns <- initial_data[, grep("quant", sapply(initial_data, class)), drop = FALSE]
-                processed_table(cbind(id_column, quant_columns)) # Initialize processed_table
-                # Keep all other columns separate, only to merge when summarizing
-                # This is why we need to reload them
-                other_cols(initial_data[, !(colnames(initial_data) %in% c(colnames(id_column), colnames(quant_columns)))])
-                
+                if(!is.null(process_table())) {
+                    # Initialize processed_table with 'id' and 'quant' columns from process_table
+                    initial_data <- process_table()
+                    id_column <- initial_data[, grep("id", sapply(initial_data, class)), drop = FALSE]
+                    # Substitute NA values in id column
+                    id_column[is.na(id_column)] <- "No_ID_Given"
+                    quant_columns <- initial_data[, grep("quant", sapply(initial_data, class)), drop = FALSE]
+                    processed_table(cbind(id_column, quant_columns)) # Initialize processed_table
+                    # Keep all other columns separate, only to merge when summarizing
+                    # This is why we need to reload them
+                    other_cols(initial_data[, !(colnames(initial_data) %in% c(colnames(id_column), colnames(quant_columns)))])
+                }
             }
             
             ##########################################################################
             ##########################################################################
             observeEvent(expDesign$next_tab(), {
-                if (!is.null(expDesign$next_tab())) {
+                if (!is.null(expDesign$next_tab()))  {
                     process_table(expDesign$process_table())
                     pexp_design(expDesign$pexp_design())
                     exp_design(expDesign$pexp_design())
@@ -155,6 +158,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     id_column <- processed_table()[, 1]
                     quant_columns <- processed_table()[, -1]
+                    
+                    # Substitute NA values in id column
+                    id_column[is.na(id_column)] <- "No_ID_Given"
+                    id_column[id_column == ""] <- "No_ID_Given"
+                    
                     
                     # Check if there are duplicate IDs and hide/show the summarize input accordingly
                     #print(id_column)
@@ -235,8 +243,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     processed_table(cbind(id_column, quant_columns))
                 })
             }
-            
-            
+
             
             ##########################################################################
             ##########################################################################
@@ -424,6 +431,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         log_operations(tlog)
                     }
                     
+                    print(o_cols)
+                    print(tdata[,1])
                     if (!is.null(o_cols))
                         other_cols(o_cols[as.character(tdata[, 1]), ])
                     
