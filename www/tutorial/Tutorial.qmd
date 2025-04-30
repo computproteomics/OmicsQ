@@ -11,7 +11,7 @@ format:
 
 ---
 
-![](Logo_OmicsQ.svg)
+![](Logo_OmicsQ.png)
 
 ## Introduction
 

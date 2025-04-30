@@ -68,15 +68,17 @@ preProcessingUI <- function(id, prefix="") {
                           )),
                           style = 'border-left: 1px solid; margin-bottom: 20px;'  # Add bottom margin to separate from next section
                           
-            ),
+            )),
             hidden(column(4, id = ns("pr_c3"),
                           h4("Summary:"),
                           htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;padding:10px;"),
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          style = 'border-left: 1px solid; margin-bottom: 20px;'    
-            ))),        
+                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers?", value = FALSE),
+                          #                                        style = "text-align: right;"),
+                          style = 'border-left: 1px solid; margin-bottom: 20px;') 
+            ),        
             hr(),
             hidden(fluidRow(id = ns("pr_plots"),
                             column(8),
@@ -96,7 +98,6 @@ preProcessingUI <- function(id, prefix="") {
                             column(6,
                                    downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)"))
             ))
-            
         )
     )
 }
@@ -243,7 +244,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     processed_table(cbind(id_column, quant_columns))
                 })
             }
-
+            
             
             ##########################################################################
             ##########################################################################
@@ -747,12 +748,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # add Uniprot IDs
                 map_gene_to_main_uniprot <- function(ids) {
+                    regex_uniprot <- "^[A-NR-Z][0-9]{5}(-[0-9]+)?$|^[OPQ][0-9][A-Z0-9]{3}[0-9](-[0-9]+)?$"
                     detect_key_type <- function(ids) {
                         if (all(grepl("^ENSG[0-9]+", ids))) {
                             return("Ensembl")
                         } else if (all(grepl("^[0-9]+$", ids))) {
                             return("GeneID")
-                        } else if (all(grepl("^[A-NR-Z][0-9][A-Z0-9]{3}[0-9]$", ids))) {
+                        } else if (all(grepl(regex_uniprot, ids))) {
                             # Simple UniProtKB pattern (e.g., P12345, Q8NBP7)
                             return("UniProtKB")            
                         } else {
@@ -795,7 +797,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     # Fetch mappings
                     # Helper function to perform chunked select() calls
-                    chunked_uniprot_select <- function(up, ids, keytype, cols, chunk_size = 20) {
+                    chunked_uniprot_select <- function(up, ids, keytype, cols, chunk_size = 200) {
                         # Split IDs into chunks
                         id_chunks <- split(ids, ceiling(seq_along(ids) / chunk_size))
                         
@@ -845,21 +847,23 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 # progressbar
                 withProgress(message = 'Mapping identifiers to UniProt', value = 0, {
                     
-                    
-                    id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = TRUE]
-                    uniprots <- map_gene_to_main_uniprot(id_column)$mapping
-                    uniprots <- as.data.frame(uniprots)
-                    new_table <- other_cols()
-                    if (!is.null(uniprots) && nrow(uniprots) > 0) {
-                        # Safe mapping: build a named vector for lookup
-                        uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
-                        # Assign UniProt values using lookup by id_column
-                        matched_uniprots <- uniprot_lookup[as.character(id_column)]  # names(id_column) will match names(uniprot_lookup)
-                        new_table <- cbind(Uniprot = NA, new_table)
-                        new_table$Uniprot <- matched_uniprots
+                    if(input$map2uniprot) {
+                        id_column <- processed_table()[, grep("id", sapply(processed_table(), class)), drop = TRUE]
+                        uniprots <- map_gene_to_main_uniprot(id_column)$mapping
+                        uniprots <- as.data.frame(uniprots)
+                        new_table <- other_cols()
+                        if (!is.null(uniprots) && nrow(uniprots) > 0) {
+                            # Safe mapping: build a named vector for lookup
+                            uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
+                            # Assign UniProt values using lookup by id_column
+                            matched_uniprots <- uniprot_lookup[as.character(id_column)]  # names(id_column) will match names(uniprot_lookup)
+                            new_table <- cbind(Uniprot = NA, new_table)
+                            new_table$Uniprot <- matched_uniprots
+                        }
+                        other_cols(new_table)
                     }
-                    other_cols(new_table)
                 })
+                
                 
                 # Proceed to the next tab
                 updateTabsetPanel(parent, "mainpage", selected = "apps")
