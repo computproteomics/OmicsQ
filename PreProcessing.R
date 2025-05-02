@@ -75,7 +75,7 @@ preProcessingUI <- function(id, prefix="") {
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          disabled(checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers? (feature currently not available)", value = FALSE)),
+                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers?", value = FALSE),
                           #                                        style = "text-align: right;"),
                           style = 'border-left: 1px solid; margin-bottom: 20px;') 
             ),        
@@ -135,7 +135,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     # Substitute NA values in id column
                     id_column[is.na(id_column)] <- "No_ID_Given"
                     id_column[id_column == ""] <- "No_ID_Given"
-                    print(sum(id_column == "NoID_Given"))
                     quant_columns <- initial_data[, grep("quant", sapply(initial_data, class)), drop = FALSE]
                     processed_table(cbind(id_column, quant_columns)) # Initialize processed_table
                     # Keep all other columns separate, only to merge when summarizing
@@ -772,6 +771,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         up <- UniProt.ws()
                     }, error = function(e) {
                         warning("Failed to connect to UniProt.ws: ", conditionMessage(e))
+                        showModal(modalDialog(
+                            title = "Warning", 
+                            "Failed to connect to UniProt.ws. Please check your internet connection or try again later.",
+                            size = "s",
+                            easyClose = T
+                        ))
+                        
                         return(NULL)
                     })
                     
@@ -780,6 +786,12 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     if (!(keytype %in% available_keytypes)) {
                         message("Detected key type", keytype, "is not available in UniProt.ws.\nAvailable key types include:\n",
                                 paste(available_keytypes, collapse = ", "))
+                        showModal(modalDialog(
+                            title = "Warning", 
+                            paste("Detected key type", keytype, "is not available in UniProt.ws. Please check your input."),
+                            size = "s",
+                            easyClose = T
+                        ))
                         return(NULL)
                     }    
                     
@@ -787,13 +799,21 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     # Exit early if input is UniProt accessions
                     if (keytype == "UniProtKB") {
                         message("Input appears to be UniProtKB accessions. No mapping performed.")
+                        showModal(modalDialog(
+                            title = "Warning", 
+                            "Input appears to be UniProtKB accessions. No mapping performed.",
+                            size = "s",
+                            easyClose = T
+                        ))
                         return(NULL)
                     }
                     
                     
                     # Columns we want (filter down later)
-                    cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
-                    cols <- intersect(cols, columns(up))
+                    cols <- c("UniProtKB")
+                    # cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
+                    # cols <- intersect(cols, columns(up))
+
                     
                     # Fetch mappings
                     # Helper function to perform chunked select() calls
@@ -810,12 +830,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                             incProgress(1 / length(id_chunks), detail = sprintf("Processing chunk %d of %d", i, length(id_chunks)))                            
                             
                             res <- tryCatch({
-                                select(up, keys = chunk, keytype = keytype, columns = cols)
+                                UniProt.ws::select(up, keys = chunk, keytype = keytype, columns = cols)
                             }, error = function(e) {
                                 warning(sprintf("Mapping failed for chunk %d: %s", i, conditionMessage(e)))
                                 return(data.frame())
                             })
-                            
                             all_results[[i]] <- res
                         }
                         
@@ -828,6 +847,12 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         #select(up, keys = ids, keytype = keytype, columns = cols)
                     }, error = function(e) {
                         warning("Mapping failed: ", conditionMessage(e))
+                        showModal(modalDialog(
+                            title = "Warning", 
+                            "Mapping failed. Please check your input.",
+                            size = "s",
+                            easyClose = T
+                        ))
                         return(data.frame())
                     })
                     
@@ -853,22 +878,28 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         uniprots <- as.data.frame(uniprots)
                         new_table <- other_cols()
                         if (!is.null(uniprots) && nrow(uniprots) > 0) {
-                            print(uniprots)
                             # Safe mapping: build a named vector for lookup
-                            uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
+                            uniprot_lookup <- setNames(uniprots$To, uniprots$From)
                             # Assign UniProt values using lookup by id_column
                             matched_uniprots <- uniprot_lookup[as.character(id_column)]  # names(id_column) will match names(uniprot_lookup)
+                            matched_uniprots <- matched_uniprots[!is.na(matched_uniprots)]
                             new_table <- cbind(Uniprot = NA, new_table)
-                            new_table$Uniprot <- matched_uniprots
+                            new_table[id_column %in% names(matched_uniprots), "Uniprot"] <- matched_uniprots
                         }
                         other_cols(new_table)
+
                     }
                 })
                 
                 
                 # Proceed to the next tab
                 updateTabsetPanel(parent, "mainpage", selected = "apps")
-                next_tab("ready")
+                if (!is.null(next_tab())) {
+                    next_tab(paste0(next_tab(), "_new"))
+                } else {
+                    next_tab("ready")
+                }
+
                 
                 print("Proceeding to interaction with apps, processed_table has been updated.")
             })

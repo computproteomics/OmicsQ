@@ -105,7 +105,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             )
             
             # Ensure processed_table is always updated with changes from PreProcessing
-            observe({
+            observeEvent(preProcessing$next_tab(), {
+                print("Updating processed table from preProcessing")
                 tout <- preProcessing$processed_table()  # Update processed_table reactively
                 # Remove classes id and quant to avoid error in toJSON
                 if (!is.null(tout)) {
@@ -115,28 +116,37 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     }
                 }
                 
+                # Move id column to other_cols when it has duplicated values
+                if (any(duplicated(tout[,1]))) {
+                    # Move the first column to other_cols
+                    other_cols(data.frame(original_id = tout[,1]))
+                    # Add placeholder names
+                    tout[, 1] <- paste0("Feature", seq_len(nrow(tout)))
+                }
+                
                 processed_table(tout)
-                other_cols(preProcessing$other_cols())
+                # Check whether null or empty
+                if (!is.null(preProcessing$other_cols())) {
+                        if (!is.null(other_cols())) {
+                            other_cols(cbind(other_cols(), preProcessing$other_cols()))
+                        } else {
+                            other_cols(preProcessing$other_cols())
+                    } 
+                }
                 pexp_design(preProcessing$pexp_design())  # Update experimental design reactively
-                isolate(
-                    result_table(processed_table())
-                )
+                result_table(processed_table())
             })
             
             ## Show the processed table in a DataTable with advanced filter & sorting
             output$rtable <- DT::renderDT({
                 # If result_table is not NULL, bind your additional columns
                 if (!is.null(result_table())) {
-                    
+                    full_data <- NULL
                     # Combine main and additional columns
-                    full_data <- data.frame(result_table(), other_cols())
-                    
-                    # add uniprot column if available
                     if (!is.null(other_cols())) {
-                        if(any(colnames(other_cols()) == "Uniprot" )) {
-                            print("Uniprot column found")
-                            full_data <- data.frame(Uniprot = other_cols()$Uniprot, full_data)
-                        }
+                            full_data <- cbind(result_table(), other_cols())
+                    } else {
+                        full_data <- result_table()
                     }
                     
                     # Create the DataTable
@@ -447,6 +457,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     outdat <- outdat[!is.na(outdat[,1]),]
                     # remove duplicated uniprot accessions
                     outdat <- outdat[!duplicated(outdat[,1]),]
+                    print(paste("Removed", nrow(other_cols()) - nrow(outdat), "duplicated uniprot accessions"))
                 }
                 final_exp_design <- pexp_design()  # Get experimental design
                 NumCond <- length(unique(final_exp_design[1, ]))  # Number of conditions
