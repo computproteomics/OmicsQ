@@ -75,7 +75,7 @@ preProcessingUI <- function(id, prefix="") {
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers?", value = FALSE),
+                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers? Note: This retrieval via the UniProt API can be slow.", value = FALSE),
                           #                                        style = "text-align: right;"),
                           style = 'border-left: 1px solid; margin-bottom: 20px;') 
             ),        
