@@ -149,7 +149,7 @@ dataInputServer <- function(id, parent, log_operations) {
                                 auto = "auto",
                                 comma = ",", semicolon = ";", tabulator = "\t", colon = ":", bar = "|",
                                 space = " "
-                            ), selected = currdel, multiple = FALSE, ), selectInput("in_dec",
+                            ), selected = currdel, multiple = FALSE, ), selectInput(session$ns("in_dec"),
                                                                                     label = "decimal separator", choices = c(comma = ",", point = "."),
                                                                                     selected = currdec
                             ), numericInput(session$ns("in_skip"),
