@@ -18,14 +18,14 @@ expDesignUI <- function(id, prefix="") {
     ns <- NS(id)
     tagList(
         h3("Automatic selection of experimental groups"),
-        fluidRow(column(10, 
+        fluidRow(hidden(column(10, id = ns("ed_c0"),
                         p("Find most suitable settings. You  can manually edit the experimental design in the table below.
-                      Replicates with equal number and of the same sample type will be summarized to one replicate.")),
+                      Replicates with equal number and of the same sample group will be summarized to one replicate.")),
                  column(2, 
                         actionBttn(ns("h_exp_design"),
                                    icon=icon("info-circle"),
                                    style="pill", 
-                                   color = "royal", size = "xs"))),
+                                   color = "royal", size = "xs")))),
         fluidRow(
             hidden(column(width=4, id=ns("ed_c1"),
                           
@@ -39,15 +39,13 @@ expDesignUI <- function(id, prefix="") {
                                                 color = "royal", size = "xs"))),
                           column(10,
                                  selectInput(ns("dist_type"), "String distance type", 
-                                             choices = c("Optimal string alignment"="osa",
-                                                         "Levenshtein"="lv",
-                                                         "Damerau-Levenshtein"="dl",
-                                                         "Longest common substring"="lcs",
-                                                         "q-gram"="qgram",
-                                                         "cosine"="cosine",
-                                                         "Jaccard"="jaccard",
-                                                         "Jaro-Winkler"="jw",
-                                                         "soundex"="soundex"), selected="")
+                                             choices = distances <- c(
+                                                 "Levenshtein (general purpuse edit distance)" = "lv",           # general-purpose edit distance
+                                                 "Longest common substring (structural similarity)" = "lcs",   # structural similarity
+                                                 "Jaccard (token-level overlap)" = "jaccard",          # token/set similarity
+                                                 "Jaro-Winkler (good for short names)" = "jw",          # fast heuristic for names
+                                                 "Soundex (phonetic distance)" = "soundex"           # phonetic similarity
+                                             ), selected="")
                                  
                           ),
                           column(2, 
@@ -61,7 +59,7 @@ expDesignUI <- function(id, prefix="") {
                           h4("Assign Sample Types and Batch Number"),
                           fluidRow(
                               column(10,
-                                     pickerInput(ns("ed_sel_samples"), "Select columns for setting sample type", 
+                                     pickerInput(ns("ed_sel_samples"), "Select columns for setting sample group", 
                                                  choices=NULL,  multiple=T, 
                                                  options = list(
                                                      `live-search` = TRUE,
@@ -73,7 +71,7 @@ expDesignUI <- function(id, prefix="") {
                                                 style="pill", 
                                                 color = "royal", size = "xs")),
                               
-                              sliderInput(ns("ed_number"), "Set to this sample type", min=1, max=1, value=1, step=1)),
+                              sliderInput(ns("ed_number"), "Set to this sample group", min=1, max=1, value=1, step=1)),
                           
                           
                           fluidRow(
@@ -102,7 +100,7 @@ expDesignUI <- function(id, prefix="") {
             )
         ),
         ### Show table for exp. design
-        fluidRow(
+        hidden(fluidRow(id=ns("ed_c4"),
             fluidRow(
                 column(10, downloadBttn(ns("downloadeTable"), label = "Download table")),
                 column(2,
@@ -110,6 +108,7 @@ expDesignUI <- function(id, prefix="") {
             ),
             DTOutput(ns('etable')
             )
+        )
         )
     )
 }
@@ -156,9 +155,12 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                     updateSliderInput(session, "ed_number", max = length(cnames))
                     updatePickerInput(session, "ed_sel_batches", choices = cnames)
                     updateSliderInput(session, "batch_number", max = length(cnames))
+                    shinyjs::show("ed_c4")
                     shinyjs::show("ed_c3")
                     shinyjs::show("ed_c2")
-                    shinyjs::show("ed_c1")  # Show the combined sample type and batch assignment UI
+                    shinyjs::show("ed_c1") 
+                    shinyjs::show("ed_c0") 
+                    # Show the combined sample type and batch assignment UI
                 }
             })
             
@@ -384,7 +386,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                          sendSweetAlert(session,
                                         title = "Select columns for setting the sample type",
                                         text = HTML("<p align='justify'>Select the columns that should become the sample type
-                                        given by the ruler below. You can use
+                                        <b>after</b> setting the sample group by the ruler below. You can use
                                         this to adjust the sample type after the automatic estimation </p>"),
                                         type = "info", html = T
                          ))
@@ -393,7 +395,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                          sendSweetAlert(session,
                                         title = "Select columns for setting batch number",
                                         text = HTML("<p align='justify'>Select the columns that should be
-    used to set the batch number given by the number in the ruler below. The batch
+    used to set the batch number <b>after</b> setting the number in the ruler below. The batch
               number is used to group the samples
               into different batches. </p>"),
                                         type = "info", html = T

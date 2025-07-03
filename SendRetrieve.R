@@ -10,13 +10,14 @@ sendRetrieveUI <- function(id, prefix="") {
                                       color = "royal", size = "xs")
                  )),
         # Paired experimental design toggle switch
-        fluidRow(column(10, switchInput(ns("paired"), "Paired experimental design", value = F))
-        ),
+        fluidRow(hidden(column(10, id = ns("app_c0"),
+                               switchInput(ns("paired"), "Paired experimental design", value = F))
+        )),
         
         # UI for sending and retrieving results from different apps
         fluidRow(
             # PolySTest section for statistical testing
-            (column(width = 4, id = ns("app_c1"),
+            hidden(column(width = 4, id = ns("app_c1"),
                     h4("Statistical testing"),
                     actionButton(ns("send_PolySTest"), "Send to PolySTest"),  # Send button for PolySTest
                     span(textOutput(ns("connection_PolySTest")), style = "color:#33DD33;"),  # Display connection status
@@ -24,7 +25,7 @@ sendRetrieveUI <- function(id, prefix="") {
                     disabled(actionButton(ns("retrieve_PolySTest"), "Retrieve results from PolySTest"))  # Retrieve button, initially disabled
             )),
             # VSClust section for clustering
-            (column(width = 4, id = ns("app_c2"),
+            hidden(column(width = 4, id = ns("app_c2"),
                     h4("Clustering"),
                     actionButton(ns("send_VSClust"), "Send to VSClust"),  # Send button for VSClust
                     span(textOutput(ns("connection_VSClust")), style = "color:#33DD33;"),  # Display connection status
@@ -33,7 +34,7 @@ sendRetrieveUI <- function(id, prefix="") {
                     style = 'border-left: 1px solid'    
             )),
             # ComplexBrowser section for investigating protein complexes
-            (column(width = 4, id = ns("app_c3"),
+            hidden(column(width = 4, id = ns("app_c3"),
                     h4("Investigate protein complex behavior"),
                     actionButton(ns("send_ComplexBrowser"), "Send to ComplexBrowser"),  # Send button for ComplexBrowser
                     span(textOutput(ns("connection_ComplexBrowser")), style = "color:#33DD33;"),  # Display connection status
@@ -47,14 +48,14 @@ sendRetrieveUI <- function(id, prefix="") {
         hidden(textInput(ns("app_log"), "app_log", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
-        hr(),
-        fluidRow(
+        hidden(fluidRow(id = ns("app_c4"),
             column(4, 
                    actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
             column(4,
                    actionButton(ns("reset_table"), "Deselect all features")),
             column(4, 
-                   downloadBttn(ns("downloadTable"), label = "Download table"))),br(),br(), 
+                   downloadBttn(ns("downloadTable"), label = "Download table")))),
+        br(),br(), 
         # Display the processed table
         fluidRow(
             DTOutput(ns('rtable'))  # Display processed table in a DataTable
@@ -135,6 +136,12 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 }
                 pexp_design(preProcessing$pexp_design())  # Update experimental design reactively
                 result_table(processed_table())
+                
+                shinyjs::show("app_c0")
+                shinyjs::show("app_c1")
+                shinyjs::show("app_c2")
+                shinyjs::show("app_c3")
+                shinyjs::show("app_c4")
             })
             
             ## Show the processed table in a DataTable with advanced filter & sorting
@@ -155,7 +162,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                         rownames = FALSE,
                         
                         # Place a filter row at the top (or "bottom")
-                        filter = "top",  
+                        filter = list(position = "top"),
                         
                         # Use DT extensions for extra features like exporting or column reordering
                         extensions = c("Buttons", "ColReorder"), 

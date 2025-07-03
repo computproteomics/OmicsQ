@@ -1,12 +1,15 @@
 #################### UI ##################
 dataInputUI <- function(id, prefix="") {
+    
+    
+    
     ns <- NS(id)
     tagList(
         fluidRow(
             column(3,
                    h3("File input"),
                    fluidRow(column(6,fileInput(ns("pfile"), label = "Data table"),
-                                   actionLink(ns("run_example"), "Run example file"),br(),hr(),
+                                   actionLink(ns("run_example"), "Run example file"),br(),
                                    span("For feedback and bugs,
                                         please create an issue in the "), 
                                    a("software repository", href="https://github.com/computproteomics/OmicsQ"),  
@@ -25,7 +28,7 @@ dataInputUI <- function(id, prefix="") {
                                                         color = "royal", size = "xs")
                                    )),
                           uiOutput(ns("file_options")),
-                          style = 'border-left: 1px solid'
+                          style = 'border-left: 1px solid;'
             )),
             hidden(column(3,id=ns("in_c2"),
                           h4("Select and adjust"),
@@ -46,7 +49,6 @@ dataInputUI <- function(id, prefix="") {
                                                style="pill",
                                                color = "royal", size = "xs")
                           )),
-                          hr(),
                           fluidRow(column(10,p("Simple manipulations and corrections:"),
                                           actionButton(ns("remove_zeroes"), label="Zeroes to missing values"),
                                           actionButton(ns("remove_char"), label="Non-numeric to missing values"),
@@ -55,18 +57,16 @@ dataInputUI <- function(id, prefix="") {
                                                  style="pill",
                                                  color = "royal", size = "xs")
                           )),
-                          style = 'border-left: 1px solid'
+                          style = 'border-left: 1px solid;border-right: 1px solid;'
             )),
             hidden(column(3,id=ns("in_c3"),
                           h4("Proceed to experimental design"),
-                          fluidRow(column(10,textOutput(ns("txt_proceed_expdesign"),
-                          )),
+                          textOutput(ns("txt_proceed_expdesign")),
+                          
                           disabled(actionButton(ns("proceed_to_expdesign"), "Proceed")),
-                          style = 'border-left: 1px solid'
-                          ))
-            )
+                          
+            ))
         ),
-        hr(),
         fluidRow(
             DTOutput(ns('ptable'))
         )
@@ -187,18 +187,28 @@ dataInputServer <- function(id, parent, log_operations) {
                         class(tdata[, 1]) <- "id"
                         indata(tdata)
                     }
+                    # remove logo in background
+                    shinyjs::addClass(selector = "#background-container", class = "no-background")
+                    
                 })
+                
             })
             
             ### Read example file and push through
             observeEvent(input$run_example, ({
+
                 tdata <- read.csv("data/Myo.csv")
                 class(tdata[, 1]) <- "id"
                 for (i in 2:19) class(tdata[, i]) <- "quant"
                 indata(tdata)
+                shinyjs::show(id = "in_c1")
+                shinyjs::show(id = "in_c2")
                 shinyjs::show(id = "in_c3")
+                updatePickerInput(session, "sel_icol", choices = names(tdata))
+                updatePickerInput(session, "sel_qcols", choices = names(tdata))
+                
                 shinyjs::enable(id="proceed_to_expdesign")
-                js$run_button(button = session$ns("proceed_to_expdesign"), number = 1)
+                # js$run_button(button = session$ns("proceed_to_expdesign"), number = 1)
                 # result_table(cbind(tdata, tdata))
                 print("example file read")
                 tlog <- log_operations()
@@ -210,12 +220,17 @@ dataInputServer <- function(id, parent, log_operations) {
                 )
                 tlog[["file_idcol"]] <- names(tdata)[1]
                 tlog[["file_qcols"]] <- names(tdata)[2:19]
+                
+                # remove logo in background
+                shinyjs::addClass(selector = "#background-container", class = "no-background")
+                
                 log_operations(tlog)
             }))
             
             #### Input data data table
             output$ptable <- DT::renderDT({
                 print("dttable")
+                                
                 show_table <- indata()
                 if (!is.null(show_table)) {
                     ## create header and footer of table
@@ -257,7 +272,9 @@ dataInputServer <- function(id, parent, log_operations) {
                             }))
                         )
                     ))
-                    datatable(show_table, container = datfile_container, options = list(scrollX = TRUE))
+                    datatable(show_table, container = datfile_container, 
+                              filter = "top",
+                              options = list(scrollX = TRUE))
                 } else {
                     NULL
                 }

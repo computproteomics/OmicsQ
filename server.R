@@ -22,12 +22,37 @@ server <- function(input, output, session) {
   observeEvent(input$h_log,{
     showModal(modalDialog(
       title = span(h3(strong("Summary of data transformations and used upload options"), style = 'font-size:16px;color:#6cbabf;')),
-      renderPrint(log_operations())
+      renderPrint(log_operations()),
+      downloadButton("download_log", "Download log as json file", class = "btn btn-primary")
+      # br(),
+      # p("To upload a log file and set all parameters to the values stored in the log, please use the button below."),
+      # fileInput("upload_log", label = "Upload log file (json format)", 
+      #           accept = c(".json"), 
+      #           buttonLabel = "Browse...", 
+      #           multiple = FALSE, 
+      #           width = "100%")
+      
     ))
     
   })
+  
+  ###### Download log file as json ######
+  output$download_log <- downloadHandler(
+    filename = function() {
+      paste("OmicsQ_log_", Sys.Date(), ".json", sep = "")
+    },
+    content = function(file) {
+      # Convert the log_operations to JSON format
+      json_data <- jsonlite::toJSON(log_operations(), pretty = TRUE, auto_unbox = TRUE)
+      writeLines(json_data, file)
+    }
+  )
+  
+  
+  ###### When uploading log file, go back to reading file and set all parameters ######
+  
 
-  ###### Logging all operations ######
+  ###### Access to tutorial ######
   observeEvent(input$h_tutorial,{
       # Open tutorial in new tab
       runjs("window.open('tutorial/Tutorial.html', '_blank')")
@@ -75,6 +100,11 @@ server <- function(input, output, session) {
       
     
   })
+  
+  observeEvent(input$custom_bookmark, {
+      session$doBookmark()
+  })
+  
   
   
 }

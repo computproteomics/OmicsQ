@@ -75,31 +75,77 @@ preProcessingUI <- function(id, prefix="") {
                           h5("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers?", value = FALSE),
+                          hidden(checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers (experimental feature)?", value = FALSE)),
                           #                                        style = "text-align: right;"),
                           style = 'border-left: 1px solid; margin-bottom: 20px;') 
-            ),        
-            hr(),
-            hidden(fluidRow(id = ns("pr_plots"),
-                            column(8),
-                            column(4,
-                                   style = "text-align: right;",
-                                   checkboxInput(ns("scale_corrplot"), 
-                                                 "Show entire range in correlation plot", 
-                                                 value = TRUE), style="text-align: right;"),
-                            column(6, 
-                                   plotOutput(ns("pca_combined"), height = "500px")
+            )),    
+        hidden(fluidRow(id = ns("pr_plots"),
+                        fluidRow(
+                            column(4, fluidRow(
+                                column(10,
+                                       style = "text-align: left;",
+                                       radioButtons(ns("show_pca_labels"), 
+                                                    "How to show labels", 
+                                                    choices = c("Add labels" = TRUE, 
+                                                                "No labels" = FALSE), 
+                                                    selected = TRUE)),
+                                column(2, actionBttn(ns("h_pcaplot"),
+                                                     icon = icon("info-circle"),
+                                                     style = "pill", 
+                                                     color = "royal", size = "xs")
+                                )
+                            )
                             ),
-                            column(6, 
+                            column(4, fluidRow(
+                                column(10, 
+                                       style = "text-align: left;",
+                                       checkboxInput(ns("scale_corrplot"), 
+                                                     "Adjust color gradient to available/calculated correlation values",
+                                       ),                                        
+                                ), 
+                                column(2, actionBttn(ns("h_corrplot"),
+                                                     icon = icon("info-circle"),
+                                                     style = "pill", 
+                                                     color = "royal", size = "xs")
+                                ))
+                            ),
+                            
+                            column(4, fluidRow(
+                                column(10, 
+                                       style = "text-align: left;",
+                                       radioButtons(ns("show_missing_rows"), 
+                                                    "Configure plot for missing values", 
+                                                    choices = c("Distribution of missing values over features" = TRUE, 
+                                                                "Missing values per sample" = FALSE), 
+                                                    selected = TRUE)),
+                                column(2, actionBttn(ns("h_missingplot"),
+                                                     icon = icon("info-circle"),
+                                                     style = "pill", 
+                                                     color = "royal", size = "xs")
+                                ))
+                            )
+                            ),
+                            fluidRow(column(4, 
+                                            girafeOutput(ns("pca_plot"), height = "500px")
+                            ),
+                            column(4, 
                                    plotOutput(ns("corrplot"), height = "500px")
                             ),
-                            column(6,
-                                   downloadBttn(ns("download_pca"), label = "Download figure (pdf)")),
-                            column(6,
-                                   downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)"))
-            ))
+                            column(4, 
+                                   plotOutput(ns("missingplot"), height = "500px")
+                            ),  style = 'margin-bottom: 20px;'
+                            ),
+                            fluidRow(column(4,
+                                            downloadBttn(ns("download_pca"), label = "Download figure (pdf)")),
+                                     column(4,
+                                            downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)")),
+                                     column(4,
+                                            downloadBttn(ns("download_missingplot"), label = "Download figure (pdf)")),
+                                     
+                            )
+                        )
         )
-    )
+        )
 }
 
 
@@ -813,7 +859,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     cols <- c("UniProtKB")
                     # cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
                     # cols <- intersect(cols, columns(up))
-
+                    
                     
                     # Fetch mappings
                     # Helper function to perform chunked select() calls
@@ -887,7 +933,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                             new_table[id_column %in% names(matched_uniprots), "Uniprot"] <- matched_uniprots
                         }
                         other_cols(new_table)
-
+                        
                     }
                 })
                 
@@ -899,7 +945,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 } else {
                     next_tab("ready")
                 }
-
+                
                 
                 print("Proceeding to interaction with apps, processed_table has been updated.")
             })
@@ -911,7 +957,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             ##########################################################################
             ##########################################################################
             ### PCA Plot
-            output$pca_combined <- renderPlot({
+
+            output$pca_plot <- renderGirafe({
                 print("PCA Plot")
                 
                 # Get the processed table, which reflects any changes made in data treatment
@@ -987,20 +1034,32 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     PC2 = loadings[, 2], 
                     Group = as.factor(group_info_filtered),
                     Replicate = as.factor(replicate_info_filtered), 
-                    Batch = as.factor(batch_info_filtered)
+                    Batch = as.factor(batch_info_filtered),
+                    Name = rownames(loadings)
+                )
+                
+                pca_df$tooltip_info <- paste0(
+                    "Sample: ", pca_df$Name, "\n",
+                    "Group: ", pca_df$Group, "\n",
+                    "Replicate: ", pca_df$Replicate, "\n",
+                    "Batch: ", pca_df$Batch
                 )
                 
                 # Use ggplot2 for combined PCA plot
-                library(ggplot2)
-                p <- ggplot(pca_df, aes(x = PC1, y = PC2, color = Group, shape = Batch)) +
+                p <- ggplot(pca_df, aes(x = PC1, y = PC2, color = Group, shape = Batch, label = Name, text = tooltip_info)) +
                     geom_point(size = 3) +
-                    labs(title = paste0("PCA Plot"),
+                    labs(title = paste0("PCA plot with first two components"),
                          x = "PC1", y = "PC2") +
                     theme_minimal() +
+                    
+                    geom_point_interactive(aes(color = Group, shape = Batch, tooltip = tooltip_info), size = 3) +
+                    
                     theme(legend.position = "right",
-                          plot.title = element_text(size = 16, face = "bold", hjust = 0.5)  # Set title font size to 14
-                    )
-                print(p)
+                          plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
+                
+                if (input$show_pca_labels) {
+                    p <- p + geom_text(data = pca_df, aes(label = Name), , nudge_y = 3, size = 3)
+                }
                 output$download_pca <- downloadHandler(
                     filename = function() {
                         paste("OmicsQ_pca_plot_", Sys.Date(), ".pdf", sep = "")
@@ -1011,9 +1070,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         dev.off()
                     }
                 )
+                girafe(ggobj = p)
             })
             
-            
+
+                        
             
             ##########################################################################
             ##########################################################################
@@ -1054,8 +1115,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # Scale the correlation range
                 corr_range <- seq(-1, 1, 0.01)
-                if (!input$scale_corrplot) {
-                    corr_range <- 201
+                corr_col <- gplots::redblue(200)
+                if (input$scale_corrplot) {
+                    # Restrict red to negative values
+                    if(min(correlation_matrix, na.rm = TRUE) >= 0) {
+                        corr_range <- 201
+                        corr_col <- gplots::colorpanel(200, "white","blue")  # Reverse the color scale
+                    } 
                 }
                 
                 # Plot the correlation matrix with customized color scale and legend position
@@ -1063,7 +1129,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                   main = "Pairwise correlations between samples",
                                   symm = TRUE,        # Symmetrical plot
                                   scale = "none",     # No scaling
-                                  col = gplots::redblue,  # Blue to red color scale
+                                  col = corr_col,  # Blue to red color scale
                                   breaks = corr_range,  # Breaks from -1 to 1 for colors
                                   trace = "none",     # No trace lines
                                   cex.main = 1.5,     # Size of the main title
@@ -1110,7 +1176,63 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             })
             
             
-            
+            ##########################################################################
+            ##########################################################################
+            ############### Plot Missing Value Distributions
+            output$missingplot <- renderPlot({
+                print("Missing Value Plot")
+                
+                # Get the processed table, which reflects any changes made in data treatment
+                tdata <- processed_table()
+                
+                # Check if processed_table is available and valid
+                if (is.null(tdata) || ncol(tdata) < 2 || nrow(tdata) < 10) { 
+                    shiny::validate(
+                        need(FALSE, "Data matrix too small to plot missing value distributions")
+                    )
+                    return()
+                }
+                
+                # Identify "quant" columns
+                quant_columns <- tdata[, -1, drop = FALSE]
+                
+                # Calculate the proportion of missing values per sample
+                missing_dist <- NULL
+                if (input$show_missing_rows) {
+                    missing_dist <- table(rowSums(is.na(quant_columns)))
+                } else {
+                    missing_dist <- colSums(is.na(quant_columns))
+                }
+                
+                # plot with ifelse to distinguish rows/columns
+                barplot(missing_dist, 
+                        main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
+                        xlab = ifelse(input$show_missing_rows, "Number of missing values", "Samples"),
+                        ylab = "Counts",
+                        col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
+                        border = "black",
+                        las = 2,  # Rotate x-axis labels
+                        cex.names = 0.7  # Adjust label size
+                )
+                output$download_missingplot <- downloadHandler(
+                    filename = function() {
+                        paste("OmicsQ_missing_value_plot_", Sys.Date(), ".pdf", sep = "")
+                    },
+                    content = function(file) {
+                        pdf(file)
+                        barplot(missing_dist, 
+                                main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
+                                xlab = ifelse(input$show_missing_rows, "Number of missing values", "Samples"),
+                                ylab = "Counts",
+                                col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
+                                border = "black",
+                                las = 2,  # Rotate x-axis labels
+                                cex.names = 0.7  # Adjust label size
+                        )
+                        dev.off()
+                    }
+                )
+            })
             
             
             ##########################################################################
@@ -1207,6 +1329,32 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
     and ensure that biological signal is retained. Select the method that best fits your experimental setup.
     </p>"),
                                                               type = "info", html = T
+            ))
+            
+            observeEvent(input$h_pcaplot, sendSweetAlert(session,
+                                                         title = "PCA Plot",
+                                                         text = HTML("<p align='justify'>
+                                                              The PCA plot visualizes the variance in the data by projecting it onto the first two principal components.
+              This helps to identify patterns, clusters, and potential outliers in the data. The points are colored by group and shaped by batch.
+              You can also choose to label the points with feature names for better identification of samples with different behavior.</p>"),
+                                                         type = "info", html = T
+            ))
+            
+            observeEvent(input$h_corrplot, sendSweetAlert(session,
+                                                          title = "Correlation Plot",
+                                                          text = HTML("<p align='justify'>The correlation plot shows the pairwise correlations between samples.
+              This helps to identify relationships and potential batch effects in the data. The color scale indicates the strength of the correlation,
+              with blue representing positive correlations and red representing negative correlations. You can scale the plot to better see smaller differences 
+                                                                      when the correlations are close to one.</p>"),
+                                                          type = "info", html = T
+            ))
+            
+            observeEvent(input$h_missingplot, sendSweetAlert(session,
+                                                             title = "Missing Value Distribution",
+                                                             text = HTML("<p align='justify'>The missing value distribution plot shows the number of missing values per feature or sample.
+              This helps to identify features or samples with high missingness, which can affect the analysis. When choosing the distribution per feature, the plot counts the number of 
+                                                                        features with a given number of missing values.</p>"),
+                                                             type = "info", html = T
             ))
             
             
