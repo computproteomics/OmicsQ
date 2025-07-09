@@ -49,10 +49,20 @@ sendRetrieveUI <- function(id, prefix="") {
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
         hidden(fluidRow(id = ns("app_c4"),
-            column(4, 
+            column(3, 
                    actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
-            column(4,
+            column(1, actionBttn(ns("h_stringdb"),
+                                 icon = icon("info-circle"),  # Info button for app analysis help
+                                 style = "pill", 
+                                 color = "royal", size = "xs")
+            ),
+            column(3,
                    actionButton(ns("reset_table"), "Deselect all features")),
+            column(1, actionBttn(ns("h_select"),
+                                 icon = icon("info-circle"),  # Info button for app analysis help
+                                 style = "pill", 
+                                 color = "royal", size = "xs")
+            ),
             column(4, 
                    downloadBttn(ns("downloadTable"), label = "Download table")))),
         br(),br(), 
@@ -507,6 +517,24 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
               opening new tabs!</br/>
               <i>Note:</i> Depending on the size of the data set, the data upload could fail due to a too slow
               internet connection.</p>"),
+                                                      type = "info", html = T
+            ))
+            
+            observeEvent(input$h_striungdb, sendSweetAlert(session,
+                                                      title = "Biological in-depth analysis via STRINGdb",
+                                                      text = HTML("<p align='justify'>Select the features according 
+            to custom filters (e.g. certain cluster numbers and FDR values) and send them to <a href='https://string-db.org/'>STRINGDB</a>
+            for visualization of protein-protein interactions and functional enrichment analysis.</p>"),
+                                                      type = "info", html = T
+            ))
+            
+            observeEvent(input$h_select, sendSweetAlert(session,
+                                                      title = "How to select features",
+                                                      text = HTML("<p align='justify'>To select features in the table, 
+                                                      you can use the filter boxes above each column to narrow down your selection. 
+                                                      When clicking on the text field of the filter, you can also manually edit the 
+                                                      minimum and maximum values in the numeric columns, separated by a '..', e.g. '-2..2'.
+</p>"),
                                                       type = "info", html = T
             ))
         }

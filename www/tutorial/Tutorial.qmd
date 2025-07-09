@@ -25,23 +25,23 @@ OmicsQ is a modular Shiny application that streamlines the workflow of quantitat
 
 *Brief overview*: Each of the following sections is represented by a different tab in OmicsQ:
 
-[Step I: Data Import](#step-1-data-import)
+[Step I: Data Import](#step-i-data-import)
 
 - Upload and verify your files (e.g., Excel or CSV/TSV).  
 - Adjust file-specific settings such as delimiters, decimal separators, etc.
 
-[Step II: Experimental Design](#step-2-experimental-design)
+[Step II: Experimental Design](#step-ii-experimental-design)
 
 - Automatically or manually assign sample groups, replicates, and batch labels.  
 - Ensure your design is correct.
    
-[Step III: Data Pre-Processing](#step-3-data-pre-processing)
+[Step III: Pre-Processing](#step-iii-pre-processing)
 
 - Apply transformations (e.g., logarithmic), normalization, and summarization.  
 - Remove features or samples with too many missing values
 - Check and correct for batch effects.
 
-[Step IV: Further Integrated Analysis](#step-4-further-integrated-analysis)
+[Step IV: Analysis via External Apps](#step-iv-analysis-via-external-apps)
 
 - Send processed data to specialized tools, such as [PolySTest](https://github.com/computproteomics/PolySTest/) for statistical analysis, [VSClust](https://github.com/computproteomics/vsclust) for clustering, or [ComplexBrowser](https://bitbucket.org/michalakw/complexbrowser/src/master/) to explore protein complexes.  
 - Retrieve and incorporate results back into OmicsQ for having a single file with all information.
@@ -51,7 +51,7 @@ OmicsQ is a modular Shiny application that streamlines the workflow of quantitat
 #### Literature and further materials
 The OmicsQ manuscript: _in preparation_
 
-For the publications of the other apps, see the section [About the external Apps](#about-the-external-apps)
+For the publications of the other apps, see the section [About the external Apps](#details-about-the-external-apps)
 
 
 ## Step I: Data Import
@@ -110,7 +110,7 @@ Now you need to select which columns will be used for identifying the molecules 
 
 The `id` column has already chosen correctly as indicated by a "Type" `id` above the column. 
 
-Now press the button below *Select quantitative columns*. You can use the *select all* option and then click on *ProteinId* to get all columns but the one for the identifications. Then click anywhere in the app. Now all quantitative columns should be marked as `quant`.
+Now press the button below *Select quantitative columns*. You can write "LFQ" in the text field and then use the *select all* option to get all columns but the one for the identifications. Then click anywhere in the app. Now all quantitative columns should be marked as `quant`.
 
 
 ### 4. Data Preview
@@ -152,7 +152,8 @@ After importing your data, you move to the *Experimental Design* tab. Here, you 
 
 #### {{< fa chalkboard-teacher >}} _Tutorial_
 
-Play with the rules of the string distance to see how the sample grouping changes. Remember to place it into a similar position as before at the end.
+Play with the rules of the string distance to see how the sample grouping changes. A high Levenstein distance threshold should
+give you the correct assignment.
 
 
 ### 2. Manually Assign Sample Types & Replicate Numbers
@@ -312,7 +313,7 @@ Here, you can send the data to specific web applications. Parameters such as exp
  
 **Tutorial:** [Link](https://www.bioconductor.org/packages/release/bioc/vignettes/PolySTest/inst/doc/StatisticalTest.html) to R package vignette (the tutorial contains the same steps  as carried out in the web application).  
 [**Source Code**](https://github.com/computproteomics/PolySTest/)  
-**Publication:** [PubMed link]https://pubmed.ncbi.nlm.nih.gov/32424025/)  
+**Publication:**[PubMed link](https://pubmed.ncbi.nlm.nih.gov/32424025/)  
 [**R Package:**](https://bioconductor.org/packages/release/bioc/html/PolySTest.html)
  
 ![](PolySTest.png)

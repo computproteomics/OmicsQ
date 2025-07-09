@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Veit Schwämmle">
-<meta name="dcterms.date" content="2025-03-15">
+<meta name="dcterms.date" content="2025-07-08">
 
 <title>OmicsQ — Documentation and Tutorial</title>
 <style>
@@ -109,7 +109,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 15, 2025</p>
+      <p class="date">July 8, 2025</p>
     </div>
   </div>
   
@@ -121,7 +121,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><img src="Logo_OmicsQ.svg" class="img-fluid"></p>
+<p><img src="Logo_OmicsQ.png" class="img-fluid"></p>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <p>OmicsQ is a modular Shiny application that streamlines the workflow of quantitative omics data analysis <em>without any need to impute missing values</em>. This tutorial will guide you through all the major steps — from importing your data, annotating your experimental design, and applying pre-processing methods, to sending your finalized dataset to dedicated external apps for <em>statistical testing</em>, <em>clustering</em>, or <em>complex behavior analysis</em>.</p>
@@ -130,26 +130,26 @@ ul.task-list li input[type="checkbox"] {
 <p><em>Online documentation</em>: Further information about the different operations of the user interface are available through the information (<i class="fa-solid fa-info-circle" aria-label="info-circle"></i>) buttons.</p>
 <p><em>Recording carried operations</em>: To ensure reproducibility of the results, all data processing steps are recorded in the <strong>Summary of operations</strong>.</p>
 <p><em>Brief overview</em>: Each of the following sections is represented by a different tab in OmicsQ:</p>
-<p><a href="#step-1-data-import">Step I: Data Import</a></p>
+<p><a href="#step-i-data-import">Step I: Data Import</a></p>
 <ul>
 <li>Upload and verify your files (e.g., Excel or CSV/TSV).<br>
 </li>
 <li>Adjust file-specific settings such as delimiters, decimal separators, etc.</li>
 </ul>
-<p><a href="#step-2-experimental-design">Step II: Experimental Design</a></p>
+<p><a href="#step-ii-experimental-design">Step II: Experimental Design</a></p>
 <ul>
 <li>Automatically or manually assign sample groups, replicates, and batch labels.<br>
 </li>
 <li>Ensure your design is correct.</li>
 </ul>
-<p><a href="#step-3-data-pre-processing">Step III: Data Pre-Processing</a></p>
+<p><a href="#step-iii-pre-processing">Step III: Pre-Processing</a></p>
 <ul>
 <li>Apply transformations (e.g., logarithmic), normalization, and summarization.<br>
 </li>
 <li>Remove features or samples with too many missing values</li>
 <li>Check and correct for batch effects.</li>
 </ul>
-<p><a href="#step-4-further-integrated-analysis">Step IV: Further Integrated Analysis</a></p>
+<p><a href="#step-iv-analysis-via-external-apps">Step IV: Analysis via External Apps</a></p>
 <ul>
 <li>Send processed data to specialized tools, such as <a href="https://github.com/computproteomics/PolySTest/">PolySTest</a> for statistical analysis, <a href="https://github.com/computproteomics/vsclust">VSClust</a> for clustering, or <a href="https://bitbucket.org/michalakw/complexbrowser/src/master/">ComplexBrowser</a> to explore protein complexes.<br>
 </li>
@@ -160,7 +160,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="literature-and-further-materials" class="level4">
 <h4 class="anchored" data-anchor-id="literature-and-further-materials">Literature and further materials</h4>
 <p>The OmicsQ manuscript: <em>in preparation</em></p>
-<p>For the publications of the other apps, see the section <a href="#about-the-external-apps">About the external Apps</a></p>
+<p>For the publications of the other apps, see the section <a href="#details-about-the-external-apps">About the external Apps</a></p>
 </section>
 </section>
 <section id="step-i-data-import" class="level2">
