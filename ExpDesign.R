@@ -148,9 +148,8 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                         exp_design(current_design)  # Update exp_design with the modified matrix
                     }
                     
-                    updateSelectInput(session, "dist_type", selected = "jaccard")
                     updateSelectInput(session, "dist_thresh", selected = 0)
-                    updateSelectInput(session, "dist_type", selected = "jw")
+                    updateSelectInput(session, "dist_type", selected = "lv")
                     updatePickerInput(session, "ed_sel_samples", choices = cnames)
                     updateSliderInput(session, "ed_number", max = length(cnames))
                     updatePickerInput(session, "ed_sel_batches", choices = cnames)

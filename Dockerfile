@@ -12,8 +12,10 @@ RUN apt-get -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngrad
 
 RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org'); update.packages(ask=F); \
   BiocManager::install(c('dplyr','plotly'),ask=F)"
-RUN R -e "library(BiocManager); BiocManager::install(c('matrixStats','fdrtool','parallel','qvalue','circlize','DT','UpSetR','heatmaply','gplots','shinyBS','shinydashboard','limma', \
-                                                       'shinyWidgets','shinycssloaders','shinythemes','shinyjs','data.table','readxl','stringdist','MsCoreUtils','jsonlite','BEclear',\
+RUN R -e "library(BiocManager); BiocManager::install(c('matrixStats','fdrtool','parallel','qvalue','circlize', \
+                                                       'DT','UpSetR','heatmaply','gplots','shinyBS','shinydashboard','limma', \
+                                                       'shinyWidgets','shinycssloaders','shinythemes','shinyjs','data.table', \
+                                                       'readxl','stringdist','MsCoreUtils','jsonlite','BEclear',\
                                                        'dplyr', 'sva','viridis','UniProt.ws','ggrepel','ggiraph'),ask=F)"
 
 

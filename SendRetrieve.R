@@ -128,6 +128,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 }
                 
                 # Move id column to other_cols when it has duplicated values
+                other_cols(NULL)
                 if (any(duplicated(tout[,1]))) {
                     # Move the first column to other_cols
                     other_cols(data.frame(original_id = tout[,1]))

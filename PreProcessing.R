@@ -79,6 +79,7 @@ preProcessingUI <- function(id, prefix="") {
                           #                                        style = "text-align: right;"),
                           style = 'border-left: 1px solid; margin-bottom: 20px;') 
             )),    
+        hr(style="border:solid;border-width:1px;"),
         hidden(fluidRow(id = ns("pr_plots"),
                         fluidRow(
                             column(4, fluidRow(
@@ -185,7 +186,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     processed_table(cbind(id_column, quant_columns)) # Initialize processed_table
                     # Keep all other columns separate, only to merge when summarizing
                     # This is why we need to reload them
-                    other_cols(initial_data[, !(colnames(initial_data) %in% c(colnames(id_column), colnames(quant_columns)))])
+                    other_cols(initial_data[, !(colnames(initial_data) %in% c(colnames(id_column), colnames(quant_columns))), drop = FALSE])
                 }
             }
             
@@ -889,7 +890,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     }
                     
                     res <- tryCatch({
-                        chunked_uniprot_select(up, ids = ids, keytype = keytype, cols = cols)
+                        #chunked_uniprot_select(up, ids = ids, keytype = keytype, cols = cols)
                         #select(up, keys = ids, keytype = keytype, columns = cols)
                     }, error = function(e) {
                         warning("Mapping failed: ", conditionMessage(e))

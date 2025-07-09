@@ -199,7 +199,7 @@ dataInputServer <- function(id, parent, log_operations) {
 
                 tdata <- read.csv("data/Myo.csv")
                 class(tdata[, 1]) <- "id"
-                for (i in 2:19) class(tdata[, i]) <- "quant"
+                for (i in 3:20) class(tdata[, i]) <- "quant"
                 indata(tdata)
                 shinyjs::show(id = "in_c1")
                 shinyjs::show(id = "in_c2")
