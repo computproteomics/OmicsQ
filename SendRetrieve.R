@@ -140,7 +140,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 # Check whether null or empty
                 if (!is.null(preProcessing$other_cols())) {
                         if (!is.null(other_cols())) {
-                            other_cols(cbind(other_cols(), preProcessing$other_cols()))
+                            other_cols(data.frame(other_cols(), preProcessing$other_cols()))
                         } else {
                             other_cols(preProcessing$other_cols())
                     } 
@@ -533,8 +533,9 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                                                       title = "How to select features",
                                                       text = HTML("<p align='justify'>To select features in the table, 
                                                       you can use the filter boxes above each column to narrow down your selection. 
-                                                      When clicking on the text field of the filter, you can also manually edit the 
-                                                      minimum and maximum values in the numeric columns, separated by a '..', e.g. '-2..2'.
+                                                      When clicking on the text field of the filter, and then moveing one of the rulers, 
+                                                      you can also manually edit the 
+                                                      minimum and maximum values in the numeric columns, separated by a ' ... ', e.g. '-2 ... 2'.
 </p>"),
                                                       type = "info", html = T
             ))

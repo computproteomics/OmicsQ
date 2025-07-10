@@ -1,4 +1,4 @@
-FROM rocker/shiny:4.4
+FROM rocker/shiny:4.5
 LABEL maintainer="Veit Schwaemmle <veits@bmb.sdu.dk>"
 LABEL description="Docker image of PolySTest implementation on top of shiny-server. The number of to-be-installed R packages requires patience when building this image."
 
@@ -10,13 +10,14 @@ LABEL description="Docker image of PolySTest implementation on top of shiny-serv
 RUN apt-get -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true update && apt-get install -y libssl-dev liblzma-dev libbz2-dev libicu-dev && apt-get clean 
 
 
-RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org'); update.packages(ask=F); \
+RUN R -e "install.packages('BiocManager', repos='https://cloud.r-project.org', version = '3.21'); update.packages(ask=F); \
   BiocManager::install(c('dplyr','plotly'),ask=F)"
 RUN R -e "library(BiocManager); BiocManager::install(c('matrixStats','fdrtool','parallel','qvalue','circlize', \
                                                        'DT','UpSetR','heatmaply','gplots','shinyBS','shinydashboard','limma', \
                                                        'shinyWidgets','shinycssloaders','shinythemes','shinyjs','data.table', \
                                                        'readxl','stringdist','MsCoreUtils','jsonlite','BEclear',\
-                                                       'dplyr', 'sva','viridis','UniProt.ws','ggrepel','ggiraph'),ask=F)"
+                                                       'dplyr', 'sva','viridis','UniProt.ws','ggrepel','ggiraph',\
+                                                       'UniProt.ws'),ask=F)"
 
 
 RUN rm -rf /srv/shiny-server

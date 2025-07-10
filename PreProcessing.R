@@ -4,7 +4,7 @@ preProcessingUI <- function(id, prefix="") {
     tagList(
         useShinyjs(),  # Include shinyjs to enable/disable UI elements
         fluidRow(
-            hidden(column(width = 4, id = ns("pr_c1"),
+            hidden(column(width = 6, id = ns("pr_c1"),
                           h4("Add or delete data columns"),
                           fluidRow(column(10, pickerInput(ns("remove_reps"), "Pick the samples you want to remove", 
                                                           choices = NULL, multiple = T,
@@ -19,9 +19,15 @@ preProcessingUI <- function(id, prefix="") {
                                                         style = "pill", 
                                                         color = "royal", size = "xs")
                                    )),
-                          h4("The current state:"),
-                          p(textOutput(ns("res_num_reps")), style = "text-color:#AA2222"),
-                          checkboxInput(ns("add_na_columns"), "Fill with empty columns"),
+                          fluidRow(column(6,
+                                          p(htmlOutput(ns("res_num_reps")), style = "text-color:#AA2222")
+                          ),
+                          column(6,
+                                 checkboxInput(ns("add_na_columns"), "Fill with empty columns")
+                          )
+                          ),
+                          h5("Summary:"),
+                          htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;padding:10px;")
             )),
             hidden(column(width = 3, id = ns("pr_c2"),
                           h4("Data manipulation and adjustment"),
@@ -69,14 +75,27 @@ preProcessingUI <- function(id, prefix="") {
                           style = 'border-left: 1px solid; margin-bottom: 20px;'  # Add bottom margin to separate from next section
                           
             )),
-            hidden(column(4, id = ns("pr_c3"),
-                          h4("Summary:"),
-                          htmlOutput(ns("ptable_summary"), style = "border:solid;border-width:1px;padding:10px;"),
-                          h5("Proceed to interaction with apps"),
+            hidden(column(3, id = ns("pr_c3"),
+                          h4("Proceed to interaction with apps"),
                           textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
-                          checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers (experimental feature)?", value = FALSE),
-                          #                                        style = "text-align: right;"),
+                          fluidRow(
+                              column(10, 
+                                     style = "text-align: left;",
+                                     checkboxInput(ns("map2uniprot"), "Map identifiers to UniProt accession numbers?", value = FALSE),
+                              ),
+                              column(2, actionBttn(ns("h_mapping"),
+                                                   icon = icon("info-circle"),
+                                                   style = "pill", 
+                                                   color = "royal", size = "xs")
+                              )
+                          ),
+                          selectInput(ns("idtype"), 
+                                      "Select identifier type to map to UniProt",
+                                      choices = c("Generic gene names (will be mapped to human)" = "Gene_Name", 
+                                                  "Ensembl gene ids" = "Ensembl", 
+                                                  "GeneIDs (Entrez IDs)" = "GeneID"), 
+                                      selected = "GeneID"),
                           style = 'border-left: 1px solid; margin-bottom: 20px;') 
             )),    
         hr(style="border:solid;border-width:1px;"),
@@ -125,28 +144,28 @@ preProcessingUI <- function(id, prefix="") {
                                                      color = "royal", size = "xs")
                                 ))
                             )
-                            ),
-                            fluidRow(column(4, 
-                                            girafeOutput(ns("pca_plot"), height = "500px")
-                            ),
-                            column(4, 
-                                   plotOutput(ns("corrplot"), height = "500px")
-                            ),
-                            column(4, 
-                                   plotOutput(ns("missingplot"), height = "500px")
-                            ),  style = 'margin-bottom: 20px;'
-                            ),
-                            fluidRow(column(4,
-                                            downloadBttn(ns("download_pca"), label = "Download figure (pdf)")),
-                                     column(4,
-                                            downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)")),
-                                     column(4,
-                                            downloadBttn(ns("download_missingplot"), label = "Download figure (pdf)")),
-                                     
-                            )
+                        ),
+                        fluidRow(column(4, 
+                                        girafeOutput(ns("pca_plot"), height = "500px")
+                        ),
+                        column(4, 
+                               plotOutput(ns("corrplot"), height = "500px")
+                        ),
+                        column(4, 
+                               plotOutput(ns("missingplot"), height = "500px")
+                        ),  style = 'margin-bottom: 20px;'
+                        ),
+                        fluidRow(column(4,
+                                        downloadBttn(ns("download_pca"), label = "Download figure (pdf)")),
+                                 column(4,
+                                        downloadBttn(ns("download_corrplot"), label = "Download figure (pdf)")),
+                                 column(4,
+                                        downloadBttn(ns("download_missingplot"), label = "Download figure (pdf)")),
+                                 
                         )
         )
         )
+    )
 }
 
 
@@ -313,12 +332,12 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         "This unbalanced design has between ",
                         min(ed_stats),
                         " and maximally", max(ed_stats),
-                        "replicates for each experimental condition (sample type). Please click below button to make data balanced."
+                        "replicates for each experimental condition (sample type). <br/><b>Please click button to make data balanced.</b>"
                     )
                 } else {
                     # If the design is balanced, enable the Proceed button
                     enable("proceed_to_apps")
-                    disable("add_na_columns")  # Disable fill with empty columns when balanced
+                    #disable("add_na_columns")  # Disable fill with empty columns when balanced
                     tout <- paste("Experimental design is balanced.")
                 }
                 
@@ -454,13 +473,14 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 if (sum(duplicated(tdata[,1])) > 0) {
                     print("Summarizing data...")
                     
+                    
                     # update other_cols by merging values using bars
                     o_cols <- other_cols()
                     if (!is.null(o_cols)) {
                         to_rbind <- by(o_cols, tdata[, 1], function(x) {
                             apply(x, 2, function(y) paste(as.character(y), collapse="|"))
                         })
-                        o_cols <- do.call(rbind, to_rbind)
+                        o_cols <- do.call(rbind, as.list(to_rbind))
                     }
                     
                     # Apply summarization method
@@ -478,7 +498,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         tlog <- log_operations()
                         tlog[["summarization"]] <- method
                         log_operations(tlog)
-                    }
+                        enable("proceed_to_apps")
+                        
+                    } 
                     
                     if (!is.null(o_cols))
                         other_cols(o_cols[as.character(tdata[, 1]), ])
@@ -783,6 +805,35 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             
             ##########################################################################
             ##########################################################################
+            ## detect id type
+            observeEvent(input$map2uniprot, {
+                ids <- unique(processed_table()[, 1])
+                regex_uniprot <- "^[A-NR-Z][0-9]{5}(-[0-9]+)?$|^[OPQ][0-9][A-Z0-9]{3}[0-9](-[0-9]+)?$"
+                detect_key_type <- function(ids) {
+                    if (all(grepl("^ENSG[0-9]+", ids))) {
+                        return("Ensembl")
+                    } else if (all(grepl("^[0-9]+$", ids))) {
+                        return("GeneID")
+                    } else if (all(grepl(regex_uniprot, ids))) {
+                        # Simple UniProtKB pattern (e.g., P12345, Q8NBP7)
+                        return("UniProtKB")            
+                    } else {
+                        return("Gene_Name")
+                    }
+                }
+                
+                
+                keytype <- detect_key_type(ids)
+                message("Detected key type: ", keytype)
+                updatePickerInput(session, "idtype", 
+                                  selected = keytype,
+                                  choices = c("Ensembl", "GeneID", "UniProtKB", "Gene_Name"))
+            })
+            
+            
+            
+            ##########################################################################
+            ##########################################################################
             ## Send further to next tab
             observeEvent(input$proceed_to_apps, {
                 # Ensure the processed_table is up to date
@@ -794,22 +845,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # add Uniprot IDs
                 map_gene_to_main_uniprot <- function(ids) {
-                    regex_uniprot <- "^[A-NR-Z][0-9]{5}(-[0-9]+)?$|^[OPQ][0-9][A-Z0-9]{3}[0-9](-[0-9]+)?$"
-                    detect_key_type <- function(ids) {
-                        if (all(grepl("^ENSG[0-9]+", ids))) {
-                            return("Ensembl")
-                        } else if (all(grepl("^[0-9]+$", ids))) {
-                            return("GeneID")
-                        } else if (all(grepl(regex_uniprot, ids))) {
-                            # Simple UniProtKB pattern (e.g., P12345, Q8NBP7)
-                            return("UniProtKB")            
-                        } else {
-                            return("Gene_Name")
-                        }
-                    }
                     
-                    keytype <- detect_key_type(ids)
-                    message("Detected key type: ", keytype)
+                    keytype <- input$idtype
                     
                     # Create UniProt.ws object with species restriction
                     # try connecting and return NULL if it fails
@@ -857,14 +894,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     
                     # Columns we want (filter down later)
-                    cols <- c("UniProtKB")
-                    # cols <- c("UniProtKB", "Gene_Name", "Organism", "Reviewed", "Ensembl", "GeneID")
-                    # cols <- intersect(cols, columns(up))
+                    cols <- c("accession")
+                    cols <- intersect(cols, columns(up))
                     
                     
                     # Fetch mappings
                     # Helper function to perform chunked select() calls
-                    chunked_uniprot_select <- function(up, ids, keytype, cols, chunk_size = 200) {
+                    chunked_uniprot_select <- function(up, ids, keytype, cols, chunk_size = 1000) {
                         # Split IDs into chunks
                         id_chunks <- split(ids, ceiling(seq_along(ids) / chunk_size))
                         
@@ -873,11 +909,26 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         
                         for (i in seq_along(id_chunks)) {
                             chunk <- id_chunks[[i]]
+                            if (length(chunk) == 0) next
                             message(sprintf("Querying chunk %d of %d...", i, length(id_chunks)))
                             incProgress(1 / length(id_chunks), detail = sprintf("Processing chunk %d of %d", i, length(id_chunks)))                            
-                            
+                            q <- if (keytype == "Gene_Name")
+                                list(taxId = 9606, ids = chunk)
+                            else
+                                list(ids = chunk)
                             res <- tryCatch({
-                                UniProt.ws::select(up, keys = chunk, keytype = keytype, columns = cols)
+                                
+                                tmp <- mapUniProt(
+                                    from      = keytype,
+                                    to        = "UniProtKB-Swiss-Prot",
+                                    query     = q,
+                                    verbose = TRUE,
+                                    #debug = TRUE,
+                                    columns   = cols,
+                                    paginate = F # Pagination is not needed here, we handle chunks manually
+                                    # pageSize = chunk_size      # up to 10 000 is accepted
+                                )
+                                tmp[!duplicated(tmp$From),,drop=F]
                             }, error = function(e) {
                                 warning(sprintf("Mapping failed for chunk %d: %s", i, conditionMessage(e)))
                                 return(data.frame())
@@ -890,8 +941,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     }
                     
                     res <- tryCatch({
-                        #chunked_uniprot_select(up, ids = ids, keytype = keytype, cols = cols)
-                        #select(up, keys = ids, keytype = keytype, columns = cols)
+                        chunked_uniprot_select(up, ids = ids, keytype = keytype, cols = cols)
                     }, error = function(e) {
                         warning("Mapping failed: ", conditionMessage(e))
                         showModal(modalDialog(
@@ -926,7 +976,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         new_table <- other_cols()
                         if (!is.null(uniprots) && nrow(uniprots) > 0) {
                             # Safe mapping: build a named vector for lookup
-                            uniprot_lookup <- setNames(uniprots$To, uniprots$From)
+                            uniprot_lookup <- setNames(uniprots$Entry, uniprots$From)
                             # Assign UniProt values using lookup by id_column
                             matched_uniprots <- uniprot_lookup[as.character(id_column)]  # names(id_column) will match names(uniprot_lookup)
                             matched_uniprots <- matched_uniprots[!is.na(matched_uniprots)]
@@ -958,7 +1008,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             ##########################################################################
             ##########################################################################
             ### PCA Plot
-
+            
             output$pca_plot <- renderGirafe({
                 print("PCA Plot")
                 
@@ -1074,8 +1124,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 girafe(ggobj = p)
             })
             
-
-                        
+            
+            
             
             ##########################################################################
             ##########################################################################
@@ -1356,6 +1406,17 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               This helps to identify features or samples with high missingness, which can affect the analysis. When choosing the distribution per feature, the plot counts the number of 
                                                                         features with a given number of missing values.</p>"),
                                                              type = "info", html = T
+            ))
+            
+            observeEvent(input$h_mapping, sendSweetAlert(session,
+                                                         title = "UniProt Mapping",
+                                                         text = HTML("<p align='justify'>This step maps the identifiers in your data to UniProt accessions.
+              This is useful for standardizing identifiers and ensuring compatibility with protein complex analysis in ComplexBrowser.
+              The mapping is performed using the UniProt.ws package, which connects to the UniProt database.
+              You can select the key type of your identifiers (e.g., Ensembl, GeneID, UniProtKB, Gene_Name) to ensure accurate mapping. The app
+                                                                      tries to estimate the type automatically. <br/>Note that gene names are too generic 
+                                                                      to be mapped to a particular species, and thus are mapped to homo sapiens.</p>"),
+                                                         type = "info", html = T
             ))
             
             

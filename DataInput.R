@@ -390,7 +390,7 @@ dataInputServer <- function(id, parent, log_operations) {
                 print("proceed to expdesign")
                 updateTabsetPanel(parent, "mainpage", selected = "exp_design")
                 cnames <- colnames(indata())[sapply(indata(), class) == "quant"]
-                ted <- rbind(rep(NA, length(cnames)), NA)
+                ted <- rbind(rep(1, length(cnames)), 1)
                 colnames(ted) <- cnames
                 rownames(ted) <- c("Group", "Replicate")
                 print(ted)
