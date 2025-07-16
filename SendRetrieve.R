@@ -18,29 +18,29 @@ sendRetrieveUI <- function(id, prefix="") {
         fluidRow(
             # PolySTest section for statistical testing
             hidden(column(width = 4, id = ns("app_c1"),
-                    h4("Statistical testing"),
-                    actionButton(ns("send_PolySTest"), "Send to PolySTest"),  # Send button for PolySTest
-                    span(textOutput(ns("connection_PolySTest")), style = "color:#33DD33;"),  # Display connection status
-                    textInput(ns("url_PolySTest"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/PolySTest/"),  # PolySTest URL input
-                    disabled(actionButton(ns("retrieve_PolySTest"), "Retrieve results from PolySTest"))  # Retrieve button, initially disabled
+                          h4("Statistical testing"),
+                          actionButton(ns("send_PolySTest"), "Send to PolySTest"),  # Send button for PolySTest
+                          span(textOutput(ns("connection_PolySTest")), style = "color:#33DD33;"),  # Display connection status
+                          textInput(ns("url_PolySTest"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/PolySTest/"),  # PolySTest URL input
+                          disabled(actionButton(ns("retrieve_PolySTest"), "Retrieve results from PolySTest"))  # Retrieve button, initially disabled
             )),
             # VSClust section for clustering
             hidden(column(width = 4, id = ns("app_c2"),
-                    h4("Clustering"),
-                    actionButton(ns("send_VSClust"), "Send to VSClust"),  # Send button for VSClust
-                    span(textOutput(ns("connection_VSClust")), style = "color:#33DD33;"),  # Display connection status
-                    textInput(ns("url_VSClust"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/VSClust/"),  # VSClust URL input
-                    disabled(actionButton(ns("retrieve_VSClust"), "Retrieve results from VSClust")),  # Retrieve button, initially disabled
-                    style = 'border-left: 1px solid'    
+                          h4("Clustering"),
+                          actionButton(ns("send_VSClust"), "Send to VSClust"),  # Send button for VSClust
+                          span(textOutput(ns("connection_VSClust")), style = "color:#33DD33;"),  # Display connection status
+                          textInput(ns("url_VSClust"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/VSClust/"),  # VSClust URL input
+                          disabled(actionButton(ns("retrieve_VSClust"), "Retrieve results from VSClust")),  # Retrieve button, initially disabled
+                          style = 'border-left: 1px solid'    
             )),
             # ComplexBrowser section for investigating protein complexes
             hidden(column(width = 4, id = ns("app_c3"),
-                    h4("Investigate protein complex behavior"),
-                    actionButton(ns("send_ComplexBrowser"), "Send to ComplexBrowser"),  # Send button for ComplexBrowser
-                    span(textOutput(ns("connection_ComplexBrowser")), style = "color:#33DD33;"),  # Display connection status
-                    textInput(ns("url_ComplexBrowser"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/"),  # ComplexBrowser URL input
-                    hidden(actionButton(ns("retrieve_ComplexBrowser"), "Retrieve results from ComplexBrowser")),  # Retrieve button, hidden by default
-                    style = 'border-left: 1px solid'    
+                          h4("Investigate protein complex behavior"),
+                          actionButton(ns("send_ComplexBrowser"), "Send to ComplexBrowser"),  # Send button for ComplexBrowser
+                          span(textOutput(ns("connection_ComplexBrowser")), style = "color:#33DD33;"),  # Display connection status
+                          textInput(ns("url_ComplexBrowser"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/"),  # ComplexBrowser URL input
+                          hidden(actionButton(ns("retrieve_ComplexBrowser"), "Retrieve results from ComplexBrowser")),  # Retrieve button, hidden by default
+                          style = 'border-left: 1px solid'    
             ))
         ),
         # Download button for processed table
@@ -49,22 +49,22 @@ sendRetrieveUI <- function(id, prefix="") {
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
         hidden(fluidRow(id = ns("app_c4"),
-            column(3, 
-                   actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
-            column(1, actionBttn(ns("h_stringdb"),
-                                 icon = icon("info-circle"),  # Info button for app analysis help
-                                 style = "pill", 
-                                 color = "royal", size = "xs")
-            ),
-            column(3,
-                   actionButton(ns("reset_table"), "Deselect all features")),
-            column(1, actionBttn(ns("h_select"),
-                                 icon = icon("info-circle"),  # Info button for app analysis help
-                                 style = "pill", 
-                                 color = "royal", size = "xs")
-            ),
-            column(4, 
-                   downloadBttn(ns("downloadTable"), label = "Download table")))),
+                        column(3, 
+                               actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
+                        column(1, actionBttn(ns("h_stringdb"),
+                                             icon = icon("info-circle"),  # Info button for app analysis help
+                                             style = "pill", 
+                                             color = "royal", size = "xs")
+                        ),
+                        column(3,
+                               actionButton(ns("reset_table"), "Deselect all features")),
+                        column(1, actionBttn(ns("h_select"),
+                                             icon = icon("info-circle"),  # Info button for app analysis help
+                                             style = "pill", 
+                                             color = "royal", size = "xs")
+                        ),
+                        column(4, 
+                               downloadBttn(ns("downloadTable"), label = "Download table")))),
         br(),br(), 
         # Display the processed table
         fluidRow(
@@ -104,7 +104,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                         print(grepl("PolySTest", input$app_log))
                         if(grepl("VSClust", input$app_log)) {
                             log_VSClust(input$app_log)
-                        } else if(grepl("PolyfSTest", input$app_log)) {
+                        } else if(grepl("PolySTest", input$app_log)) {
                             log_PolySTest(input$app_log)
                             print(log_PolySTest())
                         } else if(grepl("ComplexBrowser", input$app_log)) {
@@ -139,10 +139,10 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                 processed_table(tout)
                 # Check whether null or empty
                 if (!is.null(preProcessing$other_cols())) {
-                        if (!is.null(other_cols())) {
-                            other_cols(data.frame(other_cols(), preProcessing$other_cols()))
-                        } else {
-                            other_cols(preProcessing$other_cols())
+                    if (!is.null(other_cols())) {
+                        other_cols(data.frame(other_cols(), preProcessing$other_cols()))
+                    } else {
+                        other_cols(preProcessing$other_cols())
                     } 
                 }
                 pexp_design(preProcessing$pexp_design())  # Update experimental design reactively
@@ -162,7 +162,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     full_data <- NULL
                     # Combine main and additional columns
                     if (!is.null(other_cols())) {
-                            full_data <- cbind(result_table(), other_cols())
+                        full_data <- cbind(result_table(), other_cols())
                     } else {
                         full_data <- result_table()
                     }
@@ -195,7 +195,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                             colReorder = TRUE,
                             
                             # Horizontal scrolling if needed
-                            scrollX = TRUE
+                            scrollX = FALSE,
+                            deferRender = TRUE
                         )
                     ) %>%
                         # Example of conditional formatting:
@@ -372,23 +373,28 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     tdata <- NULL
                     # Convert JSON response to table
                     for (n in names(input$VSClust_results[[1]])) {
-                        tdata <- cbind(tdata, as.numeric(input$VSClust_results[[1]][[n]]))
+                        tdata <- cbind(tdata, suppressWarnings(
+                            as.numeric(input$VSClust_results[[1]][[n]])))
                     }
-                    tdata <- data.frame(tdata)
+                    # tdata <- data.frame(tdata)
                     colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
-                    if (!any(colnames(result_table()) == "isClusterMember")) { # check whether VSClust was already run 
-                        log_VSClust("Added VSClust results to table")    
-                    } else {
-                        log_VSClust("VSClust: overwriting already retrieved results")
-                        result_table(result_table()[, !grepl("^VSClust", colnames(result_table()))])
+                    
+                    if (any(colnames(tdata) == "isClusterMember")) {
+                        colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
+                        if (!any(colnames(result_table()) == "VSClust_isClusterMember")) { # check whether VSClust was already run 
+                            log_VSClust("Added VSClust results to table")    
+                        } else {
+                            log_VSClust("VSClust: overwriting already retrieved results")
+                            result_table(result_table()[, !grepl("^VSClust", colnames(result_table()))])
+                        }
+                        colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
+                        tdata[,"VSClust_isClusterMember"] <- as.logical(tdata[,"VSClust_isClusterMember"])  # Convert to logical
+                        result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                        # Update the log with processed results
+                        tlog <- log_operations()
+                        tlog[["VSClust version"]] <- input$VSClust_results$version
+                        log_operations(tlog)
                     }
-                    colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
-                    tdata[,"VSClust_isClusterMember"] <- as.logical(tdata[,"VSClust_isClusterMember"])  # Convert to logical
-                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
-                    # Update the log with processed results
-                    tlog <- log_operations()
-                    tlog[["VSClust version"]] <- input$VSClust_results$version
-                    log_operations(tlog)
                 }
             }))
             
@@ -443,23 +449,27 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     tdata <- NULL
                     # Convert JSON response to table
                     for (n in names(input$PolySTest_results[[1]])) {
-                        tdata <- cbind(tdata, as.numeric(input$PolySTest_results[[1]][[n]]))
+                        tdata <- cbind(tdata, suppressWarnings(
+                            as.numeric(input$PolySTest_results[[1]][[n]])))
                     }
                     colnames(tdata) <- names(input$PolySTest_results[[1]])  # Assign column names
                     
-                    if (!any(grep("^PolySTest", colnames(result_table())))) { # check whether PolySTest was already run 
-                        log_PolySTest("Added PolySTest results to table")    
-                    } else {
-                        log_PolySTest("PolySTest: overwriting already retrieved results")
-                        result_table(result_table()[, !grepl("^PolySTest", colnames(result_table()))])
+                    # check whther this is PolySTest output
+                    if (any(grepl("^FDR_PolySTest_", colnames(tdata)) )) {
+                        
+                        if (!any(grep("^PolySTest", colnames(result_table())))) { # check whether PolySTest was already run 
+                            log_PolySTest("Added PolySTest results to table")    
+                        } else {
+                            log_PolySTest("PolySTest: overwriting already retrieved results")
+                            result_table(result_table()[, !grepl("^PolySTest", colnames(result_table()))])
+                        }
+                        colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
+                        result_table(data.frame(result_table(), tdata))  # Combine results with processed table
+                        # Update the log with processed results
+                        tlog <- log_operations()
+                        tlog[["PolySTest version"]] <- input$PolySTest_results$version
+                        log_operations(tlog)
                     }
-                    colnames(tdata) <- paste("PolySTest", colnames(tdata), sep = "_")  # Add prefix to column names
-                    result_table(data.frame(result_table(), tdata))  # Combine results with processed table
-                    # Update the log with processed results
-                    tlog <- log_operations()
-                    tlog[["PolySTest version"]] <- input$PolySTest_results$version
-                    log_operations(tlog)
-                    
                 }
             }))
             
@@ -522,22 +532,22 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ))
             
             observeEvent(input$h_striungdb, sendSweetAlert(session,
-                                                      title = "Biological in-depth analysis via STRINGdb",
-                                                      text = HTML("<p align='justify'>Select the features according 
+                                                           title = "Biological in-depth analysis via STRINGdb",
+                                                           text = HTML("<p align='justify'>Select the features according 
             to custom filters (e.g. certain cluster numbers and FDR values) and send them to <a href='https://string-db.org/'>STRINGDB</a>
             for visualization of protein-protein interactions and functional enrichment analysis.</p>"),
-                                                      type = "info", html = T
+                                                           type = "info", html = T
             ))
             
             observeEvent(input$h_select, sendSweetAlert(session,
-                                                      title = "How to select features",
-                                                      text = HTML("<p align='justify'>To select features in the table, 
+                                                        title = "How to select features",
+                                                        text = HTML("<p align='justify'>To select features in the table, 
                                                       you can use the filter boxes above each column to narrow down your selection. 
                                                       When clicking on the text field of the filter, and then moveing one of the rulers, 
                                                       you can also manually edit the 
                                                       minimum and maximum values in the numeric columns, separated by a ' ... ', e.g. '-2 ... 2'.
 </p>"),
-                                                      type = "info", html = T
+                                                        type = "info", html = T
             ))
         }
     )
