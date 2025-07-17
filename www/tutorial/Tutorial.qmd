@@ -208,7 +208,7 @@ Press the button to *proceed* to the next tab.
 ---
 
 
-## Step III: Data Pre-Processing
+## Step III: Pre-Processing
 
 You can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through *Principal Component Analysis* (PCA) and *correlation* plots. This allows you to try different settings and see their effects in real time.
 
@@ -266,7 +266,7 @@ Click **Proceed** to continue to the next module of OmicsQ.
 
 ---
 
-## Step IV: Further Integrated Analysis
+## Step IV: Analysis via External Apps
 
 After you have completed data pre-processing, OmicsQ allows you to send your processed dataset to additional apps for deeper analysis. These tools can be used for statistical testing, clustering, and exploring protein complexes. Below is an overview of each app and how to access them within OmicsQ.
 
