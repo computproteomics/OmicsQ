@@ -94,7 +94,7 @@ There, you can also find a tutorial on how to use the app for your data analysis
 
 ## License
 
-OmicsQ is released under the MIT License. See the LICENSE file for details.
+OmicsQ is released under the Apache 2 License. See the LICENSE file for details.
 
 ## Citation
 
