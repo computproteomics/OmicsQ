@@ -135,7 +135,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     # Add placeholder names
                     tout[, 1] <- paste0("Feature", seq_len(nrow(tout)))
                 }
-                
+
                 processed_table(tout)
                 # Check whether null or empty
                 if (!is.null(preProcessing$other_cols())) {
@@ -157,6 +157,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             ## Show the processed table in a DataTable with advanced filter & sorting
             output$rtable <- DT::renderDT({
+                print("rendering table")
                 # If result_table is not NULL, bind your additional columns
                 if (!is.null(result_table())) {
                     full_data <- NULL
@@ -171,6 +172,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     DT::datatable(
                         data = full_data,
                         rownames = FALSE,
+                        plugins = "input",
                         
                         # Place a filter row at the top (or "bottom")
                         filter = list(position = "top"),
@@ -182,11 +184,12 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                         options = list(
                             # Let users change how many rows to display
                             pageLength = 10,
+                            pagingType = "input",
                             lengthMenu = c(5, 10, 20, 50, 100),  
                             
                             # Use the “Bfrtip” layout:
                             # B = Buttons, f = filter, r = processing info, t = table, i = info, p = pagination
-                            dom = "frtip",
+                            dom = "lfrtip",
                             
                             # Define which buttons you want (e.g. copy, CSV, Excel, PDF, Print)
                             buttons = c("copy", "csv", "excel", "pdf", "print"),

@@ -19,7 +19,7 @@ OmicsQ is a modular Shiny application that streamlines the workflow of quantitat
 
 #### General remarks
 
-*Online documentation*: Further information about the different operations of the user interface are available through the information ({{< fa info-circle >}}) buttons.
+*Online documentation*: Further information about the different operations of the user interface is available through the information ({{< fa info-circle >}}) buttons.
 
 *Recording carried operations*: To ensure reproducibility of the results, all data processing steps are recorded in the **Summary of operations**. 
 
@@ -44,7 +44,7 @@ OmicsQ is a modular Shiny application that streamlines the workflow of quantitat
 [Step IV: Analysis via External Apps](#step-iv-analysis-via-external-apps)
 
 - Send processed data to specialized tools, such as [PolySTest](https://github.com/computproteomics/PolySTest/) for statistical analysis, [VSClust](https://github.com/computproteomics/vsclust) for clustering, or [ComplexBrowser](https://bitbucket.org/michalakw/complexbrowser/src/master/) to explore protein complexes.  
-- Retrieve and incorporate results back into OmicsQ for having a single file with all information.
+- Retrieve and incorporate results back into OmicsQ to have a single file with all information.
    
 *Layout*: Each of these sections consist of documentation of the different features and a tutorial part. The tutorial part is meant to guide you through the different steps of the analysis. By the end of this tutorial, you will have a fully processed dataset aligned with your experimental design and enriched with features for further biological interpretation — all managed within a single Shiny application. Whether you are working with proteomics, transcriptomics, or other omics data, OmicsQ’s flexible modules offer an interactive and user-friendly approach.
 
@@ -70,7 +70,7 @@ In this part of OmicsQ, you will upload your data file containing the quantifica
    
 #### {{< fa chalkboard-teacher >}} _Tutorial_
 
-Download the example file containing protein abundances of an cell differentiation experiment from the GitHub repository [here](https://github.com/computproteomics/OmicsQ/blob/main/data/Myo.csv). You can use the *download raw file* button for direct download. Then upload the file into OmicsQ.
+Download the example file containing protein abundances of a cell differentiation experiment from the GitHub repository [here](https://github.com/computproteomics/OmicsQ/blob/main/data/Myo.csv). You can use the *download raw file* button for direct download. Then upload the file into OmicsQ.
 
 
 ### 2. File-Specific Settings
@@ -108,7 +108,7 @@ After your file is read, you can *choose which columns are your ID columns* (e.g
 
 Now you need to select which columns will be used for identifying the molecules (here proteins given by protein accession numbers) and which columns provide the quantifications. 
 
-The `id` column has already chosen correctly as indicated by a "Type" `id` above the column. 
+The `id` column has already been chosen correctly as indicated by a "Type" `id` above the column. 
 
 Now press the button below *Select quantitative columns*. You can write "LFQ" in the text field and then use the *select all* option to get all columns but the one for the identifications. Then click anywhere in the app. Now all quantitative columns should be marked as `quant`.
 
@@ -145,7 +145,7 @@ After importing your data, you move to the *Experimental Design* tab. Here, you 
 ### 1. Automatic Selection of Experimental Groups
 
 - *Threshold & string distance*: The slider lets you set a *threshold* that controls how similar or different column names must be to be grouped automatically. 
-- *String distance type*: the dropdown menu offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).  
+- *String distance type*: The dropdown menu offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).  
    
 - *Automatic grouping*: As you adjust the threshold and/or change the distance type, the app clusters your sample names and assign them to different groups. In case of sufficiently well formulated sample names, this procedure should help you to specify the different conditions and replicates in your experiment.
 

@@ -19,13 +19,13 @@ expDesignUI <- function(id, prefix="") {
     tagList(
         h3("Automatic selection of experimental groups"),
         fluidRow(hidden(column(10, id = ns("ed_c0"),
-                        p("Find most suitable settings. You  can manually edit the experimental design in the table below.
+                               p("Find most suitable settings. You  can manually edit the experimental design in the table below.
                       Replicates with equal number and of the same sample group will be summarized to one replicate.")),
-                 column(2, 
-                        actionBttn(ns("h_exp_design"),
-                                   icon=icon("info-circle"),
-                                   style="pill", 
-                                   color = "royal", size = "xs")))),
+                        column(2, 
+                               actionBttn(ns("h_exp_design"),
+                                          icon=icon("info-circle"),
+                                          style="pill", 
+                                          color = "royal", size = "xs")))),
         fluidRow(
             hidden(column(width=4, id=ns("ed_c1"),
                           
@@ -53,7 +53,7 @@ expDesignUI <- function(id, prefix="") {
                                             icon=icon("info-circle"),
                                             style="pill", 
                                             color = "royal", size = "xs")),
-            style = 'border-left: 1px solid' # Adding a left border to align with other sections
+                          style = 'border-left: 1px solid' # Adding a left border to align with other sections
             )),
             hidden(column(width=4, id=ns("ed_c2"),
                           h4("Assign Sample Types and Batch Number"),
@@ -101,13 +101,13 @@ expDesignUI <- function(id, prefix="") {
         ),
         ### Show table for exp. design
         hidden(fluidRow(id=ns("ed_c4"),
-            fluidRow(
-                column(10, downloadBttn(ns("downloadeTable"), label = "Download table")),
-                column(2,
-                       actionBttn(ns("h_etable"), icon=icon("info-circle"), style="pill", color="royal", size="xs"))
-            ),
-            DTOutput(ns('etable')
-            )
+                        fluidRow(
+                            column(10, downloadBttn(ns("downloadeTable"), label = "Download table")),
+                            column(2,
+                                   actionBttn(ns("h_etable"), icon=icon("info-circle"), style="pill", color="royal", size="xs"))
+                        ),
+                        DTOutput(ns('etable')
+                        )
         )
         )
     )
@@ -196,14 +196,18 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                                             p = 0.2
                         ) # p=0.1 prioritizes the start of the strings
                         median_dist <- input$dist_thresh
-                        groups <- cutree(hclust(as.dist(expd_d)), h = median_dist)
-                        print(groups)
-                        tdesign[1, ] <- groups
-                        for (j in unique(groups)) {
-                            tdesign[2, groups == j] <- 1:sum(groups == j)
+                        if (ncol(expd_d) > 1) {
+                            groups <- cutree(hclust(as.dist(expd_d)), h = median_dist)
+                            print(groups)
+                            tdesign[1, ] <- groups
+                            for (j in unique(groups)) {
+                                tdesign[2, groups == j] <- 1:sum(groups == j)
+                                
+                                
+                                
+                                exp_design(tdesign)
+                            }
                         }
-                        
-                        exp_design(tdesign)
                     }
                 })
             })

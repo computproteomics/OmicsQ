@@ -1135,7 +1135,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 tdata <- processed_table()
                 
                 # Check if processed_table is available and valid
-                if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10) { 
+                if (is.null(tdata) || ncol(tdata) < 3 || nrow(tdata) < 10 || ncol(tdata) < 2) { 
                     shiny::validate(
                         need(FALSE, "Data matrix too small to perform correlation analysis")
                     )
@@ -1177,7 +1177,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 
                 # Plot the correlation matrix with customized color scale and legend position
                 gplots::heatmap.2(correlation_matrix,
-                                  main = "Pairwise correlations between samples",
+                                  main = "Pairwise sample correlations",
                                   symm = TRUE,        # Symmetrical plot
                                   scale = "none",     # No scaling
                                   col = corr_col,  # Blue to red color scale
@@ -1190,8 +1190,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                   sepcolor = "white",        # Color of the separation lines (white)
                                   colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
                                   rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
-                                  
-                                  margins = c(5, 5),  # Margins for the plot
+                                  # adapt margins to max label length
+                                  margins = c(10, 10),  # Margins for the plot
                                   dendrogram = "both" # Show dendrograms on both axes
                 )
                 output$download_corrplot <- downloadHandler(
@@ -1199,13 +1199,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         paste("OmicsQ_correlation_plot_", Sys.Date(), ".pdf", sep = "")
                     },
                     content = function(file) {
-                        pdf(file)
+                        pdf(file, )
                         # Plot the correlation matrix with customized color scale and legend position
                         gplots::heatmap.2(correlation_matrix,
-                                          main = "Pairwise correlations between samples",
+                                          main = "Pairwise sample correlations",
                                           symm = TRUE,        # Symmetrical plot
                                           scale = "none",     # No scaling
-                                          col = gplots::redblue,  # Blue to red color scale
+                                          col = corr_col,  # Blue to red color scale
                                           breaks = corr_range,  # Breaks from -1 to 1 for colors
                                           trace = "none",     # No trace lines
                                           cex.main = 1.5,     # Size of the main title
@@ -1216,7 +1216,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                           colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
                                           rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
                                           
-                                          margins = c(5, 5),  # Margins for the plot
+                                          margins = c(10, 10),  # Margins for the plot
                                           dendrogram = "both" # Show dendrograms on both axes
                         )
                         dev.off()
@@ -1262,7 +1262,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         ylab = "Counts",
                         col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
                         border = "black",
-                        las = 2,  # Rotate x-axis labels
                         cex.names = 0.7  # Adjust label size
                 )
                 output$download_missingplot <- downloadHandler(
@@ -1277,7 +1276,6 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                 ylab = "Counts",
                                 col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
                                 border = "black",
-                                las = 2,  # Rotate x-axis labels
                                 cex.names = 0.7  # Adjust label size
                         )
                         dev.off()
