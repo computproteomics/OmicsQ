@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Veit Schwämmle">
-<meta name="dcterms.date" content="2025-07-17">
+<meta name="dcterms.date" content="2025-08-20">
 
 <title>OmicsQ — Documentation and Tutorial</title>
 <style>
@@ -69,9 +69,9 @@ ul.task-list li input[type="checkbox"] {
   </ul></li>
   <li><a href="#step-iii-pre-processing" id="toc-step-iii-pre-processing" class="nav-link" data-scroll-target="#step-iii-pre-processing">Step III: Pre-Processing</a>
   <ul class="collapse">
-  <li><a href="#add-or-delete-data-columns" id="toc-add-or-delete-data-columns" class="nav-link" data-scroll-target="#add-or-delete-data-columns">1. Add or Delete Data Columns</a></li>
+  <li><a href="#add-or-delete-data-columns-summary" id="toc-add-or-delete-data-columns-summary" class="nav-link" data-scroll-target="#add-or-delete-data-columns-summary">1. Add or Delete Data Columns &amp; Summary</a></li>
   <li><a href="#data-manipulation-adjustment" id="toc-data-manipulation-adjustment" class="nav-link" data-scroll-target="#data-manipulation-adjustment">2. Data Manipulation &amp; Adjustment</a></li>
-  <li><a href="#summary-proceed" id="toc-summary-proceed" class="nav-link" data-scroll-target="#summary-proceed">3. Summary &amp; Proceed</a></li>
+  <li><a href="#uniprot-mapping-proceed" id="toc-uniprot-mapping-proceed" class="nav-link" data-scroll-target="#uniprot-mapping-proceed">3. UniProt Mapping &amp; Proceed</a></li>
   <li><a href="#visual-feedback" id="toc-visual-feedback" class="nav-link" data-scroll-target="#visual-feedback">4. Visual Feedback</a></li>
   <li><a href="#tips" id="toc-tips" class="nav-link" data-scroll-target="#tips"><i class="fa-solid fa-lightbulb" aria-label="lightbulb"></i> Tips</a></li>
   </ul></li>
@@ -109,7 +109,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 17, 2025</p>
+      <p class="date">August 20, 2025</p>
     </div>
   </div>
   
@@ -127,7 +127,7 @@ ul.task-list li input[type="checkbox"] {
 <p>OmicsQ is a modular Shiny application that streamlines the workflow of quantitative omics data analysis <em>without any need to impute missing values</em>. This tutorial will guide you through all the major steps — from importing your data, annotating your experimental design, and applying pre-processing methods, to sending your finalized dataset to dedicated external apps for <em>statistical testing</em>, <em>clustering</em>, or <em>complex behavior analysis</em>.</p>
 <section id="general-remarks" class="level4">
 <h4 class="anchored" data-anchor-id="general-remarks">General remarks</h4>
-<p><em>Online documentation</em>: Further information about the different operations of the user interface are available through the information (<i class="fa-solid fa-info-circle" aria-label="info-circle"></i>) buttons.</p>
+<p><em>Online documentation</em>: Further information about the different operations of the user interface is available through the information (<i class="fa-solid fa-info-circle" aria-label="info-circle"></i>) buttons.</p>
 <p><em>Recording carried operations</em>: To ensure reproducibility of the results, all data processing steps are recorded in the <strong>Summary of operations</strong>.</p>
 <p><em>Brief overview</em>: Each of the following sections is represented by a different tab in OmicsQ:</p>
 <p><a href="#step-i-data-import">Step I: Data Import</a></p>
@@ -153,7 +153,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li>Send processed data to specialized tools, such as <a href="https://github.com/computproteomics/PolySTest/">PolySTest</a> for statistical analysis, <a href="https://github.com/computproteomics/vsclust">VSClust</a> for clustering, or <a href="https://bitbucket.org/michalakw/complexbrowser/src/master/">ComplexBrowser</a> to explore protein complexes.<br>
 </li>
-<li>Retrieve and incorporate results back into OmicsQ for having a single file with all information.</li>
+<li>Retrieve and incorporate results back into OmicsQ to have a single file with all information.</li>
 </ul>
 <p><em>Layout</em>: Each of these sections consist of documentation of the different features and a tutorial part. The tutorial part is meant to guide you through the different steps of the analysis. By the end of this tutorial, you will have a fully processed dataset aligned with your experimental design and enriched with features for further biological interpretation — all managed within a single Shiny application. Whether you are working with proteomics, transcriptomics, or other omics data, OmicsQ’s flexible modules offer an interactive and user-friendly approach.</p>
 </section>
@@ -175,7 +175,7 @@ ul.task-list li input[type="checkbox"] {
 </ul>
 <section id="tutorial" class="level4">
 <h4 class="anchored" data-anchor-id="tutorial"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h4>
-<p>Download the example file containing protein abundances of an cell differentiation experiment from the GitHub repository <a href="https://github.com/computproteomics/OmicsQ/blob/main/data/Myo.csv">here</a>. You can use the <em>download raw file</em> button for direct download. Then upload the file into OmicsQ.</p>
+<p>Download the example file containing protein abundances of a cell differentiation experiment from the GitHub repository <a href="https://github.com/computproteomics/OmicsQ/blob/main/data/Myo.csv">here</a>. You can use the <em>download raw file</em> button for direct download. Then upload the file into OmicsQ.</p>
 </section>
 </section>
 <section id="file-specific-settings" class="level3">
@@ -215,7 +215,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="tutorial-2" class="level4">
 <h4 class="anchored" data-anchor-id="tutorial-2"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h4>
 <p>Now you need to select which columns will be used for identifying the molecules (here proteins given by protein accession numbers) and which columns provide the quantifications.</p>
-<p>The <code>id</code> column has already chosen correctly as indicated by a “Type” <code>id</code> above the column.</p>
+<p>The <code>id</code> column has already been chosen correctly as indicated by a “Type” <code>id</code> above the column.</p>
 <p>Now press the button below <em>Select quantitative columns</em>. You can write “LFQ” in the text field and then use the <em>select all</em> option to get all columns but the one for the identifications. Then click anywhere in the app. Now all quantitative columns should be marked as <code>quant</code>.</p>
 </section>
 </section>
@@ -244,7 +244,7 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="automatic-selection-of-experimental-groups">1. Automatic Selection of Experimental Groups</h3>
 <ul>
 <li><p><em>Threshold &amp; string distance</em>: The slider lets you set a <em>threshold</em> that controls how similar or different column names must be to be grouped automatically.</p></li>
-<li><p><em>String distance type</em>: the dropdown menu offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).</p></li>
+<li><p><em>String distance type</em>: The dropdown menu offers different methods for comparing column names (e.g., Levenshtein, Jaro-Winkler).</p></li>
 <li><p><em>Automatic grouping</em>: As you adjust the threshold and/or change the distance type, the app clusters your sample names and assign them to different groups. In case of sufficiently well formulated sample names, this procedure should help you to specify the different conditions and replicates in your experiment.</p></li>
 </ul>
 <section id="tutorial-4" class="level4">
@@ -271,7 +271,7 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 </ul>
 <section id="tutorial-5" class="level4">
 <h4 class="anchored" data-anchor-id="tutorial-5"><i class="fa-solid fa-chalkboard-teacher" aria-label="chalkboard-teacher"></i> <em>Tutorial</em></h4>
-<p>Although there are no batches in this experiment, assign a batch number of <em>two</em> to the second half of the samples (<code>C4_1</code> to <code>C6_3</code>).</p>
+<p>Change the slider to separate the experimental groups (setting it to one should do it). Although there are no batches in this experiment, assign a batch number of <em>two</em> to the second half of the samples (<code>C4_1</code> to <code>C6_3</code>).</p>
 </section>
 </section>
 <section id="experimental-design-table" class="level3">
@@ -309,13 +309,14 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <section id="step-iii-pre-processing" class="level2">
 <h2 class="anchored" data-anchor-id="step-iii-pre-processing">Step III: Pre-Processing</h2>
 <p>You can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through <em>Principal Component Analysis</em> (PCA) and <em>correlation</em> plots. This allows you to try different settings and see their effects in real time.</p>
-<section id="add-or-delete-data-columns" class="level3">
-<h3 class="anchored" data-anchor-id="add-or-delete-data-columns">1. Add or Delete Data Columns</h3>
+<section id="add-or-delete-data-columns-summary" class="level3">
+<h3 class="anchored" data-anchor-id="add-or-delete-data-columns-summary">1. Add or Delete Data Columns &amp; Summary</h3>
 <ul>
 <li><em>Pick the samples to remove</em>: Use the dropdown to select sample columns you no longer want in the analysis.<br>
 </li>
 <li><em>Fill with empty columns</em>: If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add columns with only missing values to make all groups have the same number of replicates. This helps maintain a more balanced design by introducing blank values.</li>
 <li><em>Current state</em>: A short summary is shown, indicating whether your design is balanced or unbalanced.</li>
+<li><em>Summary box</em>: Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.</li>
 </ul>
 </section>
 <section id="data-manipulation-adjustment" class="level3">
@@ -335,11 +336,10 @@ If needed, you can annotate replicate numbers directly in the table at the botto
 <li><em>Batch Correction</em>: If you assigned batches in the previous step, you can select a correction method, such as <code>limma</code> or <code>Combat</code> , to adjust for batch effect. When there is only one batch or fewer than two replicates per batch, this option is disabled.</li>
 </ul>
 </section>
-<section id="summary-proceed" class="level3">
-<h3 class="anchored" data-anchor-id="summary-proceed">3. Summary &amp; Proceed</h3>
+<section id="uniprot-mapping-proceed" class="level3">
+<h3 class="anchored" data-anchor-id="uniprot-mapping-proceed">3. UniProt Mapping &amp; Proceed</h3>
 <ul>
-<li><em>Summary box</em>: Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.<br>
-</li>
+<li><em>UniProt Mapping</em>: Standardize protein identifiers by mapping your data to UniProt accessions (for usage in ComplexBrowser). You can select your identifier type (Ensembl, Gene Names, etc.) or let the app auto-detect it. Skip this if your data already uses UniProt IDs. <u>Note: the mapping is done via UniProt API and thus will most likely take a while.</u></li>
 <li><em>Proceed to interaction with apps</em>: Once you are satisfied with the data adjustments, click <em>Proceed</em> to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.</li>
 </ul>
 </section>

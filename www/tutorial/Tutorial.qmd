@@ -174,6 +174,7 @@ This helps keep track of potential batch effects in subsequent analyses.
 
 #### {{< fa chalkboard-teacher >}} _Tutorial_
 
+Change the slider to separate the experimental groups (setting it to one should do it).
 Although there are no batches in this experiment, assign a batch number of *two* to the second half of the samples (`C4_1` to `C6_3`).
 
 ### 4. Experimental Design Table
@@ -213,11 +214,12 @@ Press the button to *proceed* to the next tab.
 You can apply various transformations and filters to your data, remove or add sample columns to achieve balanced designs, and explore immediate visual feedback through *Principal Component Analysis* (PCA) and *correlation* plots. This allows you to try different settings and see their effects in real time.
 
 
-### 1. Add or Delete Data Columns
+### 1. Add or Delete Data Columns & Summary
 
 - *Pick the samples to remove*: Use the dropdown to select sample columns you no longer want in the analysis.  
 - *Fill with empty columns*: If your experiment is unbalanced (e.g., one group has fewer replicates than another), you can add columns with only missing values to make all groups have the same number of replicates. This helps maintain a more balanced design by  introducing blank values.
 - *Current state*: A short summary is shown, indicating whether your design is balanced or unbalanced.
+- *Summary box*: Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.  
 
 ### 2. Data Manipulation & Adjustment
 
@@ -229,18 +231,22 @@ You can apply various transformations and filters to your data, remove or add sa
 - *Summarize to ID features*: If your `id` column (e.g., gene/protein IDs) has duplicates, you can aggregate them by `sum`, `mean`, `median`, etc. This reduces multiple rows with the same ID to a single representative row.
 - *Batch Correction*: If you assigned batches in the previous step, you can select a correction method, such as `limma` or `Combat` , to adjust for batch effect. When there is only one batch or fewer than two replicates per batch, this option is disabled.
 
-### 3. Summary & Proceed
+### 3. UniProt Mapping & Proceed
 
-- *Summary box*: Displays key information, including the final number of features and samples, the missing data rate, and whether any features show significant batch effects.  
+- *UniProt Mapping*: Standardize protein identifiers by mapping your data to UniProt accessions (for usage in ComplexBrowser). You can select your identifier type (Ensembl, Gene Names, 
+etc.) or let the app auto-detect it. Skip this if your data already uses UniProt 
+IDs. <u>Note: the mapping is done via UniProt API and thus will most likely take a while.</u>
 - *Proceed to interaction with apps*: Once you are satisfied with the data adjustments, click *Proceed* to move on to the next part of OmicsQ, which may include more specialized data exploration or analysis apps.
 
 ### 4. Visual Feedback
 
 Beneath the summary panels, you find two data visualizations that let you see the effect of your chosen data transformations:
 
-- *PCA Plot*: Shows the separation of samples by the first two principal components. 
+- *PCA Plot*: Shows the separation of samples by the first two principal components. Use the 'How to show labels' option to toggle sample names on/off. 
 
 - *Correlation Plot*: Displays a heatmap of pairwise sample correlations, highlighting how similar or different they are after processing. This helps identifying potential outliers or technical artifacts that might need addressing. The button *Show entire range in correlation plot* allows you to adjust the coloring range of correlation values.
+
+*Missing Values Plot*: View distribution over features or missing values per sample.
 
 ![](Screenshot_PreProcessing.png)
 

@@ -48,6 +48,7 @@ sendRetrieveUI <- function(id, prefix="") {
         hidden(textInput(ns("app_log"), "app_log", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("VSClust_results"), "VSClust_results", value = NULL)),  # Hidden field to store log messages
         hidden(textInput(ns("PolySTest_results"), "PolySTest_results", value = NULL)),  # Hidden field to store log messages
+        hr(style="border:solid;border-width:1px;"),
         hidden(fluidRow(id = ns("app_c4"),
                         column(3, 
                                actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
@@ -534,7 +535,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                                                       type = "info", html = T
             ))
             
-            observeEvent(input$h_striungdb, sendSweetAlert(session,
+            observeEvent(input$h_stringdb, sendSweetAlert(session,
                                                            title = "Biological in-depth analysis via STRINGdb",
                                                            text = HTML("<p align='justify'>Select the features according 
             to custom filters (e.g. certain cluster numbers and FDR values) and send them to <a href='https://string-db.org/'>STRINGDB</a>

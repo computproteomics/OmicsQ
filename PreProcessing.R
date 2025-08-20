@@ -1328,7 +1328,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
               into the instrument. This systematic error can be corrected by assuming that most
               of the features do not change between samples. We offer the main normalization methods
               used in the field.<br/>
-              <i>None:</i> Do no normalize (or has already been normalized)<br/>
+              <i>None:</i> No normalization (e.g. when the data has already been normalized)<br/>
               <i>Median: </i>Subtract the median of each sample from the log-transformed values (recommended
               as more outlier insensitive)<br/>
               <i>Mean: </i>Subtract the mean of the sample from the log-transformed values<br/>
