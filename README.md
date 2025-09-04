@@ -1,6 +1,8 @@
 # OmicsQ: A Toolkit for Quantitative Omics Analysis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![bio.tools](https://img.shields.io/badge/bio.tools-OmicsQ-blue)](https://bio.tools/omicsq)
+
 
 OmicsQ is a Shiny-based web application designed for preprocessing and quantitative analysis of Omics data. 
 It streamlines the preparation of data for subsequent analysis using specialized tools such as 
