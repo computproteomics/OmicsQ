@@ -1,6 +1,6 @@
 # OmicsQ: A Toolkit for Quantitative Omics Analysis
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://opensource.org/licenses/apache-2-0).
 [![bio.tools](https://img.shields.io/badge/bio.tools-OmicsQ-005472)](https://bio.tools/omicsq)
 [![DOI](https://zenodo.org/badge/869924362.svg)](https://zenodo.org/badge/latestdoi/869924362)
 
