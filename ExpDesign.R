@@ -59,7 +59,7 @@ expDesignUI <- function(id, prefix="") {
                           h4("Assign Sample Types and Batch Number"),
                           fluidRow(
                               column(10,
-                                     pickerInput(ns("ed_sel_samples"), "Select columns for setting sample group", 
+                                     pickerInput(ns("ed_sel_samples"), "Select samples to assign sample group from the ruler", 
                                                  choices=NULL,  multiple=T, 
                                                  options = list(
                                                      `live-search` = TRUE,
@@ -71,12 +71,12 @@ expDesignUI <- function(id, prefix="") {
                                                 style="pill", 
                                                 color = "royal", size = "xs")),
                               
-                              sliderInput(ns("ed_number"), "Set to this sample group", min=1, max=1, value=1, step=1)),
+                              sliderInput(ns("ed_number"), "Sample group to be assigned above", min=1, max=1, value=1, step=1)),
                           
                           
                           fluidRow(
                               column(10,
-                                     pickerInput(ns("ed_sel_batches"), "Select columns for setting batch number", 
+                                     pickerInput(ns("ed_sel_batches"), "Select samples to assign batch number from the ruler", 
                                                  choices=NULL, multiple=T, 
                                                  options = list(
                                                      `live-search` = TRUE,
@@ -88,7 +88,7 @@ expDesignUI <- function(id, prefix="") {
                                                 style="pill", 
                                                 color = "royal", size = "xs"))
                           ),
-                          sliderInput(ns("batch_number"), "Set to this batch number", min=1, max=2, value=2, step=1),
+                          sliderInput(ns("batch_number"), "Batch number to be assigned above", min=1, max=2, value=2, step=1),
                           style = 'border-left: 1px solid' # Adding a left border to align with other sections
             )),
             
@@ -387,7 +387,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
             
             observeEvent(input$h_sel_samples,
                          sendSweetAlert(session,
-                                        title = "Select columns for setting the sample type",
+                                        title = "Select samples/columns for setting their sample type",
                                         text = HTML("<p align='justify'>Select the columns that should become the sample type
                                         <b>after</b> setting the sample group by the ruler below. You can use
                                         this to adjust the sample type after the automatic estimation </p>"),
@@ -396,7 +396,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
             
             observeEvent(input$h_sel_batches,
                          sendSweetAlert(session,
-                                        title = "Select columns for setting batch number",
+                                        title = "Select samples/columns for setting batch number",
                                         text = HTML("<p align='justify'>Select the columns that should be
     used to set the batch number <b>after</b> setting the number in the ruler below. The batch
               number is used to group the samples
