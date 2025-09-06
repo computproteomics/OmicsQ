@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![bio.tools](https://img.shields.io/badge/bio.tools-OmicsQ-005472)](https://bio.tools/omicsq)
-[![DOI](https://zenodo.org/badge/{github_id}.svg)](https://zenodo.org/badge/latestdoi/869924362)
+[![DOI](https://zenodo.org/badge/869924362.svg)](https://zenodo.org/badge/latestdoi/869924362)
 
 
 OmicsQ is a Shiny-based web application designed for preprocessing and quantitative analysis of Omics data. 
