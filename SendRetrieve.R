@@ -136,7 +136,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
                     # Add placeholder names
                     tout[, 1] <- paste0("Feature", seq_len(nrow(tout)))
                 }
-
+                
                 processed_table(tout)
                 # Check whether null or empty
                 if (!is.null(preProcessing$other_cols())) {
@@ -536,11 +536,11 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ))
             
             observeEvent(input$h_stringdb, sendSweetAlert(session,
-                                                           title = "Biological in-depth analysis via STRINGdb",
-                                                           text = HTML("<p align='justify'>Select the features according 
+                                                          title = "Biological in-depth analysis via STRINGdb",
+                                                          text = HTML("<p align='justify'>Select the features according 
             to custom filters (e.g. certain cluster numbers and FDR values) and send them to <a href='https://string-db.org/'>STRINGDB</a>
             for visualization of protein-protein interactions and functional enrichment analysis.</p>"),
-                                                           type = "info", html = T
+                                                          type = "info", html = T
             ))
             
             observeEvent(input$h_select, sendSweetAlert(session,
