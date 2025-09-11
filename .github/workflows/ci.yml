@@ -28,7 +28,16 @@ jobs:
       - name: System dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl-dev libxml2-dev libcurl4-openssl-dev libfontconfig1 libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5 libjpeg-dev libgit2-dev libudunits2-dev libgdal-dev libv8-dev libmagick++-dev
+          # Install base libraries
+          sudo apt-get install -y \
+            libssl-dev libxml2-dev libcurl4-openssl-dev \
+            libfontconfig1 libharfbuzz-dev libfribidi-dev \
+            libfreetype6-dev libpng-dev libjpeg-dev \
+            libgit2-dev libudunits2-dev libgdal-dev libv8-dev libmagick++-dev
+          # TIFF library name changed on Ubuntu 24.04 (libtiff6). Try both.
+          sudo apt-get install -y libtiff5 || \
+          sudo apt-get install -y libtiff6 || \
+          sudo apt-get install -y libtiff-dev
 
       - name: Install R dependencies (CRAN + Bioc)
         run: |
@@ -41,4 +50,3 @@ jobs:
           NOT_CRAN: true
         run: |
           R -q -e 'options(chromote.startup_timeout=30, chromote.chrome_args=c("--headless=new","--no-first-run","--no-default-browser-check")); shinytest2::test_app()'
-

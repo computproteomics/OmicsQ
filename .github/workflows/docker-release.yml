@@ -1,0 +1,35 @@
+name: Docker Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-push-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: veitveit
+          password: ${{ secrets.DOCKERPASSWORD }}
+
+      - name: Build and push (release tag)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            veitveit/omicsq:${{ github.event.release.tag_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+

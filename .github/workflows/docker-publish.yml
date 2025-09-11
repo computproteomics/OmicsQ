@@ -1,0 +1,41 @@
+name: Docker Publish
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: veitveit
+          password: ${{ secrets.DOCKERPASSWORD }}
+
+      - name: Read VERSION
+        id: vars
+        run: echo "VERSION=$(cat VERSION | tr -d '\n' | tr -d '\r')" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            veitveit/omicsq:latest
+            veitveit/omicsq:${{ steps.vars.outputs.VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
