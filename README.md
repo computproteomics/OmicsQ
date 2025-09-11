@@ -32,57 +32,58 @@ tools:
 
 ## Installation
 
-OmicsQ can be run locally or via a Docker container for a seamless setup without installation.
+OmicsQ can be run locally on your machine or via Docker. Pick the option that suits you best.
 
-### Option 1: Running Locally
+### Option 1: Run Locally (R)
 
-To run OmicsQ locally, follow these steps:
+1) Install R (4.2 or newer) and optionally RStudio.
 
-1. Install R (version 4.0 or higher) from CRAN.
-
-2. Install RStudio (optional but recommended) from the RStudio website.
-
-3. Install the required R packages: Open R or RStudio and install the necessary packages by running the following command:
+2) Install required packages. In an R session:
 
 ```r
+# CRAN packages
+install.packages(c(
+  "shiny", "shinyBS", "shinyWidgets", "shinycssloaders", "shinythemes",
+  "shinyjs", "DT", "data.table", "readxl", "openxlsx", "stringdist",
+  "limma", "matrixStats", "jsonlite", "gridExtra", "ggplot2", "gplots",
+  "viridis", "ggrepel", "ggiraph"
+))
+
+# Bioconductor packages
 install.packages("BiocManager")
-BiocManager::install(c("shiny", "shinyBS", "shinyWidgets", "shinycssloaders", 
-                   "shinythemes", "shinyjs", "DT", "data.table", "readxl", 
-                   "stringdist", "limma", "matrixStats", "MsCoreUtils", 
-                   "jsonlite", "BEclear", "sva", "gridExtra", "ggplot2", 
-                   "gplots","viridis"))
+BiocManager::install(c("MsCoreUtils", "BEclear", "sva", "UniProt.ws"), ask = FALSE)
 ```
 
-4. Clone the OmicsQ repository: Download the latest version of OmicsQ from GitHub, each in bash:
-```
+3) Clone this repository and run the app from the repo root:
+
+```bash
 git clone https://github.com/computproteomics/OmicsQ.git
+cd OmicsQ
 ```
-
-5. Run the app: In R or RStudio, set your working directory to the cloned repository, and then start the app:
 
 ```r
-    shiny::runApp("OmicsQ")
+shiny::runApp(".")
 ```
 
-### Option 2: Using Docker
+### Option 2: Run with Docker
 
-For an easier and more consistent setup, OmicsQ is also available as a Docker container. This approach ensures that all 
-dependencies are correctly configured and avoids potential installation issues.
+This bundles all dependencies and runs a Shiny server.
 
-1. Install Docker: Follow the instructions on the Docker website to install Docker.
+Build the image locally:
 
-2. Pull the OmicsQ Docker image: Run the following command to download the Docker container.
-```
-docker pull veitveit/omicsq:latest
-```
-
-3. Run the Docker container: Start the OmicsQ app using Docker.
-
-```
-docker run --rm -p 3838:3838 computproteomics/omicsq:latest
+```bash
+git clone https://github.com/computproteomics/OmicsQ.git
+cd OmicsQ
+docker build -t omicsq .
 ```
 
-4 Access the app: Open a web browser and go to http://localhost:3838 to start using OmicsQ.
+Run the container and expose on port 3838:
+
+```bash
+docker run --rm -p 3838:3838 omicsq
+```
+
+Open http://localhost:3838 in your browser.
 
 ## Documentation and tutorial
 
@@ -96,7 +97,7 @@ There, you can also find a tutorial on how to use the app for your data analysis
 
 ## License
 
-OmicsQ is released under the Apache 2 License. See the LICENSE file for details.
+OmicsQ is released under the MIT License. See the LICENSE file for details.
 
 ## Citation
 
