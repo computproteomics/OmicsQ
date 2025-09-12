@@ -111,7 +111,7 @@ dataInputServer <- function(id, parent, log_operations) {
                         
                         tdata <- try({
                             sheets <- excel_sheets(in_file$datapath)
-                            read_excel(in_file$datapath, sheet = currsheet)
+                            read.xlsx(in_file$datapath, sheet = currsheet)
                         })
                         
                         shinyjs::show(id = "in_c1")

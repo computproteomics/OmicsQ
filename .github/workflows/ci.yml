@@ -1,0 +1,52 @@
+name: R Shiny Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          # Install base libraries
+          sudo apt-get install -y \
+            libssl-dev libxml2-dev libcurl4-openssl-dev \
+            libfontconfig1 libharfbuzz-dev libfribidi-dev \
+            libfreetype6-dev libpng-dev libjpeg-dev \
+            libgit2-dev libudunits2-dev libgdal-dev libv8-dev libmagick++-dev
+          # TIFF library name changed on Ubuntu 24.04 (libtiff6). Try both.
+          sudo apt-get install -y libtiff5 || \
+          sudo apt-get install -y libtiff6 || \
+          sudo apt-get install -y libtiff-dev
+
+      - name: Install R dependencies (CRAN + Bioc)
+        run: |
+          R -q -e 'install.packages(c("remotes","BiocManager"), repos="https://cloud.r-project.org")'
+          R -q -e 'cran <- c("shiny","shinytest2","chromote","DT","shinyBS","shinyWidgets","shinycssloaders","shinythemes","shinyjs","data.table","readxl","openxlsx","stringdist","limma","matrixStats","jsonlite","gridExtra","ggplot2","gplots","viridis","ggrepel","ggiraph"); install.packages(cran, repos="https://cloud.r-project.org")'
+          R -q -e 'BiocManager::install(c("MsCoreUtils","BEclear","sva","UniProt.ws"), ask=FALSE, update=FALSE)'
+
+      - name: Run shinytest2 tests
+        env:
+          NOT_CRAN: true
+        run: |
+          R -q -e 'options(chromote.startup_timeout=30, chromote.chrome_args=c("--headless=new","--no-first-run","--no-default-browser-check")); shinytest2::test_app()'
