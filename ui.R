@@ -73,7 +73,7 @@ ui <- function(req) {
                        icon=icon("question"),
                        style="pill", 
                        color = "default", size = "s")
-            )
+        )
         ),
         
         theme = shinythemes::shinytheme("spacelab"),
@@ -122,12 +122,11 @@ ui <- function(req) {
                      h3("Data treatment pre-submission"),
                      preProcessingUI("preProcessing")
                  )
-        ), 
+        ),
         tabPanel("Step IV: Analysis via External Apps", value = "apps",
                  fluidPage(
                      sendRetrieveUI("sendRetrieve")
                  )
-                 
         )
     )
 }
