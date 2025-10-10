@@ -170,6 +170,7 @@ dataInputServer <- function(id, parent, log_operations) {
                     
                     shinyjs::show(id = "in_c2")
                     shinyjs::show(id = "in_c3")
+                    
                     updatePickerInput(session, "sel_icol", choices = names(tdata))
                     updatePickerInput(session, "sel_qcols", choices = names(tdata))
                     
@@ -206,6 +207,27 @@ dataInputServer <- function(id, parent, log_operations) {
                 shinyjs::show(id = "in_c3")
                 updatePickerInput(session, "sel_icol", choices = names(tdata))
                 updatePickerInput(session, "sel_qcols", choices = names(tdata))
+                # Mimick file reading options
+                shinyjs::show(id = "in_c1")
+                output$file_options <- renderUI({
+                    tagList(selectInput(session$ns("in_delimiter"), label = "delimiter", choices = c(
+                        auto = "auto",
+                        comma = ",", semicolon = ";", tabulator = "\t", colon = ":", bar = "|",
+                        space = " "
+                    ), selected = ",", multiple = FALSE, ), selectInput(session$ns("in_dec"),
+                                                                            label = "decimal separator", choices = c(comma = ",", point = "."),
+                                                                            selected = "."
+                    ), numericInput(session$ns("in_skip"),
+                                    label = "remove lines at beginning?",
+                                    min = 0, max = 100, step = 1, value = 0
+                    ), checkboxInput(session$ns("in_header"),
+                                     label = "Does file have a header?", value = TRUE
+                    ))
+                })
+                disable("in_delimiter")
+                disable("in_dec")
+                disable("in_skip")
+                disable("in_header")
                 
                 shinyjs::enable(id="proceed_to_expdesign")
                 # js$run_button(button = session$ns("proceed_to_expdesign"), number = 1)

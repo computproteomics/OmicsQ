@@ -332,7 +332,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         "This unbalanced design has between ",
                         min(ed_stats),
                         " and maximally", max(ed_stats),
-                        "replicates for each experimental condition (sample type). <br/><b>Please click button to make data balanced.</b>"
+                        "replicates for each experimental condition (sample type). <br/><b>Please click checkbox to make data balanced.</b>"
                     )
                 } else {
                     # If the design is balanced, enable the Proceed button
@@ -361,28 +361,29 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 # Add the new columns
                 for (cond in unique(tedes[1, ])) {
                     tt <- tedes[, tedes[1, ] == cond, drop = F]
-                    
-                    for (i in seq_len(max_reps - reps[cond])) {
-                        # Create a new column that matches the number of rows in tedes
-                        new_col <- c(cond, max(tt[2, ]) + i, 1)
-                        
-                        # Name the new column as new_oldname_numbering
-                        oldname <- colnames(tt)[1]  # Assuming the first column is the old name
-                        new_col_name <- paste0("new_", oldname, "_", i)  # Add numbering for each new column
-                        
-                        # Add the new column to tedes
-                        tedes <- cbind(tedes, new_col)
-                        
-                        # Rename the new column in tedes
-                        colnames(tedes)[ncol(tedes)] <- new_col_name
-                        
-                        # Add an NA column to tdata (the actual data)
-                        tdata[new_col_name] <- NA
-                        tdata[, new_col_name] <- as.numeric(tdata[, new_col_name])
-                        class(tdata[, new_col_name]) <- "quant"
-                        
-                        # Track the added column name for the summary
-                        added_columns <- c(added_columns, new_col_name)
+                    if (!is.na(reps[as.character(cond)])) {
+                        for (i in seq_len(max_reps - reps[as.character(cond)])) {
+                            # Create a new column that matches the number of rows in tedes
+                            new_col <- c(cond, max(tt[2, ]) + i, 1)
+                            
+                            # Name the new column as new_oldname_numbering
+                            oldname <- colnames(tt)[1]  # Assuming the first column is the old name
+                            new_col_name <- paste0("new_", oldname, "_", i)  # Add numbering for each new column
+                            
+                            # Add the new column to tedes
+                            tedes <- cbind(tedes, new_col)
+                            
+                            # Rename the new column in tedes
+                            colnames(tedes)[ncol(tedes)] <- new_col_name
+                            
+                            # Add an NA column to tdata (the actual data)
+                            tdata[new_col_name] <- NA
+                            tdata[, new_col_name] <- as.numeric(tdata[, new_col_name])
+                            class(tdata[, new_col_name]) <- "quant"
+                            
+                            # Track the added column name for the summary
+                            added_columns <- c(added_columns, new_col_name)
+                        }
                     }
                 }
                 
@@ -1176,6 +1177,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 }
                 
                 # Plot the correlation matrix with customized color scale and legend position
+                par(mar = c(5.1, 4.1, 5.1, 3))
                 gplots::heatmap.2(correlation_matrix,
                                   main = "Pairwise sample correlations",
                                   symm = TRUE,        # Symmetrical plot
@@ -1191,7 +1193,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                   colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
                                   rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
                                   # adapt margins to max label length
-                                  margins = c(10, 10),  # Margins for the plot
+                                  margins = c(12, 12),  # Margins for the plot
                                   dendrogram = "both" # Show dendrograms on both axes
                 )
                 output$download_corrplot <- downloadHandler(
@@ -1201,6 +1203,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     content = function(file) {
                         pdf(file, )
                         # Plot the correlation matrix with customized color scale and legend position
+                        
                         gplots::heatmap.2(correlation_matrix,
                                           main = "Pairwise sample correlations",
                                           symm = TRUE,        # Symmetrical plot
@@ -1216,7 +1219,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                                           colsep = 1:ncol(correlation_matrix),  # Add separation for all columns
                                           rowsep = 1:nrow(correlation_matrix),  # Add separation for all rows
                                           
-                                          margins = c(10, 10),  # Margins for the plot
+                                          margins = c(12, 12),  # Margins for the plot
                                           dendrogram = "both" # Show dendrograms on both axes
                         )
                         dev.off()
@@ -1256,13 +1259,16 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 }
                 
                 # plot with ifelse to distinguish rows/columns
+                par(mar = c(8.1, 4.1, 4.1, 2.1))
                 barplot(missing_dist, 
                         main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
-                        xlab = ifelse(input$show_missing_rows, "Number of missing values", "Samples"),
+                        xlab = ifelse(input$show_missing_rows, "Number of missing values", ""),
                         ylab = "Counts",
                         col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
                         border = "black",
-                        cex.names = 0.7  # Adjust label size
+                        cex.names = 0.7,  # Adjust label size
+                        # rotate labels
+                        las = 2
                 )
                 output$download_missingplot <- downloadHandler(
                     filename = function() {
@@ -1270,13 +1276,15 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     },
                     content = function(file) {
                         pdf(file)
+                        par(mar = c(8.1, 4.1, 4.1, 2.1))
                         barplot(missing_dist, 
                                 main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
-                                xlab = ifelse(input$show_missing_rows, "Number of missing values", "Samples"),
+                                xlab = ifelse(input$show_missing_rows, "Number of missing values", ""),
                                 ylab = "Counts",
                                 col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
                                 border = "black",
-                                cex.names = 0.7  # Adjust label size
+                                cex.names = 0.7,  # Adjust label size
+                                las = 2
                         )
                         dev.off()
                     }
@@ -1316,7 +1324,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             observeEvent(input$h_max_na, sendSweetAlert(session,
                                                         title = "Deleting features with low coverage",
                                                         text = HTML("<p align='justify'>Despite of the capability of PolySTest and VSClust to include features
-              with missing values, we recommend features that have very low coverage as their measurements
+              with missing values, we recommend removing features that have very low coverage as their measurements
               are usually very noisy. Filter for the maximum number of missing values here. The default is
               to take all features.</p>"),
                                                         type = "info", html = T
@@ -1428,5 +1436,5 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             ))
             
         }
-    )
+                    )
 }

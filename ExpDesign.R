@@ -149,7 +149,7 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                     }
                     
                     updateSelectInput(session, "dist_thresh", selected = 0)
-                    updateSelectInput(session, "dist_type", selected = "lv")
+                    updateSelectInput(session, "dist_type", selected = "jw")
                     updatePickerInput(session, "ed_sel_samples", choices = cnames)
                     updateSliderInput(session, "ed_number", max = length(cnames))
                     updatePickerInput(session, "ed_sel_batches", choices = cnames)
@@ -160,6 +160,8 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                     shinyjs::show("ed_c1") 
                     shinyjs::show("ed_c0") 
                     # Show the combined sample type and batch assignment UI
+                    updateSelectInput(session, "dist_type", selected = "lv")
+                    
                 }
             })
             
