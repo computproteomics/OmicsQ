@@ -1247,15 +1247,34 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     return()
                 }
                 
+                
+                # Get the full dataset
+                # Initialize processed_table with 'id' and 'quant' columns from process_table
+                full_data <- process_table()
+                full_data <- full_data[, grep("quant", sapply(full_data, class)), drop = FALSE]
+                
+                
                 # Identify "quant" columns
                 quant_columns <- tdata[, -1, drop = FALSE]
                 
                 # Calculate the proportion of missing values per sample
-                missing_dist <- NULL
+                missing_dist <- missing_dist_orig <- NULL
                 if (input$show_missing_rows) {
                     missing_dist <- table(rowSums(is.na(quant_columns)))
+                    missing_dist_orig <- table(rowSums(is.na(full_data)))
                 } else {
                     missing_dist <- colSums(is.na(quant_columns))
+                    missing_dist_orig <- colSums(is.na(full_data))
+                }
+                
+                # set colors
+                if (input$show_missing_rows){ 
+                    diff_len <- length(missing_dist_orig) - length(missing_dist)
+                    colors <- c(rep("lightblue", length(missing_dist)), rep("darkblue", diff_len))
+                    missing_dist <- missing_dist_orig
+                } else {
+                    colors <- c("lightgreen", "darkgreen")
+                    missing_dist <- rbind(missing_dist, missing_dist_orig)
                 }
                 
                 # plot with ifelse to distinguish rows/columns
@@ -1264,12 +1283,20 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
                         xlab = ifelse(input$show_missing_rows, "Number of missing values", ""),
                         ylab = "Counts",
-                        col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
+                        # leave space for legend
+                        ylim = c(0, max(missing_dist) * 1.2),
+                        col = colors,
                         border = "black",
                         cex.names = 0.7,  # Adjust label size
+                        beside = TRUE,
                         # rotate labels
                         las = 2
                 )
+                if (input$show_missing_rows)
+                    legend("topright", legend = c("Filtered", "Original"), fill = c("lightblue","darkblue"), bty = "n")
+                else {
+                legend("topright", legend = c("Filtered", "Original"), fill = c("lightgreen", "darkgreen"), bty = "n")
+                }
                 output$download_missingplot <- downloadHandler(
                     filename = function() {
                         paste("OmicsQ_missing_value_plot_", Sys.Date(), ".pdf", sep = "")
@@ -1277,13 +1304,16 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     content = function(file) {
                         pdf(file)
                         par(mar = c(8.1, 4.1, 4.1, 2.1))
-                        barplot(missing_dist, 
+                        barplot(rbind(missing_dist, missing_dist_orig), 
                                 main = ifelse(input$show_missing_rows, "Missing Values per Feature", "Missing Values per Sample"),
                                 xlab = ifelse(input$show_missing_rows, "Number of missing values", ""),
                                 ylab = "Counts",
-                                col = ifelse(input$show_missing_rows, "lightblue", "lightgreen"),
+                                col = ifelse(input$show_missing_rows, c("lightblue","darkblue"), c("lightgreen", "darkgreen")),
                                 border = "black",
                                 cex.names = 0.7,  # Adjust label size
+                                beside = TRUE,
+                                legend = c("Filtered", "Original"),
+                                # rotate labels
                                 las = 2
                         )
                         dev.off()
@@ -1436,5 +1466,5 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             ))
             
         }
-                    )
+    )
 }
