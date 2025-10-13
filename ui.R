@@ -45,7 +45,8 @@ ui <- function(req) {
             style= "border-color: #333333; border: black solid 1px; padding: 1px;display: inline-block;float:right",
             actionBttn(
                 inputId = "custom_bookmark",
-                label = "Temporarily save settings and data",
+                label = "Short-term session save",
+                title = "Temporarily bookmark this page for a short time (minutes to hours).",
                 icon = icon("bookmark"),
                 style = "pill",
                 color = "default",
@@ -73,7 +74,7 @@ ui <- function(req) {
                        icon=icon("question"),
                        style="pill", 
                        color = "default", size = "s")
-            )
+        )
         ),
         
         theme = shinythemes::shinytheme("spacelab"),
@@ -122,12 +123,11 @@ ui <- function(req) {
                      h3("Data treatment pre-submission"),
                      preProcessingUI("preProcessing")
                  )
-        ), 
+        ),
         tabPanel("Step IV: Analysis via External Apps", value = "apps",
                  fluidPage(
                      sendRetrieveUI("sendRetrieve")
                  )
-                 
         )
     )
 }
