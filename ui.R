@@ -45,7 +45,8 @@ ui <- function(req) {
             style= "border-color: #333333; border: black solid 1px; padding: 1px;display: inline-block;float:right",
             actionBttn(
                 inputId = "custom_bookmark",
-                label = "Temporarily save settings and data",
+                label = "Short-term session save",
+                title = "Temporarily bookmark this page for a short time (minutes to hours).",
                 icon = icon("bookmark"),
                 style = "pill",
                 color = "default",
