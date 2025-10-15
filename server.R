@@ -1,6 +1,5 @@
 app_version <- readLines("VERSION")
 
-
 #### Overall server for OmicsQ ###########
 server <- function(input, output, session) {
   ## main data sets

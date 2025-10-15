@@ -3,7 +3,8 @@ sendRetrieveUI <- function(id, prefix="") {
     ns <- NS(id)  # Namespace function to avoid ID conflicts in Shiny modules
     tagList(
         # Section for analyzing table with external apps
-        fluidRow(column(7, h3("Analyze the table with the different apps")),
+        fluidRow(column(7, h3("Analyze the table with the different apps"),
+                        HTML("<p align='justify'>(your browser settings need to allow opening new tabs/pop-ups for this webpage)</p>")),
                  column(1, actionBttn(ns("h_apps"),
                                       icon = icon("info-circle"),  # Info button for app analysis help
                                       style = "pill", 
@@ -528,9 +529,10 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
               <i>Paired vs unpaired design: </i>Do you have pairwise relations between samples (e.g. before
               and after treatment of the same patients)? If yes, remember to keep the replicates in the
               right order when selecting paired design.<br/>
-              <i>Note:</i>When using OmicsQ the first time, your security settings might require you to allow
-              opening new tabs!</br/>
-              <i>Note:</i> Depending on the size of the data set, the data upload could fail due to a too slow
+              <b>Note:</b>When using OmicsQ the first time, your security settings might require you to allow
+              opening new tabs! While most common browsers do request this in a popup, you will need change the settings in Safari:  
+              Settings -> Websites -> Pop-up Windows -> find computproteomics.bmb.sdu.dk -> set to Allow</br/>
+              <b>Note:</b> Depending on the size of the data set, the data exchange might fail due to a too slow
               internet connection.</p>"),
                                                       type = "info", html = T
             ))
