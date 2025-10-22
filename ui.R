@@ -30,7 +30,8 @@ source("ExpDesign.R")
 source("PreProcessing.R")
 source("SendRetrieve.R")
 
-options(shiny.maxRequestSize = 200 * 1024^2, shiny.fullstacktrace=TRUE)
+options(shiny.maxRequestSize = 200 * 1024^2, shiny.fullstacktrace=TRUE,
+        shiny.bookmarks.path = "/tmp/omicsq_bookmarks")
 enableBookmarking(store = "server")
 
 ###### Start UI
