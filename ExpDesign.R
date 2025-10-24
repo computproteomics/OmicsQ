@@ -31,7 +31,7 @@ expDesignUI <- function(id, prefix="") {
                           
                           fluidRow(
                               column(10,
-                                     sliderInput(ns("dist_thresh"), "Threshold for string distance", value=0, min=0, max=1)),
+                                     sliderInput(ns("dist_thresh"), "Threshold for string distance", value=0, min=-10, max=100)),
                               column(2, 
                                      actionBttn(ns("h_dist_thresh"),
                                                 icon=icon("info-circle"),
@@ -45,7 +45,7 @@ expDesignUI <- function(id, prefix="") {
                                                  "Jaccard (token-level overlap)" = "jaccard",          # token/set similarity
                                                  "Jaro-Winkler (good for short names)" = "jw",          # fast heuristic for names
                                                  "Soundex (phonetic distance)" = "soundex"           # phonetic similarity
-                                             ), selected="")
+                                             ), selected="lv")
                                  
                           ),
                           column(2, 
@@ -116,7 +116,7 @@ expDesignUI <- function(id, prefix="") {
 
 ########### Server #########
 
-expDesignServer <- function(id, parent, dataInput, log_operations) {
+expDesignServer <- function(id, parent, dataInput, log_operations, SM) {
     moduleServer(
         id,
         function(input, output, session) {
@@ -125,8 +125,17 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
             next_tab <- reactiveVal(NULL)
             process_table <- reactiveVal(NULL)
             
+            # Register ALL of them under this module's namespace
+            ns_id <- session$ns("expDesign")  
+            SM$register_vals(ns_id, list(
+                exp_design = exp_design,
+                # next_tab = next_tab,
+                pexp_design = pexp_design,
+                process_table = process_table
+            ))
+            
             observeEvent(dataInput$next_tab(), {
-                print(dataInput$next_tab())
+                
                 if (!is.null(dataInput$next_tab())) {
                     
                     exp_design(dataInput$exp_design())
@@ -148,19 +157,22 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                         exp_design(current_design)  # Update exp_design with the modified matrix
                     }
                     
-                    updateSelectInput(session, "dist_thresh", selected = 0)
-                    updateSelectInput(session, "dist_type", selected = "jw")
-                    updatePickerInput(session, "ed_sel_samples", choices = cnames)
-                    updateSliderInput(session, "ed_number", max = length(cnames))
-                    updatePickerInput(session, "ed_sel_batches", choices = cnames)
-                    updateSliderInput(session, "batch_number", max = length(cnames))
                     shinyjs::show("ed_c4")
                     shinyjs::show("ed_c3")
                     shinyjs::show("ed_c2")
                     shinyjs::show("ed_c1") 
                     shinyjs::show("ed_c0") 
-                    # Show the combined sample type and batch assignment UI
-                    updateSelectInput(session, "dist_type", selected = "lv")
+                    
+                    if (!SM$restoring()) {
+                        updateSliderInput(session, "dist_thresh", value = 0)
+                        updateSelectInput(session, "dist_type", selected = "jw")
+                        # Show the combined sample type and batch assignment UI
+                        updateSelectInput(session, "dist_type", selected = "lv")
+                    }
+                    updatePickerInput(session, "ed_sel_samples", choices = cnames)
+                    updateSliderInput(session, "ed_number", max = length(cnames))
+                    updatePickerInput(session, "ed_sel_batches", choices = cnames)
+                    updateSliderInput(session, "batch_number", max = length(cnames))
                     
                 }
             })
@@ -177,11 +189,13 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                         ) # p=0.1 prioritizes the start of the strings
                         th_vals <- sort(unique(as.vector(expd_d)))
                         median_dist <- median(th_vals[th_vals != 0], na.rm = T)
-                        updateSliderInput(session, "dist_thresh", value=median_dist,
+                        updateSliderInput(session, "dist_thresh", 
                                           min=round(min(th_vals), digits=3), 
                                           max=round(max(th_vals), digits=3), 
-                                          step = round(diff(range(th_vals)/100), digits=3)
-                        )
+                                          step = round(diff(range(th_vals)/100), digits=3))
+                        if (!isTRUE(SM$restoring())) 
+                            updateSliderInput(session, "dist_thresh", value=median_dist)
+                        
                     }
                 })
             })
@@ -204,9 +218,6 @@ expDesignServer <- function(id, parent, dataInput, log_operations) {
                             tdesign[1, ] <- groups
                             for (j in unique(groups)) {
                                 tdesign[2, groups == j] <- 1:sum(groups == j)
-                                
-                                
-                                
                                 exp_design(tdesign)
                             }
                         }

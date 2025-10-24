@@ -29,6 +29,7 @@ source("DataInput.R")
 source("ExpDesign.R")
 source("PreProcessing.R")
 source("SendRetrieve.R")
+source("StateManager.R")
 
 options(shiny.maxRequestSize = 200 * 1024^2, shiny.fullstacktrace=TRUE,
         shiny.bookmarks.path = "/tmp/omicsq_bookmarks")
@@ -46,8 +47,8 @@ ui <- function(req) {
             style= "border-color: #333333; border: black solid 1px; padding: 1px;display: inline-block;float:right",
             actionBttn(
                 inputId = "custom_bookmark",
-                label = "Short-term session save",
-                title = "Temporarily bookmark this page for a short time (minutes to hours).",
+                label = "Session save",
+                title = "Bookmark this page.",
                 icon = icon("bookmark"),
                 style = "pill",
                 color = "default",

@@ -2,20 +2,31 @@ app_version <- readLines("VERSION")
 
 #### Overall server for OmicsQ ###########
 server <- function(input, output, session) {
+    
+  SM <- make_state_manager(session)
+  # Declare dependency order so hydration is coherent
+  SM$set_ns_order(c("dataInput-", "expDesign-", "preProcessing-", "sendRetrieve-"))
+  onBookmark(SM$onBookmark)
+  onRestore(SM$onRestore)
+  onRestored(SM$onRestored)    
+    
   ## main data sets
   log_operations <- reactiveVal(list(omicsQ_version = app_version))
-  
+ 
+  # Register it as a reactiveVal (single) under a namespace, e.g. "global"
+  SM$register_vals("global", list(log_operations = log_operations))
+   
   ##### READING DATA
-  dataInput <- dataInputServer(id="dataInput", parent=session, log_operations)
+  dataInput <- dataInputServer(id="dataInput", parent=session, log_operations, SM)
   
   ##### EXPERIMENTAL DESIGN
-  expDesign <- expDesignServer(id="expDesign", parent=session, dataInput, log_operations)
+  expDesign <- expDesignServer(id="expDesign", parent=session, dataInput, log_operations, SM)
   
   ##### PRE-PROCESSING
-  preProcessing <- preProcessingServer("preProcessing", parent=session, expDesign, log_operations)
+  preProcessing <- preProcessingServer("preProcessing", parent=session, expDesign, log_operations, SM)
   
   ##### SEND TO APPS
-  sendRetrieve <- sendRetrieveServer("sendRetrieve", preProcessing, log_operations)
+  sendRetrieve <- sendRetrieveServer("sendRetrieve", preProcessing, log_operations, SM)
   
   ###### Logging all operations ######
   observeEvent(input$h_log,{

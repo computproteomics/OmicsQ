@@ -173,17 +173,18 @@ preProcessingUI <- function(id, prefix="") {
 
 
 #################### Server ##################
-preProcessingServer <- function(id, parent, expDesign, log_operations) {
+preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
     moduleServer(
         id,
         function(input, output, session) {
             
-            process_table <- reactiveVal(NULL)
+            process_table <- reactiveVal(NULL) 
             processed_table <- reactiveVal(NULL)
             other_cols <- reactiveVal(NULL)
             pexp_design <- reactiveVal(NULL)
             exp_design <- reactiveVal(NULL)
             next_tab <- reactiveVal(NULL)
+            removed_cols <- reactiveVal(NULL)
             
             # Reactive values to store group, batch and replicate information
             group_info <- reactiveVal(NULL)
@@ -192,6 +193,25 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
             
             # Reactive values to added columns
             added_columns <- reactiveVal(c())
+            
+            # Register ALL of them under this module's namespace
+            ns_id <- session$ns("preProcessing")  
+            SM$register_vals(ns_id, list(
+                process_table = process_table,
+                processed_table = processed_table,
+                other_cols = other_cols,
+                pexp_design = pexp_design,
+                exp_design = exp_design,
+                # next_tab = next_tab,
+                removed_cols = removed_cols,
+                group_info = group_info,
+                batch_info = batch_info,
+                replicate_info = replicate_info,
+                added_columns = added_columns
+            ))
+            
+            SM$set_input_reassert(session$ns("remove_reps"))
+            
             
             init_data <- function() {
                 if(!is.null(process_table())) {
@@ -209,10 +229,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 }
             }
             
+
             ##########################################################################
             ##########################################################################
             observeEvent(expDesign$next_tab(), {
                 if (!is.null(expDesign$next_tab()))  {
+                    
+                    print("init preprocessing")
                     process_table(expDesign$process_table())
                     pexp_design(expDesign$pexp_design())
                     exp_design(expDesign$pexp_design())
@@ -244,12 +267,13 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     
                     # Update pickerInput with new column names and set max-options dynamically
                     total_columns <- ncol(expDesign$pexp_design())
-                    updatePickerInput(session, "remove_reps", 
-                                      choices = colnames(exp_design()),
-                                      options = list(
-                                          `max-options` = total_columns - 2, # Set max-options dynamically
-                                          `max-options-text` = "Cannot select more than n-2 columns"
-                                      ))
+                    if (!SM$restoring()) 
+                        updatePickerInput(session, "remove_reps", 
+                                          choices = colnames(exp_design()),
+                                          options = list(
+                                              `max-options` = total_columns - 2, # Set max-options dynamically
+                                              `max-options-text` = "Cannot select more than n-2 columns"
+                                          ))
                     
                     # Initialize group, batch and replicate information
                     group_info(pexp_design()[1,]) # Assuming Group info is in the first row
@@ -259,13 +283,14 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     # Check for different batches and batch sample number >= 2
                     if (length(unique(batch_info())) > 1 && min(table(batch_info()) >= 2)) {
                         shinyjs::enable("batch_correction_method")
-                        updatePickerInput(session, "batch_correction_method", 
+                        updateSelectInput(session, "batch_correction_method", 
                                           selected = "None")
                     } else {
                         shinyjs::disable("batch_correction_method")
                     }
                     
                     # Determine if the data has been log-transformed
+                    if (isTRUE(SM$restoring())) return()   # don't clobber restored inputs
                     tlog <- log_operations()
                     if (max(quant_columns, na.rm = T) / min(quant_columns, na.rm = T) < 100 || min(quant_columns, na.rm = T) < 0) {
                         updateCheckboxInput(session, "logtrafo", value = TRUE)
@@ -281,6 +306,36 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 }
             })
             
+            # choices for remove_reps come from exp_design()
+            observeEvent(exp_design(), {
+                print("Update remove_reps list")
+                cn <- colnames(exp_design()); req(length(cn) > 0)
+                sel_remove <- isolate(input$remove_reps)
+                sel_remove <- intersect(sel_remove %||% character(0), cn)
+                updatePickerInput(session, "remove_reps",
+                                  choices = cn,
+                                  selected = sel_remove,
+                                  options = list(
+                                      `max-options`      = ncol(exp_design()) - 2,
+                                      `max-options-text` = "Cannot select more than n-2 columns"
+                                  )
+                )
+            })
+            
+            # enable/disable batch control button
+            observe({
+                if (length(unique(batch_info())) > 1 && min(table(batch_info()) >= 2)) {
+                    shinyjs::enable("batch_correction_method")
+                } else {
+                    shinyjs::disable("batch_correction_method")
+                    updateSelectInput(session, "batch_correction_method", selected = "None")
+                }
+            })
+            
+            observeEvent(input$remove_reps, {
+                req(processed_table())
+                removed_cols(input$remove_reps)
+            })
             
             ##########################################################################
             ##########################################################################
@@ -299,7 +354,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                         pexp_design(expdesign[, rem2])
                         cnames <- cnames[rem2]
                         tlog <- log_operations()
-                        tlog[["preprocess_removed_replicates"]] <- input$remove_reps
+                        tlog[["preprocess_removed_replicates"]] <- remove_reps
                         log_operations(tlog)
                     } else {
                         pexp_design(exp_design())
@@ -410,6 +465,35 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 processed_table(cbind(id_column, quant_columns))  # Make sure new columns are added here
                 
             }
+            
+            ##########################################################################
+            ##########################################################################
+            # Remove any previously added na columns
+            remove_na_columns <- function(tdata, expdesign) {
+                print("Removing NA columns...")
+                
+                added_cols <- added_columns()
+                
+                if (length(added_cols) > 0) {
+                    # Remove the added NA columns from tdata
+                    tdata <- tdata[, !(colnames(tdata) %in% added_cols)]
+                    
+                    # Remove the added NA columns from expdesign
+                    tedes <- expdesign[, !(colnames(expdesign) %in% added_cols)]
+                    pexp_design(tedes)
+                    
+                    # Clear the added_columns reactive value
+                    added_columns(c())
+                    
+                    # Update the processed table
+                    id_column <- tdata[, grep("id", sapply(tdata, class)), drop = FALSE]
+                    quant_columns <- tdata[, grep("quant", sapply(tdata, class)), drop = FALSE]
+                    processed_table(cbind(id_column, quant_columns))
+                }
+            }
+            
+            
+            
             ##########################################################################
             ##########################################################################
             # Apply maximum number of missing values per feature
@@ -590,10 +674,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 withProgress(message = 'Running batch correction', value = 0, {
                     # Align `batch_labels` to match the data columns
                     batch_labels <- batch_info()
-                    batch_labels <- batch_labels[colnames(expdesign) %in% colnames(tdata)]
+                    batch_labels <- batch_labels[names(batch_labels) %in% colnames(tdata)]
                     
                     id_col <- NULL
-                    
                     # Determine the number of features with significant batch effects (p < 0.01)
                     if (method == "None") {
                         return(NULL)
@@ -601,6 +684,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     # Filter rows for having at least one value per batch
                     rownames(tdata) <- paste("r", 1:nrow(tdata))
                     red_for_correction <- tdata
+                    # Reduced data to batch_labeled set
+                    red_for_correction <- cbind(red_for_correction[, 1], red_for_correction[, names(batch_labels)])                    
                     for (b in unique(batch_labels)) {
                         red_for_correction <- red_for_correction[rowSums(!is.na(red_for_correction[, names(batch_labels[batch_labels == b]), drop=F])) > 1, , drop=F]
                     }
@@ -660,7 +745,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     # origdata[, colnames(batch_effect_corrected)] <- batch_effect_corrected
                     
                     # write data back
-                    tdata[rownames(batch_effect_corrected), -1] <- batch_effect_corrected
+                    tdata[rownames(batch_effect_corrected), names(batch_labels)] <- batch_effect_corrected
                     processed_table(tdata)
                     
                     # Increment progress to 100%
@@ -697,11 +782,12 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     tdata <- processed_table()
                     
                     if (is.null(tdata)) return() # Exit if tdata is NULL
-                    
-                    remove_cols(tdata, input$remove_reps, exp_design())
+                    remove_cols(tdata, removed_cols(), exp_design())
                     
                     if (input$add_na_columns) {
                         add_na_columns(processed_table(), pexp_design())
+                    } else {
+                        remove_na_columns(processed_table(), pexp_design())
                     }
                     
                     check_balance(pexp_design())
@@ -798,12 +884,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                             "Only one batch detected, no batch effect correction needed."),
                         "<br/>Used batch effect correction method: ", input$batch_correction_method, ".",
                         "<br/><br/><b>After Filling:</b>", 
-                        ifelse(length(added_columns) == 0, " No columns added", paste(" New empty columns added: ", paste(added_columns(), collapse = ", "))),  "</p>"
+                        ifelse(length(added_columns()) == 0, " No columns added", paste(" New empty columns added: ", paste(added_columns(), collapse = ", "))),  "</p>"
                     )
                 })
             })
-            
-            
+
             ##########################################################################
             ##########################################################################
             ## detect id type
@@ -823,9 +908,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                     }
                 }
                 
-                
                 keytype <- detect_key_type(ids)
                 message("Detected key type: ", keytype)
+                if (isTRUE(SM$restoring())) return()   # don't clobber restored inputs
                 updatePickerInput(session, "idtype", 
                                   selected = keytype,
                                   choices = c("Ensembl", "GeneID", "UniProtKB", "Gene_Name"))
@@ -1295,7 +1380,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations) {
                 if (input$show_missing_rows)
                     legend("topright", legend = c("Filtered", "Original"), fill = c("lightblue","darkblue"), bty = "n")
                 else {
-                legend("topright", legend = c("Filtered", "Original"), fill = c("lightgreen", "darkgreen"), bty = "n")
+                    legend("topright", legend = c("Filtered", "Original"), fill = c("lightgreen", "darkgreen"), bty = "n")
                 }
                 output$download_missingplot <- downloadHandler(
                     filename = function() {

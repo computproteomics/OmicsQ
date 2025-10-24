@@ -79,7 +79,7 @@ sendRetrieveUI <- function(id, prefix="") {
 
 
 ############## Server #######
-sendRetrieveServer <- function(id, preProcessing, log_operations) {
+sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
     moduleServer(
         id,
         function(input, output, session) {
@@ -91,6 +91,18 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             processed_table <- reactiveVal(NULL)  # Store the processed table from PreProcessing
             pexp_design <- reactiveVal(NULL)  # Store experimental design information
             other_cols <- reactiveVal(NULL) # Store additional columns (not quant or id)
+            
+            # Register ALL of them under this module's namespace
+            ns_id <- session$ns("sendRetrieve")  
+            SM$register_vals(ns_id, list(
+                log_VSClust = log_VSClust,
+                log_ComplexBrowser = log_ComplexBrowser,
+                log_PolySTest = log_PolySTest,
+                processed_table = processed_table,
+                pexp_design = pexp_design,
+                other_cols = other_cols,
+                result_table = result_table
+            ))            
             
             # Update and display the logs
             output$log_output <- renderText({
@@ -119,7 +131,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Ensure processed_table is always updated with changes from PreProcessing
             observeEvent(preProcessing$next_tab(), {
-                print("Updating processed table from preProcessing")
+                print("init preProcessing")
                 tout <- preProcessing$processed_table()  # Update processed_table reactively
                 # Remove classes id and quant to avoid error in toJSON
                 if (!is.null(tout)) {
@@ -243,6 +255,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # send selected id features in rtable to stringdb
             observeEvent(input$send_stringdb, {
+                req(!SM$restoring())                   # early exit during restore)
                 print("Sending features to STRINGDB")
                 cat("Sending features to STRINGDB\n")
                 selected_rows <- input$rtable_rows_selected
@@ -330,6 +343,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ###################################################
             ## VSClust: Send data to VSClust app
             observeEvent(input$send_VSClust, isolate({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Sending data to VSClust")
                 # Extract processed data and prepare it for sending
                 outdat <- processed_table()
@@ -356,6 +370,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Log connection status for VSClust
             output$connection_VSClust <- renderText({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Checking connection status for VSClust")
                 toutput <- log_VSClust()  # Display the log for VSClust
                 toutput  # Return the log output
@@ -363,6 +378,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Sending message to retrieve results from VSClust
             observeEvent(input$retrieve_VSClust, isolate({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Retrieving VSClust results")
                 log_VSClust("Requesting VSClust results")  # Log the retrieval
                 js$retrieve_results(
@@ -406,6 +422,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ################################################### 
             ## PolySTest: Send data to PolySTest app
             observeEvent(input$send_PolySTest, isolate({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Sending data to PolySTest")
                 # Extract processed data and prepare it for PolySTest
                 outdat <- processed_table()
@@ -432,6 +449,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Log connection status for PolySTest
             output$connection_PolySTest <- renderText({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Checking connection status for PolySTest")
                 toutput <- log_PolySTest()  # Display the log for PolySTest
                 toutput  # Return the log output
@@ -439,6 +457,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Retrieve results from PolySTest
             observeEvent(input$retrieve_PolySTest, isolate({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Retrieving PolySTest results")
                 log_PolySTest("Requesting PolySTest results")  # Log the retrieval
                 js$retrieve_results(
@@ -482,6 +501,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             ###################################################
             ## ComplexBrowser: Send data to ComplexBrowser app
             observeEvent(input$send_ComplexBrowser, isolate({
+                req(!SM$restoring())                   # early exit during restore)
                 print("Sending data to ComplexBrowser")
                 # Extract processed data and prepare it for ComplexBrowser
                 outdat <- processed_table()
@@ -511,6 +531,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations) {
             
             # Log connection status for ComplexBrowser
             output$connection_ComplexBrowser <- renderText({
+                req(!SM$restoring())                   # early exit during restore)
                 toutput <- log_ComplexBrowser()  # Display the log for ComplexBrowser
                 toutput  # Return the log output
             })

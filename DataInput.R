@@ -75,7 +75,7 @@ dataInputUI <- function(id, prefix="") {
 }
 
 ###################### Server #####################
-dataInputServer <- function(id, parent, log_operations) {
+dataInputServer <- function(id, parent, log_operations, SM) {
     moduleServer(
         id,
         function(input, output, session) {
@@ -85,6 +85,15 @@ dataInputServer <- function(id, parent, log_operations) {
             indata <- reactiveVal(NULL)
             next_tab <- reactiveVal(NULL)
             exp_design <- reactiveVal(NULL)
+            
+            # Register ALL of them under this module's namespace
+            ns_id <- session$ns("dataInput")  
+            SM$register_vals(ns_id, list(
+                indata = indata,
+                next_tab = next_tab,
+                exp_design = exp_design
+            ))
+                
             
             observe({
                 tdata <- NULL
@@ -197,7 +206,7 @@ dataInputServer <- function(id, parent, log_operations) {
             
             ### Read example file and push through
             observeEvent(input$run_example, ({
-
+                
                 tdata <- read.csv("data/Myo.csv")
                 class(tdata[, 1]) <- "id"
                 for (i in 3:20) class(tdata[, i]) <- "quant"
@@ -205,10 +214,7 @@ dataInputServer <- function(id, parent, log_operations) {
                 shinyjs::show(id = "in_c1")
                 shinyjs::show(id = "in_c2")
                 shinyjs::show(id = "in_c3")
-                updatePickerInput(session, "sel_icol", choices = names(tdata))
-                updatePickerInput(session, "sel_qcols", choices = names(tdata))
                 # Mimick file reading options
-                shinyjs::show(id = "in_c1")
                 output$file_options <- renderUI({
                     tagList(selectInput(session$ns("in_delimiter"), label = "delimiter", choices = c(
                         auto = "auto",
@@ -224,6 +230,11 @@ dataInputServer <- function(id, parent, log_operations) {
                                      label = "Does file have a header?", value = TRUE
                     ))
                 })
+                
+                req(!SM$restoring())                   # early exit during restore)
+                
+                updatePickerInput(session, "sel_icol", choices = names(tdata))
+                updatePickerInput(session, "sel_qcols", choices = names(tdata))
                 disable("in_delimiter")
                 disable("in_dec")
                 disable("in_skip")
