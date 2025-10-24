@@ -98,8 +98,8 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                 log_VSClust = log_VSClust,
                 log_ComplexBrowser = log_ComplexBrowser,
                 log_PolySTest = log_PolySTest,
-                processed_table = processed_table,
                 pexp_design = pexp_design,
+                processed_table = processed_table,
                 other_cols = other_cols,
                 result_table = result_table
             ))            
@@ -173,7 +173,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
             output$rtable <- DT::renderDT({
                 print("rendering table")
                 # If result_table is not NULL, bind your additional columns
-                if (!is.null(result_table())) {
+                if (!is.null(result_table()) & !SM$restoring()) {
                     full_data <- NULL
                     # Combine main and additional columns
                     if (!is.null(other_cols())) {

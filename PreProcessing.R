@@ -197,11 +197,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
             # Register ALL of them under this module's namespace
             ns_id <- session$ns("preProcessing")  
             SM$register_vals(ns_id, list(
-                process_table = process_table,
-                processed_table = processed_table,
+                # processed_table = processed_table,
                 other_cols = other_cols,
                 pexp_design = pexp_design,
                 exp_design = exp_design,
+                process_table = process_table,
                 # next_tab = next_tab,
                 removed_cols = removed_cols,
                 group_info = group_info,
@@ -211,6 +211,8 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
             ))
             
             SM$set_input_reassert(session$ns("remove_reps"))
+            SM$set_input_reassert(session$ns("batch_correction_method"))
+            SM$set_input_reassert(session$ns("max_na"))
             
             
             init_data <- function() {
@@ -283,8 +285,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                     # Check for different batches and batch sample number >= 2
                     if (length(unique(batch_info())) > 1 && min(table(batch_info()) >= 2)) {
                         shinyjs::enable("batch_correction_method")
-                        updateSelectInput(session, "batch_correction_method", 
-                                          selected = "None")
+                        updateSelectInput(session, "batch_correction_method")
                     } else {
                         shinyjs::disable("batch_correction_method")
                     }
@@ -320,6 +321,9 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                                       `max-options-text` = "Cannot select more than n-2 columns"
                                   )
                 )
+                updateNumericInput(session, "max_na",
+                                   min = 0, max = ncol(exp_design())
+                )
             })
             
             # enable/disable batch control button
@@ -328,36 +332,35 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                     shinyjs::enable("batch_correction_method")
                 } else {
                     shinyjs::disable("batch_correction_method")
-                    updateSelectInput(session, "batch_correction_method", selected = "None")
                 }
             })
             
             observeEvent(input$remove_reps, {
                 req(processed_table())
                 removed_cols(input$remove_reps)
-            })
+            }, ignoreNULL = FALSE)
             
             ##########################################################################
             ##########################################################################
             # Add or delete data columns
-            remove_cols <- function(tdata, remove_reps, expdesign) {
+            remove_cols <- function(tdata, remove_reps, texpdesign) {
                 print("Removing columns...")
                 withProgress(message = "Processing...", value = 0, min = 0, max = 1, {
-                    cnames <- colnames(expdesign)
-                    
+                    cnames <- colnames(texpdesign)
+                
                     # Removing selected columns
                     rem <- -which(names(tdata) %in% remove_reps)
                     if (length(rem) > 0) {
                         incProgress(0.1, detail = "Removing replicates")
                         tdata <- tdata[, rem]
                         rem2 <- -which(cnames %in% remove_reps)
-                        pexp_design(expdesign[, rem2])
+                        pexp_design(texpdesign[, rem2])
                         cnames <- cnames[rem2]
                         tlog <- log_operations()
                         tlog[["preprocess_removed_replicates"]] <- remove_reps
                         log_operations(tlog)
                     } else {
-                        pexp_design(exp_design())
+                        pexp_design(texpdesign)
                     }
                     
                     # Update processed_table to keep only 'id' and 'quant' columns
@@ -371,12 +374,11 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
             ##########################################################################
             ##########################################################################
             ## Check for balanced exp. design
-            check_balance <- function(expdesign) {
+            check_balance <- function(texpdesign) {
                 print("check for balancing")
-                #print(expdesign)
-                
+
                 # Calculate the number of replicates per experimental condition
-                ed_stats <- as.vector(table(expdesign[1, ]))
+                ed_stats <- as.vector(table(texpdesign[1, ]))
                 
                 # Check if all experimental conditions have the same number of replicates
                 if (length(unique(ed_stats)) > 1) {
@@ -669,6 +671,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
             #########################################################################
             #################### Batch Effect Correction ###########################
             batch_correction <- function(tdata, expdesign, batch_labels, method) {
+                req(!SM$restoring())
                 print("Correcting batch effects...")
                 
                 withProgress(message = 'Running batch correction', value = 0, {
@@ -760,7 +763,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                                                      input$summarize,
                                                      input$max_na,
                                                      input$add_na_columns,
-                                                     input$remove_reps,
+                                                     removed_cols(),
                                                      input$logtrafo,
                                                      input$batch_correction_method)
                                                
