@@ -20,14 +20,18 @@ Visit [ComputProteomics Group Page](https://computproteomics.bmb.sdu.dk/) for mo
  
 **User-Friendly Experience**: Avoid installation issues by using the app directly in your browser, 
 with a simple interface for easy navigation.  
+
 **Flexibility**: Easily upload multiple file formats (text, Excel) and use the automated assignment of sample groups and 
 batches.  
+
 **Data Pre-processing**: Batch correction, normalization, filtering, and missing value filtering with visual feedback.
+
 **Web Service Integration**: Submit processed data directly to the following 
 tools:  
 [PolySTest](https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/) for statistical testing with proper treatment of missing data  
 [VSClust](https://computproteomics.bmb.sdu.dk/app_direct/VSClust/) for variance-sensitive clustering analysis also of incomplete data sets  
 [ComplexBrowser](https://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/) for exploration of quantitative behavior of protein complexes (mainly applicable to proteomics data).  
+
 **Data Export**: Download the processed data or analysis results for further offline analysis.
 
 
