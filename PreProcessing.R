@@ -77,8 +77,8 @@ preProcessingUI <- function(id, prefix="") {
             )),
             hidden(column(3, id = ns("pr_c3"),
                           h4("Proceed to interaction with apps"),
-                          textOutput(ns("txt_proceed_apps")),
                           actionButton(ns("proceed_to_apps"), "Proceed"),
+                          textOutput(ns("txt_proceed_apps")),
                           fluidRow(
                               column(10, 
                                      style = "text-align: left;",
@@ -391,14 +391,17 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                         " and maximally", max(ed_stats),
                         "replicates for each experimental condition (sample type). <br/><b>Please click checkbox to make data balanced.</b>"
                     )
+                    tout2 <- paste("Unbalanced design!")
                 } else {
                     # If the design is balanced, enable the Proceed button
                     enable("proceed_to_apps")
                     #disable("add_na_columns")  # Disable fill with empty columns when balanced
                     tout <- paste("Experimental design is balanced.")
+                    tout2 <- NULL
                 }
                 
                 output$res_num_reps <- renderText(tout)
+                output$txt_proceed_apps <- renderText(tout2)
             }
             
             
@@ -765,6 +768,7 @@ preProcessingServer <- function(id, parent, expDesign, log_operations, SM) {
                                                      input$add_na_columns,
                                                      removed_cols(),
                                                      input$logtrafo,
+                                                     expDesign$next_tab(),
                                                      input$batch_correction_method)
                                                
             ),1000)

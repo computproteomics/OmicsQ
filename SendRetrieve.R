@@ -23,6 +23,7 @@ sendRetrieveUI <- function(id, prefix="") {
                           actionButton(ns("send_PolySTest"), "Send to PolySTest"),  # Send button for PolySTest
                           span(textOutput(ns("connection_PolySTest")), style = "color:#33DD33;"),  # Display connection status
                           textInput(ns("url_PolySTest"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/PolySTest/"),  # PolySTest URL input
+                          p("Did you finish your PolySTest analysis? Then"),
                           disabled(actionButton(ns("retrieve_PolySTest"), "Retrieve results from PolySTest"))  # Retrieve button, initially disabled
             )),
             # VSClust section for clustering
@@ -31,6 +32,7 @@ sendRetrieveUI <- function(id, prefix="") {
                           actionButton(ns("send_VSClust"), "Send to VSClust"),  # Send button for VSClust
                           span(textOutput(ns("connection_VSClust")), style = "color:#33DD33;"),  # Display connection status
                           textInput(ns("url_VSClust"), label = "URL", value = "http://computproteomics.bmb.sdu.dk/app_direct/VSClust/"),  # VSClust URL input
+                          p("Did you finish your VSClust analysis? Then"),
                           disabled(actionButton(ns("retrieve_VSClust"), "Retrieve results from VSClust")),  # Retrieve button, initially disabled
                           style = 'border-left: 1px solid'    
             )),
