@@ -1,8 +1,9 @@
 # OmicsQ: A Toolkit for Quantitative Omics Analysis
 
-[![License: Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://opensource.org/licenses/apache-2-0).
+[![License: Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://opensource.org/licenses/apache-2-0)
 [![bio.tools](https://img.shields.io/badge/bio.tools-OmicsQ-005472)](https://bio.tools/omicsq)
-[![DOI](https://zenodo.org/badge/869924362.svg)](https://zenodo.org/badge/latestdoi/869924362)
+[![DOI](https://zenodo.org/badge/DOI/10.5281%2Fzenodo.17455722.svg)](https://doi.org/10.5281/zenodo.17455722)
+
 
 
 OmicsQ is a Shiny-based web application designed for preprocessing and quantitative analysis of Omics data. 
@@ -20,14 +21,18 @@ Visit [ComputProteomics Group Page](https://computproteomics.bmb.sdu.dk/) for mo
  
 **User-Friendly Experience**: Avoid installation issues by using the app directly in your browser, 
 with a simple interface for easy navigation.  
+
 **Flexibility**: Easily upload multiple file formats (text, Excel) and use the automated assignment of sample groups and 
 batches.  
+
 **Data Pre-processing**: Batch correction, normalization, filtering, and missing value filtering with visual feedback.
+
 **Web Service Integration**: Submit processed data directly to the following 
 tools:  
 [PolySTest](https://computproteomics.bmb.sdu.dk/app_direct/PolySTest/) for statistical testing with proper treatment of missing data  
 [VSClust](https://computproteomics.bmb.sdu.dk/app_direct/VSClust/) for variance-sensitive clustering analysis also of incomplete data sets  
 [ComplexBrowser](https://computproteomics.bmb.sdu.dk/app_direct/ComplexBrowser/) for exploration of quantitative behavior of protein complexes (mainly applicable to proteomics data).  
+
 **Data Export**: Download the processed data or analysis results for further offline analysis.
 
 
@@ -104,7 +109,7 @@ OmicsQ is released under the MIT License. See the LICENSE file for details.
 
 If you use OmicsQ in your research, please cite our work:
 
-Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. In preparation.
+Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. [preprint](https://arxiv.org/abs/2504.19813)
 
 ## Contributing
 
