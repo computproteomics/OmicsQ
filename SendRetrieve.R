@@ -205,7 +205,9 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                             
                             # Use the “Bfrtip” layout:
                             # B = Buttons, f = filter, r = processing info, t = table, i = info, p = pagination
-                            dom = "lfrtip",
+                            dom = "Blfrtip",
+                            
+                            buttons = list("colvis"),          # column visibility button
                             
                             # Define which buttons you want (e.g. copy, CSV, Excel, PDF, Print)
                             buttons = c("copy", "csv", "excel", "pdf", "print"),
