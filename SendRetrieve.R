@@ -54,13 +54,14 @@ sendRetrieveUI <- function(id, prefix="") {
         hr(style="border:solid;border-width:1px;"),
         hidden(fluidRow(id = ns("app_c4"),
                         column(3, 
-                               actionButton(ns("send_stringdb"), "Send (filtered) features to stringDB")),
+                               actionButton(ns("send_stringdb"), "Send selected features to stringDB")),
                         column(1, actionBttn(ns("h_stringdb"),
                                              icon = icon("info-circle"),  # Info button for app analysis help
                                              style = "pill", 
                                              color = "royal", size = "xs")
                         ),
                         column(3,
+                               actionButton(ns("select_table"), "Select all (filtered) features"),
                                actionButton(ns("reset_table"), "Deselect all features")),
                         column(1, actionBttn(ns("h_select"),
                                              icon = icon("info-circle"),  # Info button for app analysis help
@@ -234,7 +235,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                             backgroundColor = 'lightcoral'
                         )
                 }
-            })
+            }, server = TRUE)
             
             # log filters
             observeEvent(input$rtable_search, {
@@ -304,10 +305,14 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
             observeEvent(input$reset_table, {
                 # Deselect all features in table
                 selectRows(dproxy, NULL)
-            }
-            )
+            })
             
-            
+            observeEvent(input$select_table, {
+                # select all filtered features
+                
+                print(paste("Selected", length(input$rtable_rows_all), "rows"))
+                selectRows(dproxy, input$rtable_rows_all)
+            })
             
             # ## Show the processed table in a DataTable
             # output$rtable <- DT::renderDT({
@@ -401,6 +406,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                         tdata <- cbind(tdata, suppressWarnings(
                             as.numeric(input$VSClust_results[[1]][[n]])))
                     }
+                    tdata <- as.data.frame(tdata, stringsAsFactors = FALSE)
                     # tdata <- data.frame(tdata)
                     colnames(tdata) <- names(input$VSClust_results[[1]])  # Assign column names
                     
@@ -414,6 +420,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                         }
                         colnames(tdata) <- paste("VSClust", colnames(tdata), sep = "_")  # Add prefix to column names
                         tdata[,"VSClust_isClusterMember"] <- as.logical(tdata[,"VSClust_isClusterMember"])  # Convert to logical
+                        tdata[, "VSClust_cluster"] <- as.factor(tdata[, "VSClust_cluster"])  # Convert to integer
                         result_table(data.frame(result_table(), tdata))  # Combine results with processed table
                         # Update the log with processed results
                         tlog <- log_operations()
@@ -480,6 +487,7 @@ sendRetrieveServer <- function(id, preProcessing, log_operations, SM) {
                         tdata <- cbind(tdata, suppressWarnings(
                             as.numeric(input$PolySTest_results[[1]][[n]])))
                     }
+                    tdata <- as.data.frame(tdata, stringsAsFactors = FALSE)
                     colnames(tdata) <- names(input$PolySTest_results[[1]])  # Assign column names
                     
                     # check whther this is PolySTest output
