@@ -2,7 +2,7 @@
 
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-blue.svg)](https://opensource.org/licenses/apache-2-0)
 [![bio.tools](https://img.shields.io/badge/bio.tools-OmicsQ-005472)](https://bio.tools/omicsq)
-[![DOI](https://zenodo.org/badge/DOI/10.5281%2Fzenodo.17455722.svg)](https://doi.org/10.5281/zenodo.17455722)
+[![DOI](https://zenodo.org/badge/DOI/10.5281%2Fzenodo.17068405.svg)](https://doi.org/10.5281/zenodo.17068405)
 
 
 
