@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: OmicsQ
+type: software
+repository: https://computproteomics.bmb.sdu.dk/app_direct/OmicsQ/
+identifiers:
+- type: other
+  value: OmicsQ
+  description: bio.tools
+license: Apache-2.0
+keywords:
+- term: Proteomics
+  uri: http://edamontology.org/topic_0121
+- term: Workflows
+  uri: http://edamontology.org/topic_0769
+- term: Statistics and probability
+  uri: http://edamontology.org/topic_2269
+- term: Molecular interactions, pathways and networks
+  uri: http://edamontology.org/topic_0602
+- term: Omics
+  uri: http://edamontology.org/topic_3391
+abstract: OmicsQ is a Shiny-based web application designed for preprocessing and quantitative
+  analysis of Omics data. It streamlines the preparation of data for subsequent analysis
+  using specialized tools such as PolySTest for statistical testing and VSClust for
+  clustering analysis.
+message: If you use this software, please cite it using this CITATION.cff.
