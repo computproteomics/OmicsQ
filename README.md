@@ -109,7 +109,7 @@ OmicsQ is released under the MIT License. See the LICENSE file for details.
 
 If you use OmicsQ in your research, please cite our work:
 
-Xuan-Tung Trinh et al. OmicsQ: A Toolkit for Quantitative Analysis of Omics Data. [preprint](https://arxiv.org/abs/2504.19813)
+Trinh XT, Abrantes da Costa A, Bouyssié D, Rogowska-Wrzesinska A, Schwämmle V. _OmicsQ: a user-friendly platform for interactive quantitative omics data analysis._ __Bioinformatics__. 2026 Jan 2;42(1):btaf660. doi: [10.1093/bioinformatics/btaf660](https://doi.org/10.1093/bioinformatics/btaf660). PMID: 41408075; PMCID: PMC12758597.
 
 ## Contributing
 
