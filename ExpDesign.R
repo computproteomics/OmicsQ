@@ -325,25 +325,27 @@ expDesignServer <- function(id, parent, dataInput, log_operations, SM) {
             # Send further to next tab
             observeEvent(input$proceed_to_process, {
                 print("send to processing")
-                final_exp_design <- exp_design()
-                exp_design(final_exp_design[, order(
-                    final_exp_design[1, ],
-                    final_exp_design[2, ]
-                )])
-                pexp_design(exp_design())
-                tdata <- dataInput$indata()
-                
-                icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
-                ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
-                ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
-                process_table(tdata[, c(icol, colnames(final_exp_design), ocols)])
-                
-                updateTabsetPanel(parent, "mainpage", selected = "process")
-                
-                if (!is.null(next_tab())) {
-                    next_tab(paste0(next_tab(), "_new"))
-                } else {
-                    next_tab("ready")
+                if(!is.null(exp_design())) {
+                    final_exp_design <- exp_design()
+                    exp_design(final_exp_design[, order(
+                        final_exp_design[1, ],
+                        final_exp_design[2, ]
+                    )])
+                    pexp_design(exp_design())
+                    tdata <- dataInput$indata()
+                    
+                    icol <- colnames(tdata)[grep("id", sapply(tdata, class))]
+                    ccols <- colnames(tdata)[grep("quant", sapply(tdata, class))]
+                    ocols <- colnames(tdata)[which(!(colnames(tdata) %in% c(icol, ccols)))]
+                    process_table(tdata[, c(icol, colnames(final_exp_design), ocols)])
+                    
+                    updateTabsetPanel(parent, "mainpage", selected = "process")
+                    
+                    if (!is.null(next_tab())) {
+                        next_tab(paste0(next_tab(), "_new"))
+                    } else {
+                        next_tab("ready")
+                    }
                 }
             })
             

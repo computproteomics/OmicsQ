@@ -93,7 +93,7 @@ dataInputServer <- function(id, parent, log_operations, SM) {
                 next_tab = next_tab,
                 exp_design = exp_design
             ))
-                
+            
             
             observe({
                 tdata <- NULL
@@ -221,8 +221,8 @@ dataInputServer <- function(id, parent, log_operations, SM) {
                         comma = ",", semicolon = ";", tabulator = "\t", colon = ":", bar = "|",
                         space = " "
                     ), selected = ",", multiple = FALSE, ), selectInput(session$ns("in_dec"),
-                                                                            label = "decimal separator", choices = c(comma = ",", point = "."),
-                                                                            selected = "."
+                                                                        label = "decimal separator", choices = c(comma = ",", point = "."),
+                                                                        selected = "."
                     ), numericInput(session$ns("in_skip"),
                                     label = "remove lines at beginning?",
                                     min = 0, max = 100, step = 1, value = 0
@@ -263,7 +263,7 @@ dataInputServer <- function(id, parent, log_operations, SM) {
             #### Input data data table
             output$ptable <- DT::renderDT({
                 print("dttable")
-                                
+                
                 show_table <- indata()
                 if (!is.null(show_table)) {
                     ## create header and footer of table
@@ -423,6 +423,7 @@ dataInputServer <- function(id, parent, log_operations, SM) {
                 print("proceed to expdesign")
                 updateTabsetPanel(parent, "mainpage", selected = "exp_design")
                 cnames <- colnames(indata())[sapply(indata(), class) == "quant"]
+                if(length(cnames) > 0) {
                 ted <- rbind(rep(1, length(cnames)), 1)
                 colnames(ted) <- cnames
                 rownames(ted) <- c("Group", "Replicate")
@@ -434,7 +435,7 @@ dataInputServer <- function(id, parent, log_operations, SM) {
                 } else {
                     next_tab("ready")
                 }
-                
+                }  
             })
             )
             
